@@ -1,8 +1,5 @@
-# Book-Data_Voyage
-Data Voyage: Mapping the Path to Discovery in Data Science
+# Data Voyage: Mapping the Path to Discovery in Data Science
 
-
-# Data Science Handbook
 
 ## Introduction
 
