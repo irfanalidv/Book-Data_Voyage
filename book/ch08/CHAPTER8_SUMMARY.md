@@ -10,6 +10,16 @@ Chapter 8 has been successfully created with comprehensive coverage of statistic
 
 - **`ch08_statistical_inference_hypothesis_testing.py`** - Comprehensive statistical inference coverage
 
+### **Generated Visualizations:**
+
+- **`hypothesis_testing.png`** - **Comprehensive Statistical Dashboard** with 6 detailed subplots covering:
+  - Group distributions (histograms)
+  - Statistical comparisons (box plots)
+  - P-values and significance testing
+  - Effect size analysis
+  - Confidence intervals with error bars
+  - Power analysis for sample size planning
+
 ## 🚀 **Code Execution Results**
 
 ### **Main Chapter Script Output:**
@@ -150,6 +160,71 @@ Statistical inference and hypothesis testing complete!
 Key concepts demonstrated: sampling, confidence intervals, and hypothesis testing.
 ```
 
+## 🎨 **Generated Visualizations**
+
+### **`hypothesis_testing.png` - Comprehensive Statistical Analysis Dashboard**
+
+This single comprehensive visualization contains **6 detailed subplots** that provide a complete view of all statistical inference concepts:
+
+#### **Subplot 1: Group Distributions (Histograms)**
+
+- **Content**: Overlapping histograms of control vs treatment groups
+- **Purpose**: Visual comparison of group distributions and overlap
+- **Features**:
+  - Control group (blue): Mean ≈ 96.62, normal distribution
+  - Treatment group (light green): Mean ≈ 105.27, shifted right
+  - Clear separation showing treatment effect
+  - Frequency analysis and distribution shape
+
+#### **Subplot 2: Group Comparisons (Box Plots)**
+
+- **Content**: Side-by-side box plots for control and treatment groups
+- **Purpose**: Statistical summary comparison with outliers and quartiles
+- **Features**:
+  - Median, quartiles, and range visualization
+  - Outlier detection and distribution spread
+  - Clear visual difference between groups
+  - Statistical summary statistics
+
+#### **Subplot 3: P-values for Tests (Bar Chart)**
+
+- **Content**: Bar chart comparing p-values from different statistical tests
+- **Purpose**: Visual representation of statistical significance
+- **Features**:
+  - One-sample t-test p-value: 0.0940 (not significant)
+  - Two-sample t-test p-value: 0.0019 (highly significant)
+  - Red dashed line at α = 0.05 significance level
+  - Clear visualization of which tests reject null hypothesis
+
+#### **Subplot 4: Effect Size (Bar Chart)**
+
+- **Content**: Single bar showing Cohen's d effect size
+- **Purpose**: Visual representation of practical significance
+- **Features**:
+  - Effect size: 0.644 (large effect)
+  - Color-coded for easy interpretation
+  - Practical significance assessment
+
+#### **Subplot 5: Confidence Intervals (Error Bars)**
+
+- **Content**: Group means with standard error bars
+- **Purpose**: Visualization of uncertainty in group estimates
+- **Features**:
+  - Control group mean with standard error
+  - Treatment group mean with standard error
+  - Error bars showing 95% confidence intervals
+  - Clear separation between groups
+
+#### **Subplot 6: Power Analysis (Line Plot)**
+
+- **Content**: Statistical power vs sample size relationship
+- **Purpose**: Understanding sample size requirements for adequate power
+- **Features**:
+  - Power curve from n=10 to n=100 per group
+  - Red dashed line at power = 0.8 (recommended threshold)
+  - Shows how power increases with sample size
+  - Practical guidance for study design
+
 ## 🎓 **Key Concepts Demonstrated**
 
 ### **1. Sampling and Sampling Distributions**
@@ -202,6 +277,35 @@ Key concepts demonstrated: sampling, confidence intervals, and hypothesis testin
   - One-sample test: p=0.0940 (not significant at α=0.05)
   - Two-sample test: p=0.0019 (highly significant at α=0.05)
   - Effect size: d=0.644 (large effect)
+
+## 👁️ **What You Can See in the Visualization**
+
+### **Complete Statistical Analysis at a Glance:**
+
+The `hypothesis_testing.png` file provides a **comprehensive dashboard** where users can see everything they need for statistical inference in one place. This single visualization eliminates the need to look at multiple charts or run additional code - it's all contained in one professional-quality image.
+
+✅ **Group Differences**: Clear visual separation between control and treatment groups
+✅ **Statistical Significance**: P-values and confidence intervals for all tests
+✅ **Effect Size**: Practical significance beyond statistical significance
+✅ **Data Distribution**: Shape, spread, and outliers in both groups
+✅ **Power Analysis**: Sample size requirements for future studies
+✅ **Uncertainty**: Standard errors and confidence intervals for estimates
+
+### **Key Insights from the Visualization:**
+
+- **Treatment Effect**: Visual confirmation of 8.65 unit improvement
+- **Statistical Power**: Understanding of sample size adequacy
+- **Data Quality**: Assessment of normality and outlier presence
+- **Practical Significance**: Large effect size (d=0.644) despite small sample
+- **Study Design**: Guidance for future experimental planning
+
+### **Why This Visualization is Special:**
+
+🎯 **One-Stop Analysis**: All statistical concepts in a single, professional image
+📊 **Publication Ready**: High-quality (300 DPI) suitable for reports and presentations
+🔍 **Self-Contained**: No need to run code or generate additional charts
+📈 **Educational Value**: Perfect for learning and teaching statistical concepts
+💼 **Portfolio Quality**: Professional enough for data science portfolios and resumes
 
 ## 🚀 **Technical Skills Demonstrated**
 
