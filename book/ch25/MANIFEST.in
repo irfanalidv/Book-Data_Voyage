@@ -1,0 +1,109 @@
+# Chapter 25: Python Library Development - MANIFEST.in
+# File inclusion patterns for datascience_toolkit package distribution
+
+# Include README and license files
+include README.md
+include LICENSE
+include CHANGELOG.md
+include AUTHORS.md
+include CONTRIBUTING.md
+
+# Include requirements files
+include requirements.txt
+include requirements-dev.txt
+include requirements-test.txt
+include requirements-docs.txt
+
+# Include configuration files
+include pyproject.toml
+include setup.py
+include setup.cfg
+include tox.ini
+include .coveragerc
+include .flake8
+include .pylintrc
+include .bandit
+include .safety
+
+# Include documentation
+recursive-include docs *.md *.rst *.txt *.html *.css *.js *.png *.jpg *.svg
+recursive-include docs/source *.md *.rst *.txt *.html *.css *.js *.png *.jpg *.svg
+
+# Include test files
+recursive-include tests *.py *.txt *.csv *.json *.yaml *.yml
+recursive-include tests/unit *.py *.txt *.csv *.json *.yaml *.yml
+recursive-include tests/integration *.py *.txt *.csv *.json *.yaml *.yml
+recursive-include tests/fixtures *.py *.txt *.csv *.json *.yaml *.yml
+
+# Include examples
+recursive-include examples *.py *.ipynb *.md *.txt *.csv *.json *.yaml *.yml
+recursive-include examples/data *.csv *.json *.yaml *.yml *.xlsx *.parquet
+recursive-include examples/notebooks *.ipynb *.md *.py
+
+# Include scripts
+recursive-include scripts *.py *.sh *.bat *.ps1
+
+# Include package data
+recursive-include datascience_toolkit/data *.csv *.json *.yaml *.yml *.xlsx *.parquet
+recursive-include datascience_toolkit/config *.yaml *.yml *.json *.ini *.cfg
+recursive-include datascience_toolkit/templates *.html *.css *.js *.xml
+
+# Include CI/CD configuration
+recursive-include .github *.yml *.yaml
+recursive-include .github/workflows *.yml *.yaml
+
+# Include development tools configuration
+include .pre-commit-config.yaml
+include .editorconfig
+include .gitignore
+include .gitattributes
+
+# Include build and distribution files
+include build.py
+include build_scripts/*.py
+include dist_scripts/*.py
+
+# Exclude common unwanted files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.pyd
+global-exclude *.so
+global-exclude *.dll
+global-exclude *.dylib
+global-exclude *.exe
+
+# Exclude version control
+global-exclude .git*
+global-exclude .svn*
+global-exclude .hg*
+
+# Exclude OS-specific files
+global-exclude .DS_Store
+global-exclude Thumbs.db
+global-exclude desktop.ini
+
+# Exclude Python cache and build artifacts
+global-exclude __pycache__
+global-exclude *.egg-info
+global-exclude .pytest_cache
+global-exclude .coverage
+global-exclude htmlcov
+global-exclude .tox
+global-exclude .venv
+global-exclude venv
+global-exclude env
+global-exclude .env
+
+# Exclude IDE and editor files
+global-exclude .vscode
+global-exclude .idea
+global-exclude *.swp
+global-exclude *.swo
+global-exclude *~
+
+# Exclude temporary files
+global-exclude *.tmp
+global-exclude *.temp
+global-exclude *.log
+global-exclude *.bak
+global-exclude *.backup
