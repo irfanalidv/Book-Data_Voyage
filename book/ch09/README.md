@@ -1,4 +1,4 @@
-# Chapter 9: Introduction to Machine Learning
+# Chapter 9: Machine Learning Fundamentals
 
 ## 🎯 Learning Objectives
 

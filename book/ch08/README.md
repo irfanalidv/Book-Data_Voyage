@@ -1,61 +1,61 @@
-# Chapter 8: Feature Engineering
+# Chapter 8: Statistical Inference and Hypothesis Testing
 
 ## 🎯 Learning Objectives
 
 By the end of this chapter, you will be able to:
-- Create meaningful features from raw data
-- Handle categorical and numerical variables effectively
-- Engineer temporal and geospatial features
-- Select the most relevant features for modeling
-- Automate feature engineering pipelines
+
+- Understand sampling distributions and the Central Limit Theorem
+- Calculate and interpret confidence intervals
+- Perform hypothesis testing with appropriate statistical tests
+- Interpret p-values and statistical significance
+- Calculate and understand effect sizes (Cohen's d)
+- Conduct power analysis for study design
 
 ## 📚 Chapter Overview
 
-Feature engineering is the process of creating new variables from existing data that better represent the underlying problem to the predictive models. This chapter covers the art and science of transforming raw data into features that improve model performance and interpretability.
+Statistical inference and hypothesis testing are fundamental concepts in data science that allow us to draw conclusions from sample data and make decisions about populations. This chapter covers the essential statistical methods needed to validate findings and make data-driven decisions.
 
 ## 🔍 Key Topics
 
-1. **Feature Engineering Fundamentals**
-   - The importance of feature engineering
-   - Domain knowledge and creativity
-   - Feature engineering workflow
-   - Iterative feature development
+1. **Sampling and Sampling Distributions**
 
-2. **Numerical Feature Engineering**
-   - Mathematical transformations (log, square root, polynomial)
-   - Binning and discretization techniques
-   - Scaling and normalization methods
-   - Interaction and combination features
+   - Population vs. sample concepts
+   - Central Limit Theorem
+   - Sampling distribution properties
+   - Expected vs. observed statistics
 
-3. **Categorical Feature Engineering**
-   - Encoding strategies (one-hot, label, target)
-   - Feature hashing and embedding
-   - High-cardinality categorical handling
-   - Ordinal encoding and ranking
+2. **Confidence Intervals**
 
-4. **Temporal and Geospatial Features**
-   - Date and time feature extraction
-   - Cyclical encoding of time features
-   - Geographic coordinate transformations
-   - Distance and proximity calculations
+   - Point estimation vs. interval estimation
+   - Confidence level interpretation
+   - Margin of error calculation
+   - Coverage probability
 
-5. **Feature Selection and Evaluation**
-   - Filter, wrapper, and embedded methods
-   - Feature importance and ranking
-   - Correlation and multicollinearity analysis
-   - Automated feature selection pipelines
+3. **Hypothesis Testing**
+
+   - Null and alternative hypotheses
+   - Type I and Type II errors
+   - P-value interpretation
+   - Statistical significance
+
+4. **Effect Size and Power**
+
+   - Cohen's d effect size
+   - Practical vs. statistical significance
+   - Power analysis
+   - Sample size determination
 
 ## 🚀 Getting Started
 
-- **Prerequisites**: Chapters 2-7 (Python through EDA)
-- **Estimated Time**: 6-8 hours
-- **Hands-on Activities**: Feature engineering on real datasets
-- **Key Takeaway**: Creating predictive features from raw data
+- **Prerequisites**: Chapters 3, 6-7 (Mathematics, Data Cleaning, EDA)
+- **Estimated Time**: 4-6 hours
+- **Hands-on Activities**: Statistical testing on real datasets
+- **Key Takeaway**: Making data-driven decisions with statistical rigor
 
 ## 📖 Next Steps
 
-After completing this chapter, you'll be ready to dive into machine learning fundamentals in Chapter 9, where we'll use these engineered features to build predictive models.
+After completing this chapter, you'll be ready to dive into machine learning fundamentals in Chapter 9, where we'll apply statistical thinking to model evaluation and validation.
 
 ---
 
-*"Feature engineering is more art than science, but it's the art that separates good models from great ones."*
+_"Statistics is the grammar of science." - Karl Pearson_

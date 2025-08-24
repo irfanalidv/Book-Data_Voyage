@@ -1,61 +1,66 @@
-# Chapter 10: Supervised Learning: Classification
+# Chapter 10: Feature Engineering and Selection
 
 ## 🎯 Learning Objectives
 
 By the end of this chapter, you will be able to:
-- Implement and evaluate classification algorithms
-- Understand the strengths and weaknesses of different approaches
-- Handle imbalanced datasets and multi-class problems
-- Apply classification to real-world business problems
-- Interpret classification model results
+
+- Create meaningful features from raw data
+- Handle categorical and numerical variables effectively
+- Engineer temporal and geospatial features
+- Select the most relevant features for modeling
+- Automate feature engineering pipelines
 
 ## 📚 Chapter Overview
 
-Classification is one of the most common and practical applications of machine learning. This chapter covers the fundamental classification algorithms, from simple linear models to complex ensemble methods, and teaches you how to choose the right approach for your specific problem.
+Feature engineering is the process of creating new variables from existing data that better represent the underlying problem to the predictive models. This chapter covers the art and science of transforming raw data into features that improve model performance and interpretability.
 
 ## 🔍 Key Topics
 
-1. **Classification Fundamentals**
-   - Binary vs. multi-class classification
-   - Classification metrics and evaluation
-   - Handling imbalanced datasets
-   - Decision boundaries and model interpretation
+1. **Feature Engineering Fundamentals**
 
-2. **Linear Classification Models**
-   - Logistic regression fundamentals
-   - Linear discriminant analysis (LDA)
-   - Support vector machines (SVM)
-   - Regularization and feature selection
+   - The importance of feature engineering
+   - Domain knowledge and creativity
+   - Feature engineering workflow
+   - Iterative feature development
 
-3. **Tree-Based Methods**
-   - Decision tree algorithms
-   - Random forests and ensemble methods
-   - Gradient boosting machines (XGBoost, LightGBM)
-   - Feature importance and model interpretability
+2. **Numerical Feature Engineering**
 
-4. **Neural Network Classification**
-   - Multi-layer perceptrons (MLP)
-   - Activation functions and loss functions
-   - Training neural networks for classification
-   - Deep learning considerations
+   - Mathematical transformations (log, square root, polynomial)
+   - Binning and discretization techniques
+   - Scaling and normalization methods
+   - Interaction and combination features
 
-5. **Advanced Classification Techniques**
-   - Ensemble methods and voting
-   - Stacking and blending
-   - Multi-label classification
-   - Cost-sensitive learning
+3. **Categorical Feature Engineering**
+
+   - Encoding strategies (one-hot, label, target)
+   - Feature hashing and embedding
+   - High-cardinality categorical handling
+   - Ordinal encoding and ranking
+
+4. **Temporal and Geospatial Features**
+
+   - Date and time feature extraction
+   - Cyclical encoding of time features
+   - Geographic coordinate transformations
+   - Distance and proximity calculations
+
+5. **Feature Selection and Evaluation**
+   - Filter, wrapper, and embedded methods
+   - Feature importance and ranking
+   - Correlation and multicollinearity analysis
+   - Automated feature selection pipelines
 
 ## 🚀 Getting Started
 
-- **Prerequisites**: Chapter 9 (Introduction to Machine Learning)
-- **Estimated Time**: 8-10 hours
-- **Hands-on Activities**: Building classification models for real datasets
-- **Key Takeaway**: Mastering classification algorithms and applications
+- **Prerequisites**: Chapters 6-9 (Data Cleaning through Machine Learning)
+- **Estimated Time**: 6-8 hours
+- **Hands-on Activities**: Feature engineering on real datasets
+- **Key Takeaway**: Creating predictive features from raw data
 
 ## 📖 Next Steps
 
-After completing this chapter, you'll be ready to explore regression in Chapter 11, where we'll learn to predict continuous numerical values.
+After completing this chapter, you'll be ready to explore unsupervised learning in Chapter 11, where we'll learn clustering and dimensionality reduction techniques.
 
 ---
 
-*"Classification is the art of finding patterns in data to make predictions about unseen examples."*
+_"Feature engineering is more art than science, but it's the art that separates good models from great ones."_
