@@ -1,4 +1,4 @@
-# Data Voyage: Complete Data Science Journey from Fundamentals to Advanced Career Development
+#  Data Voyage: Mapping the Path to Discovery in Data Science 
 
 > _"The goal is to turn data into information, and information into insight."_ - Carly Fiorina
 
