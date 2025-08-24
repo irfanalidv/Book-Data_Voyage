@@ -98,3 +98,72 @@ google-cloud-storage>=2.10.0
 azure-storage-blob>=12.17.0
 mlflow>=2.6.0
 wandb>=0.15.0
+
+# Model Deployment and MLOps
+onnx>=1.14.0
+skl2onnx>=1.14.0
+
+# Additional Libraries Used in Codebase
+# Standard library modules (built-in, no installation needed):
+# - os, sys, time, json, pickle, logging, hashlib
+# - datetime, collections, pathlib, typing, warnings
+# - math, random, statistics, subprocess, tempfile, shutil
+
+# Web Scraping and Data Collection
+lxml>=4.9.0
+html5lib>=1.1
+
+# Statistical Analysis
+pingouin>=0.5.0
+scipy-stats>=1.11.0
+
+# Data Processing and Manipulation
+openpyxl>=3.1.0
+xlrd>=2.0.0
+pyarrow>=12.0.0
+h5py>=3.8.0
+
+# Machine Learning Extensions
+imbalanced-learn>=0.11.0
+feature-engine>=1.6.0
+category-encoders>=2.6.0
+
+# Visualization Extensions
+plotly-express>=0.4.1
+kaleido>=0.2.1
+bokeh-extensions>=0.1.0
+
+# Development and Testing
+pytest-benchmark>=4.0.0
+pytest-xdist>=3.3.0
+coverage>=7.2.0
+
+# Code Quality and Formatting
+pre-commit>=3.3.0
+autopep8>=2.0.0
+pylint>=2.17.0
+
+# Environment Management
+conda>=23.0.0
+pipenv>=2023.0.0
+poetry>=1.5.0
+
+# Version Control and Collaboration
+gitpython>=3.1.0
+github3.py>=4.0.0
+
+# Monitoring and Logging
+structlog>=23.1.0
+loguru>=0.7.0
+
+# Security and Validation
+cryptography>=41.0.0
+bcrypt>=4.0.0
+
+# Additional Scientific Computing
+sympy>=1.12.0
+mpmath>=1.3.0
+
+# Data Compression and Formats
+lz4>=4.3.0
+zstandard>=0.21.0
