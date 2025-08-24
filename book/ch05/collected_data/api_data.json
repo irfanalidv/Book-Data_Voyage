@@ -1,0 +1,50 @@
+{
+  "users": {
+    "status": "success",
+    "data": [
+      {
+        "id": 1,
+        "name": "Alice",
+        "email": "alice@example.com",
+        "created_at": "2024-01-01"
+      },
+      {
+        "id": 2,
+        "name": "Bob",
+        "email": "bob@example.com",
+        "created_at": "2024-01-02"
+      },
+      {
+        "id": 3,
+        "name": "Charlie",
+        "email": "charlie@example.com",
+        "created_at": "2024-01-03"
+      }
+    ],
+    "total": 3
+  },
+  "products": {
+    "status": "success",
+    "data": [
+      {
+        "id": 1,
+        "name": "Laptop",
+        "price": 999.99,
+        "category": "Electronics"
+      },
+      {
+        "id": 2,
+        "name": "Phone",
+        "price": 699.99,
+        "category": "Electronics"
+      },
+      {
+        "id": 3,
+        "name": "Book",
+        "price": 29.99,
+        "category": "Education"
+      }
+    ],
+    "total": 3
+  }
+}
