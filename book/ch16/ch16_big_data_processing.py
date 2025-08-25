@@ -4,7 +4,8 @@ Chapter 16: Big Data Processing
 ================================
 
 This chapter covers essential big data processing concepts, distributed computing,
-and practical implementations using Python libraries for handling large-scale data.
+and practical implementations using Python libraries for handling large-scale data
+with real datasets and examples.
 
 Topics Covered:
 - Big Data Characteristics (Volume, Velocity, Variety, Veracity)
@@ -24,13 +25,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime, timedelta
 import warnings
+import requests
+import json
 
 # Set up plotting style
 plt.style.use("default")
 sns.set_palette("husl")
 warnings.filterwarnings("ignore")
 
-# Set random seed for reproducibility
+# Set random seed for reproducibility (only for fallback data)
 np.random.seed(42)
 
 
@@ -203,27 +206,159 @@ def demonstrate_parallel_processing_simulation():
     print("\n16.4 PARALLEL PROCESSING SIMULATION")
     print("-" * 40)
 
-    print("\n1. CREATING LARGE DATASET FOR PROCESSING:")
-    print("-" * 45)
+    print("\n1. CREATING REALISTIC BIG DATASET FOR PROCESSING:")
+    print("-" * 50)
 
-    # Create a large synthetic dataset
-    n_records = 100000
-    n_features = 20
+    def load_real_big_data():
+        """Load or create realistic big data examples."""
+        datasets = {}
 
-    print(f"  Generating {n_records:,} records with {n_features} features...")
+        try:
+            # Try to load real COVID-19 data as an example of big data
+            print("  Loading real COVID-19 dataset (example of big data)...")
+            covid_url = "https://disease.sh/v3/covid-19/countries"
+            response = requests.get(covid_url, timeout=10)
+            if response.status_code == 200:
+                covid_data = response.json()
+                covid_df = pd.DataFrame(covid_data)
 
-    # Generate synthetic data
-    data = {
-        "user_id": range(1, n_records + 1),
-        "timestamp": pd.date_range("2023-01-01", periods=n_records, freq="1min"),
-        "feature_1": np.random.normal(100, 15, n_records),
-        "feature_2": np.random.exponential(50, n_records),
-        "feature_3": np.random.uniform(0, 1000, n_records),
-        "category": np.random.choice(["A", "B", "C", "D"], n_records),
-        "value": np.random.gamma(2, 25, n_records),
-    }
+                # Select relevant columns and create a larger dataset
+                selected_cols = [
+                    "country",
+                    "cases",
+                    "deaths",
+                    "recovered",
+                    "population",
+                    "active",
+                    "critical",
+                ]
+                covid_df = covid_df[selected_cols].copy()
 
-    df = pd.DataFrame(data)
+                # Create a larger dataset by duplicating and adding variations
+                n_records = 100000
+                expanded_data = []
+
+                for i in range(n_records):
+                    base_record = covid_df.iloc[i % len(covid_df)].copy()
+                    # Add realistic variations
+                    base_record["cases"] = int(
+                        base_record["cases"] * (0.8 + 0.4 * np.random.random())
+                    )
+                    base_record["deaths"] = int(
+                        base_record["deaths"] * (0.8 + 0.4 * np.random.random())
+                    )
+                    base_record["recovered"] = int(
+                        base_record["recovered"] * (0.8 + 0.4 * np.random.random())
+                    )
+                    base_record["active"] = int(
+                        base_record["active"] * (0.8 + 0.4 * np.random.random())
+                    )
+                    base_record["critical"] = int(
+                        base_record["critical"] * (0.8 + 0.4 * np.random.random())
+                    )
+                    base_record["population"] = int(
+                        base_record["population"] * (0.9 + 0.2 * np.random.random())
+                    )
+
+                    expanded_data.append(base_record)
+
+                datasets["covid"] = pd.DataFrame(expanded_data)
+                print(f"    ✅ COVID-19 dataset: {len(datasets['covid']):,} records")
+                print(
+                    f"    📊 Memory usage: {datasets['covid'].memory_usage(deep=True).sum() / 1024**2:.2f} MB"
+                )
+            else:
+                raise Exception("Failed to fetch COVID data")
+
+        except Exception as e:
+            print(f"    ⚠️  Could not load COVID data: {e}")
+            print("    📝 Creating realistic big data simulation...")
+
+            # Create realistic big data simulation
+            n_records = 100000
+            n_features = 20
+
+            # Generate realistic user behavior data
+            data = {
+                "user_id": range(1, n_records + 1),
+                "timestamp": pd.date_range(
+                    "2023-01-01", periods=n_records, freq="1min"
+                ),
+                "session_duration": np.random.exponential(
+                    300, n_records
+                ),  # Session duration in seconds
+                "page_views": np.random.poisson(
+                    15, n_records
+                ),  # Number of pages viewed
+                "bounce_rate": np.random.beta(2, 8, n_records),  # Bounce rate (0-1)
+                "conversion_rate": np.random.beta(
+                    1, 20, n_records
+                ),  # Conversion rate (0-1)
+                "device_type": np.random.choice(
+                    ["Mobile", "Desktop", "Tablet"], n_records, p=[0.6, 0.3, 0.1]
+                ),
+                "browser": np.random.choice(
+                    ["Chrome", "Safari", "Firefox", "Edge"],
+                    n_records,
+                    p=[0.6, 0.2, 0.15, 0.05],
+                ),
+                "country": np.random.choice(
+                    ["US", "UK", "CA", "AU", "DE", "FR", "JP", "IN"], n_records
+                ),
+                "age_group": np.random.choice(
+                    ["18-24", "25-34", "35-44", "45-54", "55+"], n_records
+                ),
+                "gender": np.random.choice(
+                    ["M", "F", "Other"], n_records, p=[0.48, 0.48, 0.04]
+                ),
+                "subscription_tier": np.random.choice(
+                    ["Free", "Basic", "Premium", "Enterprise"],
+                    n_records,
+                    p=[0.7, 0.2, 0.08, 0.02],
+                ),
+                "last_purchase_date": pd.date_range(
+                    "2022-01-01", periods=n_records, freq="1D"
+                ),
+                "total_spent": np.random.exponential(100, n_records),
+                "customer_satisfaction": np.random.normal(4.2, 0.8, n_records).clip(
+                    1, 5
+                ),
+                "support_tickets": np.random.poisson(2, n_records),
+                "social_media_followers": np.random.exponential(500, n_records),
+                "email_open_rate": np.random.beta(3, 7, n_records),
+                "click_through_rate": np.random.beta(2, 18, n_records),
+                "return_customer": np.random.choice(
+                    [True, False], n_records, p=[0.3, 0.7]
+                ),
+                "referral_source": np.random.choice(
+                    ["Organic", "Paid", "Social", "Email", "Direct"], n_records
+                ),
+            }
+
+            datasets["user_behavior"] = pd.DataFrame(data)
+            print(
+                f"    ✅ User behavior dataset: {len(datasets['user_behavior']):,} records"
+            )
+            print(
+                f"    📊 Memory usage: {datasets['user_behavior'].memory_usage(deep=True).sum() / 1024**2:.2f} MB"
+            )
+
+        return datasets
+
+    # Load realistic big data
+    real_datasets = load_real_big_data()
+
+    # Use the first available dataset
+    if "covid" in real_datasets:
+        df = real_datasets["covid"]
+        print(f"  📈 Using COVID-19 dataset with {df.shape[1]} features")
+    elif "user_behavior" in real_datasets:
+        df = real_datasets["user_behavior"]
+        print(f"  📈 Using user behavior dataset with {df.shape[1]} features")
+    else:
+        print("  ⚠️  No datasets available, creating minimal fallback")
+        df = pd.DataFrame({"id": range(1000), "value": np.random.random(1000)})
+
     print(f"  ✅ Dataset created: {df.shape[0]:,} rows × {df.shape[1]} columns")
     print(f"  📊 Memory usage: {df.memory_usage(deep=True).sum() / 1024**2:.2f} MB")
 
@@ -281,60 +416,148 @@ def demonstrate_data_partitioning():
     print("\n1. PARTITIONING BY CATEGORY:")
     print("-" * 30)
 
-    # Create sample data for partitioning
-    sample_data = pd.DataFrame(
-        {
-            "id": range(1, 1001),
-            "category": np.random.choice(
-                ["Electronics", "Clothing", "Books", "Food"], 1000
-            ),
-            "value": np.random.uniform(10, 1000, 1000),
-            "region": np.random.choice(["North", "South", "East", "West"], 1000),
-        }
-    )
+    # Load realistic data for partitioning demonstration
+    def load_partitioning_data():
+        """Load data for partitioning demonstration."""
+        try:
+            # Try to load real COVID-19 data
+            covid_url = "https://disease.sh/v3/covid-19/countries"
+            response = requests.get(covid_url, timeout=10)
+            if response.status_code == 200:
+                covid_data = response.json()
+                covid_df = pd.DataFrame(covid_data)
+                selected_cols = [
+                    "country",
+                    "cases",
+                    "deaths",
+                    "recovered",
+                    "population",
+                    "active",
+                    "critical",
+                ]
+                covid_df = covid_df[selected_cols].copy()
 
-    # Partition by category
-    category_partitions = sample_data.groupby("category")
+                # Create sample for partitioning
+                sample_data = covid_df.head(1000).copy()
+                print(f"  Using COVID-19 data: {sample_data.shape[0]} records")
+                return sample_data, "covid"
+            else:
+                raise Exception("Failed to fetch COVID data")
+        except Exception as e:
+            print(f"  ⚠️  Could not load COVID data: {e}")
 
-    print("  Partitioning by category:")
-    for category, partition in category_partitions:
-        print(
-            f"    {category:12}: {len(partition):4} records, "
-            f"avg value: ${partition['value'].mean():.2f}"
-        )
+            # Create realistic sample data as fallback
+            sample_data = pd.DataFrame(
+                {
+                    "id": range(1, 1001),
+                    "category": np.random.choice(
+                        ["Electronics", "Clothing", "Books", "Food"], 1000
+                    ),
+                    "value": np.random.uniform(10, 1000, 1000),
+                    "region": np.random.choice(
+                        ["North", "South", "East", "West"], 1000
+                    ),
+                    "device_type": np.random.choice(
+                        ["Mobile", "Desktop", "Tablet"], 1000
+                    ),
+                    "country": np.random.choice(["US", "UK", "CA", "AU", "DE"], 1000),
+                }
+            )
+            print(f"  Using fallback sample data: {sample_data.shape[0]} records")
+            return sample_data, "fallback"
+
+    # Load data for partitioning
+    sample_data, data_type = load_partitioning_data()
+
+    # Partition by category (if available)
+    if "category" in sample_data.columns:
+        category_partitions = sample_data.groupby("category")
+        print(f"  Category partitions:")
+        for category, partition in category_partitions:
+            print(
+                f"    {category:12}: {len(partition):4} records, "
+                f"avg value: ${partition['value'].mean():.2f}"
+            )
+
+    # Partition by device type (if available)
+    if "device_type" in sample_data.columns:
+        device_partitions = sample_data.groupby("device_type")
+        print(f"  Device type partitions:")
+        for device, partition in device_partitions:
+            print(f"    {device}: {len(partition)} records")
+
+    # Partition by country
+    if "country" in sample_data.columns:
+        country_partitions = sample_data.groupby("country")
+        print(f"  Country partitions:")
+        for country, partition in list(country_partitions)[:5]:  # Show top 5
+            print(f"    {country}: {len(partition)} records")
 
     print("\n2. PARTITIONING BY REGION:")
     print("-" * 30)
 
-    region_partitions = sample_data.groupby("region")
+    # Partition by region if available, otherwise show other available columns
+    available_columns = list(sample_data.columns)
+    print(f"  Available columns: {available_columns}")
 
-    print("  Partitioning by region:")
-    for region, partition in region_partitions:
-        print(
-            f"    {region:8}: {len(partition):4} records, "
-            f"avg value: ${partition['value'].mean():.2f}"
-        )
+    # Try to partition by different columns
+    if "region" in sample_data.columns:
+        region_partitions = sample_data.groupby("region")
+        print("  Region partitions:")
+        for region, partition in region_partitions:
+            print(f"    {region}: {len(partition)} records")
+    elif "country" in sample_data.columns:
+        # Group countries by continent/region for demonstration
+        print("  Geographic grouping (sample):")
+        country_counts = sample_data["country"].value_counts().head(10)
+        for country, count in country_counts.items():
+            print(f"    {country}: {count} records")
+    else:
+        # Show sample data distribution
+        print("  Sample data distribution:")
+        for col in available_columns[:3]:  # Show first 3 columns
+            if sample_data[col].dtype == "object":
+                unique_vals = sample_data[col].value_counts().head(5)
+                print(f"    {col}:")
+                for val, count in unique_vals.items():
+                    print(f"      {val}: {count} records")
+            else:
+                print(
+                    f"    {col}: {sample_data[col].min():.2f} to {sample_data[col].max():.2f}"
+                )
 
     print("\n3. PARTITIONING BY VALUE RANGES:")
-    print("-" * 35)
+    print("-" * 30)
 
-    # Create value-based partitions
-    value_bins = [0, 100, 500, 1000]
-    value_labels = ["Low", "Medium", "High"]
+    # Partition by value ranges using available numeric columns
+    numeric_columns = sample_data.select_dtypes(include=[np.number]).columns
 
-    sample_data["value_category"] = pd.cut(
-        sample_data["value"], bins=value_bins, labels=value_labels, include_lowest=True
-    )
+    if len(numeric_columns) > 0:
+        # Use the first numeric column for value range partitioning
+        value_column = numeric_columns[0]
+        print(f"  Partitioning by {value_column} ranges:")
 
-    value_partitions = sample_data.groupby("value_category")
+        # Create value ranges
+        min_val = sample_data[value_column].min()
+        max_val = sample_data[value_column].max()
+        range_size = (max_val - min_val) / 4
 
-    print("  Partitioning by value ranges:")
-    for value_cat, partition in value_partitions:
-        if pd.notna(value_cat):
-            print(
-                f"    {value_cat:8}: {len(partition):4} records, "
-                f"range: ${partition['value'].min():.2f} - ${partition['value'].max():.2f}"
+        for i in range(4):
+            lower = min_val + i * range_size
+            upper = min_val + (i + 1) * range_size
+            if i == 3:  # Last range includes the max value
+                upper = max_val
+
+            count = len(
+                sample_data[
+                    (sample_data[value_column] >= lower)
+                    & (sample_data[value_column] < upper)
+                ]
             )
+            print(f"    {lower:.0f} - {upper:.0f}: {count} records")
+    else:
+        print("  No numeric columns available for value range partitioning")
+        print("  Available columns:", list(sample_data.columns))
 
 
 def demonstrate_big_data_visualization():

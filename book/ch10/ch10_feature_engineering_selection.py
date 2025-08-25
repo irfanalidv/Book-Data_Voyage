@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
 Chapter 10: Feature Engineering and Selection
-Data Voyage: Creating Powerful Features for Better Machine Learning Models
+Data Voyage: Creating Powerful Features for Better Machine Learning Models with Real Data
 
-This script covers essential feature engineering and selection techniques.
+This script covers essential feature engineering and selection techniques using REAL DATA.
 """
 
 import numpy as np
@@ -18,6 +18,7 @@ from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.linear_model import Lasso, Ridge
 from sklearn.metrics import mean_squared_error, r2_score, accuracy_score
+from sklearn.datasets import load_iris, load_diabetes, load_breast_cancer, load_wine
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -51,16 +52,16 @@ def main():
     print("\n" + "=" * 80)
     print("CHAPTER SUMMARY")
     print("=" * 80)
-    print("✅ Feature engineering fundamentals and techniques")
-    print("✅ Advanced feature creation and transformation")
-    print("✅ Feature selection methods and evaluation")
-    print("✅ Dimensionality reduction techniques")
+    print("✅ Feature engineering fundamentals and techniques on real data")
+    print("✅ Advanced feature creation and transformation using actual datasets")
+    print("✅ Feature selection methods and evaluation with real features")
+    print("✅ Dimensionality reduction techniques on authentic data")
     print()
     print("Next: Chapter 11 - Unsupervised Learning")
     print("=" * 80)
 
 def demonstrate_feature_engineering_fundamentals():
-    """Demonstrate fundamental feature engineering techniques."""
+    """Demonstrate fundamental feature engineering techniques using real data."""
     print("Feature Engineering Fundamentals:")
     print("-" * 40)
     
@@ -68,138 +69,116 @@ def demonstrate_feature_engineering_fundamentals():
     print("existing data to improve machine learning model performance.")
     print()
     
-    # 1. Create base dataset
-    print("1. CREATING BASE DATASET:")
+    # 1. Load real datasets
+    print("1. LOADING REAL DATASETS:")
     print("-" * 30)
     
-    np.random.seed(42)
-    n_samples = 1000
+    iris = load_iris()
+    diabetes = load_diabetes()
+    breast_cancer = load_breast_cancer()
+    wine = load_wine()
     
-    # Generate base features
-    age = np.random.normal(35, 10, n_samples)
-    income = np.random.lognormal(10.5, 0.6, n_samples)
-    education_years = np.random.poisson(16, n_samples)
-    credit_score = 300 + (age * 2) + (income / 1000) + np.random.normal(0, 50, n_samples)
+    # Create DataFrames
+    iris_df = pd.DataFrame(iris.data, columns=iris.feature_names)
+    iris_df['target'] = iris.target
+    iris_df['species'] = [iris.target_names[i] for i in iris.target]
     
-    # Create target variable
-    house_price = 200000 + (income * 2) + (age * 1000) + (education_years * 5000) + np.random.normal(0, 50000, n_samples)
+    diabetes_df = pd.DataFrame(diabetes.data, columns=diabetes.feature_names)
+    diabetes_df['target'] = diabetes.target
     
-    # Create base DataFrame
-    base_data = {
-        'age': age,
-        'income': income,
-        'education_years': education_years,
-        'credit_score': credit_score,
-        'house_price': house_price
-    }
+    breast_cancer_df = pd.DataFrame(breast_cancer.data, columns=breast_cancer.feature_names)
+    breast_cancer_df['target'] = breast_cancer.target
+    breast_cancer_df['diagnosis'] = ['Malignant' if t == 1 else 'Benign' for t in breast_cancer.target]
     
-    df = pd.DataFrame(base_data)
-    print(f"✅ Created base dataset with {n_samples} samples and {len(df.columns)} features")
-    print(f"Base features: {list(df.columns[:-1])}")
-    print(f"Target: {df.columns[-1]}")
+    wine_df = pd.DataFrame(wine.data, columns=wine.feature_names)
+    wine_df['target'] = wine.target
+    wine_df['wine_type'] = [wine.target_names[i] for i in wine.target]
+    
+    print(f"✅ Loaded real datasets:")
+    print(f"  • Iris: {iris_df.shape[0]} samples, {iris_df.shape[1]-2} features")
+    print(f"  • Diabetes: {diabetes_df.shape[0]} samples, {diabetes_df.shape[1]-1} features")
+    print(f"  • Breast Cancer: {breast_cancer_df.shape[0]} samples, {breast_cancer_df.shape[1]-2} features")
+    print(f"  • Wine: {wine_df.shape[0]} samples, {wine_df.shape[1]-2} features")
     print()
     
-    # 2. Basic Feature Engineering
-    print("2. BASIC FEATURE ENGINEERING:")
-    print("-" * 35)
+    # 2. Use Iris dataset for feature engineering demonstration
+    print("2. FEATURE ENGINEERING ON IRIS DATASET:")
+    print("-" * 40)
     
-    # Age-based features
-    df['age_group'] = pd.cut(df['age'], bins=[0, 25, 35, 45, 65, 100], 
-                             labels=['Young', 'Early Career', 'Mid Career', 'Late Career', 'Senior'])
-    df['is_senior'] = (df['age'] > 65).astype(int)
-    df['age_squared'] = df['age'] ** 2
-    
-    # Income-based features
-    df['income_category'] = pd.cut(df['income'], bins=[0, 30000, 60000, 100000, float('inf')],
-                                  labels=['Low', 'Medium', 'High', 'Very High'])
-    df['log_income'] = np.log(df['income'])
-    df['income_per_age'] = df['income'] / df['age']
-    
-    # Education-based features
-    df['education_level'] = pd.cut(df['education_years'], bins=[0, 12, 16, 18, 25],
-                                  labels=['High School', 'Bachelor', 'Master', 'PhD'])
-    df['education_income_ratio'] = df['education_years'] / df['income'] * 10000
-    
-    # Credit-based features
-    df['credit_rating'] = pd.cut(df['credit_score'], bins=[0, 580, 670, 740, 800, 850],
-                                labels=['Poor', 'Fair', 'Good', 'Very Good', 'Excellent'])
-    df['credit_income_ratio'] = df['credit_score'] / df['income'] * 100
-    
-    print("✅ Created 15 new engineered features:")
-    print("  Age features: age_group, is_senior, age_squared")
-    print("  Income features: income_category, log_income, income_per_age")
-    print("  Education features: education_level, education_income_ratio")
-    print("  Credit features: credit_rating, credit_income_ratio")
+    df = iris_df.copy()
+    print(f"Working with Iris dataset: {df.shape[0]} samples, {df.shape[1]-2} original features")
+    print(f"Original features: ['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)', 'petal width (cm)']")
+    print(f"Target: {df['target'].nunique()} classes")
     print()
     
-    # 3. Interaction Features
-    print("3. INTERACTION FEATURES:")
+    # 3. Basic Feature Engineering
+    print("3. BASIC FEATURE ENGINEERING:")
+    print("-" * 30)
+    
+    # Create area features
+    df['sepal_area'] = df['sepal length (cm)'] * df['sepal width (cm)']
+    df['petal_area'] = df['petal length (cm)'] * df['petal width (cm)']
+    
+    # Create ratio features
+    df['sepal_length_width_ratio'] = df['sepal length (cm)'] / df['sepal width (cm)']
+    df['petal_length_width_ratio'] = df['petal length (cm)'] / df['petal width (cm)']
+    df['petal_to_sepal_ratio'] = df['petal_area'] / df['sepal_area']
+    
+    # Create perimeter features
+    df['sepal_perimeter'] = 2 * (df['sepal length (cm)'] + df['sepal width (cm)'])
+    df['petal_perimeter'] = 2 * (df['petal length (cm)'] + df['petal width (cm)'])
+    
+    # Create size categories
+    df['size_category'] = pd.cut(df['sepal_area'], 
+                                bins=[0, 15, 20, float('inf')], 
+                                labels=['Small', 'Medium', 'Large'])
+    
+    print(f"✅ Created {8} new engineered features:")
+    print(f"  • Area features: sepal_area, petal_area")
+    print(f"  • Ratio features: sepal_length_width_ratio, petal_length_width_ratio, petal_to_sepal_ratio")
+    print(f"  • Perimeter features: sepal_perimeter, petal_perimeter")
+    print(f"  • Categorical features: size_category")
+    print()
+    
+    # 4. Feature Statistics
+    print("4. FEATURE STATISTICS:")
     print("-" * 25)
     
-    # Create interaction terms
-    df['age_income_interaction'] = df['age'] * df['income'] / 10000
-    df['education_credit_interaction'] = df['education_years'] * df['credit_score'] / 1000
-    df['age_education_interaction'] = df['age'] * df['education_years'] / 100
+    # Show statistics for new features
+    new_features = ['sepal_area', 'petal_area', 'sepal_length_width_ratio', 
+                   'petal_length_width_ratio', 'petal_to_sepal_ratio']
     
-    print("✅ Created 3 interaction features:")
-    print("  age_income_interaction: Age × Income / 10000")
-    print("  education_credit_interaction: Education × Credit Score / 1000")
-    print("  age_education_interaction: Age × Education / 100")
+    print("New Engineered Features Statistics:")
+    print(df[new_features].describe().round(3))
     print()
     
-    # 4. Statistical Features
-    print("4. STATISTICAL FEATURES:")
-    print("-" * 25)
+    # 5. Feature Correlations
+    print("5. FEATURE CORRELATIONS:")
+    print("-" * 30)
     
-    # Rolling statistics (simulated)
-    df['income_rank'] = df['income'].rank(pct=True)
-    df['age_rank'] = df['age'].rank(pct=True)
-    df['credit_rank'] = df['credit_score'].rank(pct=True)
+    # Calculate correlations with target
+    iris_feature_names = ['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)', 'petal width (cm)']
+    all_features = iris_feature_names + new_features
+    correlations = df[all_features].corrwith(df['target']).abs().sort_values(ascending=False)
     
-    # Z-score features
-    df['income_zscore'] = (df['income'] - df['income'].mean()) / df['income'].std()
-    df['age_zscore'] = (df['age'] - df['age'].mean()) / df['age'].std()
-    
-    print("✅ Created 5 statistical features:")
-    print("  Ranking features: income_rank, age_rank, credit_rank")
-    print("  Z-score features: income_zscore, age_zscore")
+    print("Feature Correlations with Target (Top 10):")
+    for i, (feature, corr) in enumerate(correlations.head(10).items()):
+        print(f"  {i+1:2d}. {feature:25s}: {corr:.3f}")
     print()
     
-    # 5. Feature Overview
-    print("5. FEATURE OVERVIEW:")
-    print("-" * 20)
-    
-    print(f"Total features: {len(df.columns)}")
-    print(f"Original features: 4")
-    print(f"Engineered features: {len(df.columns) - 5}")  # -5 for original + target
-    print(f"Target variable: 1")
-    print()
-    
-    # Display feature types
-    numeric_features = df.select_dtypes(include=[np.number]).columns.tolist()
-    categorical_features = df.select_dtypes(include=['object', 'category']).columns.tolist()
-    
-    print("Feature Types:")
-    print(f"  Numeric: {len(numeric_features)} features")
-    print(f"  Categorical: {len(categorical_features)} features")
-    print()
-    
-    # Store dataset for later use
+    # Store dataset globally for other functions
     global engineered_dataset
-    engineered_dataset = df.copy()
+    engineered_dataset = df
     
-    # Display sample of engineered features
-    print("Sample of Engineered Features:")
-    sample_cols = ['age', 'income', 'age_group', 'income_category', 'age_income_interaction', 'income_rank']
-    print(df[sample_cols].head().round(2))
+    return df
 
 def demonstrate_advanced_feature_engineering():
-    """Demonstrate advanced feature engineering techniques."""
+    """Demonstrate advanced feature engineering techniques using real data."""
     print("Advanced Feature Engineering:")
     print("-" * 40)
     
-    if 'engineered_dataset' not in globals():
-        print("Engineered dataset not available. Please run fundamentals first.")
+    if 'engineered_dataset' not in globals() or engineered_dataset is None:
+        print("❌ No engineered dataset available")
         return
     
     df = engineered_dataset.copy()
@@ -208,177 +187,158 @@ def demonstrate_advanced_feature_engineering():
     print("1. POLYNOMIAL FEATURES:")
     print("-" * 25)
     
-    # Select numeric features for polynomial expansion
-    numeric_cols = ['age', 'income', 'education_years', 'credit_score']
-    X_numeric = df[numeric_cols].values
+    # Select numerical features for polynomial transformation
+    numerical_features = ['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)', 'petal width (cm)']
+    X_poly = df[numerical_features].values
     
-    # Create polynomial features
+    # Create polynomial features (degree 2)
     poly = PolynomialFeatures(degree=2, include_bias=False)
-    X_poly = poly.fit_transform(X_numeric)
+    X_poly_transformed = poly.fit_transform(X_poly)
     
     # Get feature names
-    poly_feature_names = poly.get_feature_names_out(numeric_cols)
-    
-    # Create DataFrame with polynomial features
-    poly_df = pd.DataFrame(X_poly, columns=poly_feature_names)
+    poly_feature_names = poly.get_feature_names_out(numerical_features)
     
     print(f"✅ Created polynomial features (degree 2)")
-    print(f"Original features: {len(numeric_cols)}")
-    print(f"Polynomial features: {len(poly_feature_names)}")
-    print(f"New features include: {', '.join(poly_feature_names[:10])}...")
+    print(f"  Original features: {len(numerical_features)}")
+    print(f"  Polynomial features: {len(poly_feature_names)}")
+    print(f"  New features include: {', '.join(poly_feature_names[4:8])}")  # Show some new features
     print()
     
-    # 2. Time-based Features (Simulated)
-    print("2. TIME-BASED FEATURES:")
-    print("-" * 25)
+    # 2. Interaction Features
+    print("2. INTERACTION FEATURES:")
+    print("-" * 30)
     
-    # Simulate time series data
-    np.random.seed(42)
-    dates = pd.date_range('2020-01-01', periods=len(df), freq='D')
+    # Create interaction features manually
+    df['sepal_petal_length_interaction'] = df['sepal length (cm)'] * df['petal length (cm)']
+    df['sepal_petal_width_interaction'] = df['sepal width (cm)'] * df['petal width (cm)']
+    df['length_width_interaction'] = (df['sepal length (cm)'] + df['petal length (cm)']) * \
+                                    (df['sepal width (cm)'] + df['petal width (cm)'])
     
-    # Add time-based features
-    df['date'] = dates
-    df['day_of_week'] = df['date'].dt.dayofweek
-    df['month'] = df['date'].dt.month
-    df['quarter'] = df['date'].dt.quarter
-    df['is_weekend'] = df['day_of_week'].isin([5, 6]).astype(int)
-    df['is_month_start'] = df['date'].dt.is_month_start.astype(int)
-    df['is_month_end'] = df['date'].dt.is_month_end.astype(int)
-    
-    print("✅ Created 6 time-based features:")
-    print("  day_of_week, month, quarter, is_weekend, is_month_start, is_month_end")
+    print(f"✅ Created {3} interaction features:")
+    print(f"  • sepal_petal_length_interaction: Sepal length × Petal length")
+    print(f"  • sepal_petal_width_interaction: Sepal width × Petal width")
+    print(f"  • length_width_interaction: (Sepal length + Petal length) × (Sepal width + Petal width)")
     print()
     
-    # 3. Binning and Discretization
-    print("3. BINNING AND DISCRETIZATION:")
+    # 3. Statistical Features
+    print("3. STATISTICAL FEATURES:")
+    print("-" * 30)
+    
+    # Create rolling statistics (using a window approach)
+    # For demonstration, we'll create features based on sorted values
+    sorted_indices = df['sepal length (cm)'].sort_values().index
+    
+    # Create rank-based features
+    df['sepal_length_rank'] = df['sepal length (cm)'].rank()
+    df['petal_length_rank'] = df['petal length (cm)'].rank()
+    
+    # Create percentile features
+    df['sepal_length_percentile'] = df['sepal length (cm)'].rank(pct=True)
+    df['petal_length_percentile'] = df['petal length (cm)'].rank(pct=True)
+    
+    print(f"✅ Created {4} statistical features:")
+    print(f"  • sepal_length_rank: Rank of sepal length")
+    print(f"  • petal_length_rank: Rank of petal length")
+    print(f"  • sepal_length_percentile: Percentile rank of sepal length")
+    print(f"  • petal_length_percentile: Percentile rank of petal length")
+    print()
+    
+    # 4. Domain-Specific Features
+    print("4. DOMAIN-SPECIFIC FEATURES:")
     print("-" * 35)
     
-    # Create custom bins
-    df['income_bins_5'] = pd.qcut(df['income'], q=5, labels=['Very Low', 'Low', 'Medium', 'High', 'Very High'])
-    df['age_bins_10'] = pd.cut(df['age'], bins=10, labels=[f'Decile_{i+1}' for i in range(10)])
+    # Create features specific to botany/biology
+    df['total_length'] = df['sepal length (cm)'] + df['petal length (cm)']
+    df['total_width'] = df['sepal width (cm)'] + df['petal width (cm)']
+    df['length_width_balance'] = df['total_length'] / df['total_width']
     
-    # Create quantile-based features
-    df['income_quantile'] = pd.qcut(df['income'], q=10, labels=False, duplicates='drop')
-    df['age_quantile'] = pd.qcut(df['age'], q=10, labels=False, duplicates='drop')
+    # Create symmetry features
+    df['sepal_symmetry'] = abs(df['sepal length (cm)'] - df['sepal width (cm)'])
+    df['petal_symmetry'] = abs(df['petal length (cm)'] - df['petal width (cm)'])
     
-    print("✅ Created 4 binning features:")
-    print("  income_bins_5: 5 equal-frequency income bins")
-    print("  age_bins_10: 10 equal-width age bins")
-    print("  income_quantile: 10 income quantiles")
-    print("  age_quantile: 10 age quantiles")
+    # Create compactness features
+    df['sepal_compactness'] = df['sepal_area'] / (df['sepal_perimeter'] ** 2)
+    df['petal_compactness'] = df['petal_area'] / (df['petal_perimeter'] ** 2)
+    
+    print(f"✅ Created {7} domain-specific features:")
+    print(f"  • Total measurements: total_length, total_width")
+    print(f"  • Balance features: length_width_balance")
+    print(f"  • Symmetry features: sepal_symmetry, petal_symmetry")
+    print(f"  • Compactness features: sepal_compactness, petal_compactness")
     print()
     
-    # 4. Aggregated Features
-    print("4. AGGREGATED FEATURES:")
-    print("-" * 25)
+    # 5. Feature Summary
+    print("5. FEATURE SUMMARY:")
+    print("-" * 20)
     
-    # Create aggregated features by groups
-    df['avg_income_by_age_group'] = df.groupby('age_group')['income'].transform('mean')
-    df['std_income_by_age_group'] = df.groupby('age_group')['income'].transform('std')
-    df['count_by_age_group'] = df.groupby('age_group')['age'].transform('count')
-    
-    print("✅ Created 3 aggregated features:")
-    print("  avg_income_by_age_group: Mean income within age groups")
-    print("  std_income_by_age_group: Standard deviation of income within age groups")
-    print("  count_by_age_group: Count of samples within age groups")
-    print()
-    
-    # 5. Feature Scaling and Normalization
-    print("5. FEATURE SCALING AND NORMALIZATION:")
-    print("-" * 40)
-    
-    # Select numeric features for scaling
-    numeric_features = df.select_dtypes(include=[np.number]).columns.tolist()
-    numeric_features = [col for col in numeric_features if col not in ['house_price', 'income_quantile', 'age_quantile']]
-    
-    # Apply different scaling methods
-    scaler = StandardScaler()
-    df_scaled = df.copy()
-    df_scaled[numeric_features] = scaler.fit_transform(df[numeric_features])
-    
-    # Rename scaled features
-    scaled_features = [f"{col}_scaled" for col in numeric_features]
-    df_scaled[scaled_features] = df_scaled[numeric_features]
-    
-    print(f"✅ Created {len(scaled_features)} scaled features")
-    print(f"Applied StandardScaler to {len(numeric_features)} numeric features")
-    print(f"Sample scaled features: {', '.join(scaled_features[:5])}...")
-    print()
-    
-    # Update global dataset
-    global advanced_dataset
-    advanced_dataset = df_scaled.copy()
-    
-    # Display final feature count
-    print("ADVANCED FEATURE ENGINEERING SUMMARY:")
-    print("-" * 40)
-    print(f"Total features created: {len(df_scaled.columns)}")
+    print(f"Final dataset shape: {df.shape}")
+    print(f"Total features: {df.shape[1]}")
     print(f"Original features: 4")
-    print(f"Engineered features: {len(df_scaled.columns) - 5}")  # -5 for original + target
-    print(f"Target variable: 1")
+    print(f"Engineered features: {df.shape[1] - 4 - 2}")  # -4 for original features, -2 for target and species
     print()
     
-    # Show feature categories
-    feature_categories = {
-        'Original': ['age', 'income', 'education_years', 'credit_score'],
-        'Basic': ['age_group', 'income_category', 'education_level', 'credit_rating'],
-        'Interaction': ['age_income_interaction', 'education_credit_interaction'],
-        'Statistical': ['income_rank', 'age_rank', 'credit_rank'],
-        'Polynomial': list(poly_feature_names),
-        'Time-based': ['day_of_week', 'month', 'quarter', 'is_weekend'],
-        'Binning': ['income_bins_5', 'age_bins_10', 'income_quantile', 'age_quantile'],
-        'Aggregated': ['avg_income_by_age_group', 'std_income_by_age_group'],
-        'Scaled': scaled_features
-    }
+    # Show all feature names
+    all_feature_names = [col for col in df.columns if col not in ['target', 'species']]
+    print("All Features:")
+    for i, feature in enumerate(all_feature_names, 1):
+        print(f"  {i:2d}. {feature}")
+    print()
     
-    print("Feature Categories:")
-    for category, features in feature_categories.items():
-        print(f"  {category}: {len(features)} features")
+    # Store advanced dataset globally
+    global advanced_dataset
+    advanced_dataset = df
+    
+    return df
 
 def demonstrate_feature_selection():
-    """Demonstrate feature selection methods."""
+    """Demonstrate feature selection methods using real data."""
     print("Feature Selection Methods:")
     print("-" * 40)
     
-    if 'advanced_dataset' not in globals():
-        print("Advanced dataset not available. Please run advanced engineering first.")
+    if 'advanced_dataset' not in globals() or advanced_dataset is None:
+        print("❌ No advanced dataset available for feature selection")
         return
     
     df = advanced_dataset.copy()
     
     # Prepare data for feature selection
-    # Remove non-numeric and target columns
-    feature_cols = [col for col in df.columns if col not in ['house_price', 'date'] and df[col].dtype in ['int64', 'float64']]
-    X = df[feature_cols]
-    y = df['house_price']
+    # Remove non-numerical features
+    numerical_features = df.select_dtypes(include=[np.number]).columns
+    numerical_features = [col for col in numerical_features if col != 'target']
     
-    print(f"Feature selection dataset: {X.shape[0]} samples, {X.shape[1]} features")
-    print(f"Target variable: house_price")
+    X = df[numerical_features].values
+    y = df['target'].values
+    
+    print(f"Feature selection on {len(numerical_features)} numerical features")
+    print(f"Dataset shape: {X.shape}")
+    print(f"Target classes: {len(np.unique(y))}")
     print()
     
-    # 1. Statistical Feature Selection
-    print("1. STATISTICAL FEATURE SELECTION:")
+    # 1. Univariate Feature Selection
+    print("1. UNIVARIATE FEATURE SELECTION:")
     print("-" * 35)
     
-    # F-regression for regression problem
-    f_selector = SelectKBest(score_func=f_regression, k=20)
+    # F-test for classification
+    f_selector = SelectKBest(score_func=f_classif, k=10)
     X_f_selected = f_selector.fit_transform(X, y)
     
-    # Get selected feature names and scores
-    selected_features_f = X.columns[f_selector.get_support()].tolist()
-    feature_scores_f = f_selector.scores_[f_selector.get_support()]
+    # Get selected feature indices and scores
+    selected_features_f = f_selector.get_support()
+    feature_scores_f = f_selector.scores_
     
-    print(f"✅ F-regression selected {len(selected_features_f)} features")
-    print("Top 10 selected features by F-score:")
+    print(f"✅ F-test selected {X_f_selected.shape[1]} features")
+    print("Top 10 features by F-score:")
     
-    # Create feature importance DataFrame
-    f_importance = pd.DataFrame({
-        'feature': selected_features_f,
-        'f_score': feature_scores_f
-    }).sort_values('f_score', ascending=False)
+    # Create feature score DataFrame
+    feature_scores_df = pd.DataFrame({
+        'Feature': numerical_features,
+        'F_Score': feature_scores_f,
+        'Selected': selected_features_f
+    }).sort_values('F_Score', ascending=False)
     
-    for i, (_, row) in enumerate(f_importance.head(10).iterrows()):
-        print(f"  {i+1:2d}. {row['feature']:<25} F-score: {row['f_score']:>10.2f}")
+    for i, (_, row) in enumerate(feature_scores_df.head(10).iterrows()):
+        status = "✓" if row['Selected'] else "✗"
+        print(f"  {i+1:2d}. {status} {row['Feature']:25s}: {row['F_Score']:.3f}")
     print()
     
     # 2. Recursive Feature Elimination (RFE)
@@ -386,297 +346,282 @@ def demonstrate_feature_selection():
     print("-" * 45)
     
     # Use Random Forest for RFE
-    rf_regressor = RandomForestRegressor(n_estimators=100, random_state=42)
-    rfe = RFE(estimator=rf_regressor, n_features_to_select=20)
+    rf_classifier = RandomForestClassifier(n_estimators=100, random_state=42)
+    rfe = RFE(estimator=rf_classifier, n_features_to_select=10)
     X_rfe_selected = rfe.fit_transform(X, y)
     
     # Get selected features
-    selected_features_rfe = X.columns[rfe.get_support()].tolist()
+    selected_features_rfe = rfe.get_support()
+    feature_ranking_rfe = rfe.ranking_
     
-    print(f"✅ RFE selected {len(selected_features_rfe)} features")
-    print("Selected features by RFE:")
-    for i, feature in enumerate(selected_features_rfe[:10], 1):
-        print(f"  {i:2d}. {feature}")
-    if len(selected_features_rfe) > 10:
-        print(f"  ... and {len(selected_features_rfe) - 10} more features")
+    print(f"✅ RFE selected {X_rfe_selected.shape[1]} features")
+    print("Top 10 features by RFE ranking:")
+    
+    # Create feature ranking DataFrame
+    feature_ranking_df = pd.DataFrame({
+        'Feature': numerical_features,
+        'Ranking': feature_ranking_rfe,
+        'Selected': selected_features_rfe
+    }).sort_values('Ranking')
+    
+    for i, (_, row) in enumerate(feature_ranking_df.head(10).iterrows()):
+        status = "✓" if row['Selected'] else "✗"
+        print(f"  {i+1:2d}. {status} {row['Feature']:25s}: Rank {row['Ranking']}")
     print()
     
-    # 3. Model-based Feature Selection
-    print("3. MODEL-BASED FEATURE SELECTION:")
+    # 3. Feature Selection with Lasso
+    print("3. FEATURE SELECTION WITH LASSO:")
     print("-" * 35)
     
-    # Lasso regularization
+    # Use Lasso for feature selection
     lasso = Lasso(alpha=0.01, random_state=42)
     lasso.fit(X, y)
     
-    # Get feature importance from Lasso
-    lasso_importance = pd.DataFrame({
-        'feature': X.columns,
-        'coefficient': np.abs(lasso.coef_)
-    }).sort_values('coefficient', ascending=False)
+    # Get feature importance (absolute coefficients)
+    feature_importance_lasso = np.abs(lasso.coef_)
     
-    # Select features with non-zero coefficients
-    selected_features_lasso = lasso_importance[lasso_importance['coefficient'] > 0]['feature'].tolist()
+    print(f"✅ Lasso feature selection completed")
+    print("Top 10 features by Lasso importance:")
     
-    print(f"✅ Lasso selected {len(selected_features_lasso)} features")
-    print("Top 10 features by Lasso coefficient magnitude:")
-    for i, (_, row) in enumerate(lasso_importance.head(10).iterrows()):
-        print(f"  {i+1:2d}. {row['feature']:<25} |coef|: {row['coefficient']:>10.4f}")
+    # Create Lasso importance DataFrame
+    lasso_importance_df = pd.DataFrame({
+        'Feature': numerical_features,
+        'Lasso_Importance': feature_importance_lasso
+    }).sort_values('Lasso_Importance', ascending=False)
+    
+    for i, (_, row) in enumerate(lasso_importance_df.head(10).iterrows()):
+        print(f"  {i+1:2d}. {row['Feature']:25s}: {row['Lasso_Importance']:.6f}")
     print()
     
-    # 4. Feature Importance from Random Forest
-    print("4. RANDOM FOREST FEATURE IMPORTANCE:")
+    # 4. Feature Selection with Random Forest
+    print("4. FEATURE SELECTION WITH RANDOM FOREST:")
     print("-" * 40)
     
-    # Train Random Forest and get feature importance
-    rf = RandomForestRegressor(n_estimators=100, random_state=42)
-    rf.fit(X, y)
+    # Use Random Forest for feature importance
+    rf_selector = RandomForestClassifier(n_estimators=100, random_state=42)
+    rf_selector.fit(X, y)
     
     # Get feature importance
-    rf_importance = pd.DataFrame({
-        'feature': X.columns,
-        'importance': rf.feature_importances_
-    }).sort_values('importance', ascending=False)
+    feature_importance_rf = rf_selector.feature_importances_
     
-    print(f"✅ Random Forest feature importance calculated")
-    print("Top 10 features by importance:")
-    for i, (_, row) in enumerate(rf_importance.head(10).iterrows()):
-        print(f"  {i+1:2d}. {row['feature']:<25} Importance: {row['importance']:>8.4f}")
+    print(f"✅ Random Forest feature selection completed")
+    print("Top 10 features by Random Forest importance:")
+    
+    # Create RF importance DataFrame
+    rf_importance_df = pd.DataFrame({
+        'Feature': numerical_features,
+        'RF_Importance': feature_importance_rf
+    }).sort_values('RF_Importance', ascending=False)
+    
+    for i, (_, row) in enumerate(rf_importance_df.head(10).iterrows()):
+        print(f"  {i+1:2d}. {row['Feature']:25s}: {row['RF_Importance']:.6f}")
     print()
     
-    # 5. Feature Selection Comparison
-    print("5. FEATURE SELECTION COMPARISON:")
-    print("-" * 35)
+    # 5. Compare Feature Selection Methods
+    print("5. COMPARING FEATURE SELECTION METHODS:")
+    print("-" * 40)
     
-    # Compare different methods
-    selection_methods = {
-        'F-regression': set(selected_features_f),
-        'RFE': set(selected_features_rfe),
-        'Lasso': set(selected_features_lasso)
-    }
+    # Create comparison DataFrame
+    comparison_df = pd.DataFrame({
+        'Feature': numerical_features,
+        'F_Score': feature_scores_f,
+        'RFE_Ranking': feature_ranking_rfe,
+        'Lasso_Importance': feature_importance_lasso,
+        'RF_Importance': feature_importance_rf
+    })
     
-    print("Feature selection method comparison:")
-    print(f"  F-regression: {len(selected_features_f)} features")
-    print(f"  RFE: {len(selected_features_rfe)} features")
-    print(f"  Lasso: {len(selected_features_lasso)} features")
+    # Normalize scores for comparison
+    comparison_df['F_Score_Norm'] = comparison_df['F_Score'] / comparison_df['F_Score'].max()
+    comparison_df['Lasso_Importance_Norm'] = comparison_df['Lasso_Importance'] / comparison_df['Lasso_Importance'].max()
+    comparison_df['RF_Importance_Norm'] = comparison_df['RF_Importance'] / comparison_df['RF_Importance'].max()
+    
+    # Calculate average ranking
+    comparison_df['Avg_Ranking'] = (
+        comparison_df['F_Score_Norm'].rank(ascending=False) +
+        comparison_df['RFE_Ranking'] +
+        comparison_df['Lasso_Importance_Norm'].rank(ascending=False) +
+        comparison_df['RF_Importance_Norm'].rank(ascending=False)
+    ) / 4
+    
+    # Sort by average ranking
+    comparison_df = comparison_df.sort_values('Avg_Ranking')
+    
+    print("Top 10 features by average ranking across all methods:")
+    for i, (_, row) in enumerate(comparison_df.head(10).iterrows()):
+        print(f"  {i+1:2d}. {row['Feature']:25s}: Avg Rank {row['Avg_Ranking']:.2f}")
     print()
     
-    # Find common features across methods
-    common_features = set.intersection(*selection_methods.values())
-    print(f"Features selected by all methods: {len(common_features)}")
-    if common_features:
-        print("Common features:")
-        for feature in sorted(common_features)[:5]:
-            print(f"  - {feature}")
-        if len(common_features) > 5:
-            print(f"  ... and {len(common_features) - 5} more")
-    print()
-    
-    # Store selected features for later use
+    # Store selected features globally
     global selected_features
-    selected_features = {
-        'f_regression': selected_features_f,
-        'rfe': selected_features_rfe,
-        'lasso': selected_features_lasso,
-        'random_forest': rf_importance.head(20)['feature'].tolist()
-    }
+    selected_features = comparison_df.head(10)['Feature'].tolist()
+    
+    return selected_features
 
 def demonstrate_dimensionality_reduction():
-    """Demonstrate dimensionality reduction techniques."""
+    """Demonstrate dimensionality reduction techniques using real data."""
     print("Dimensionality Reduction:")
     print("-" * 40)
     
-    if 'selected_features' not in globals():
-        print("Selected features not available. Please run feature selection first.")
+    if 'advanced_dataset' not in globals() or advanced_dataset is None:
+        print("❌ No advanced dataset available for dimensionality reduction")
         return
     
-    # Use the most comprehensive feature set (F-regression)
     df = advanced_dataset.copy()
-    feature_cols = selected_features['f_regression']
-    X = df[feature_cols]
-    y = df['house_price']
     
-    print(f"Dimensionality reduction dataset: {X.shape[0]} samples, {X.shape[1]} features")
+    # Prepare data for dimensionality reduction
+    numerical_features = df.select_dtypes(include=[np.number]).columns
+    numerical_features = [col for col in numerical_features if col != 'target']
+    
+    X = df[numerical_features].values
+    y = df['target'].values
+    
+    print(f"Dimensionality reduction on {len(numerical_features)} features")
+    print(f"Original dataset shape: {X.shape}")
     print()
     
     # 1. Principal Component Analysis (PCA)
     print("1. PRINCIPAL COMPONENT ANALYSIS (PCA):")
     print("-" * 45)
     
+    # Standardize the data first
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
     # Apply PCA
-    pca = PCA(n_components=0.95)  # Keep 95% of variance
-    X_pca = pca.fit_transform(X)
+    pca = PCA()
+    X_pca = pca.fit_transform(X_scaled)
     
-    print(f"✅ PCA applied with 95% variance threshold")
-    print(f"Original features: {X.shape[1]}")
-    print(f"PCA components: {X_pca.shape[1]}")
-    print(f"Variance explained: {pca.explained_variance_ratio_.sum():.3f}")
+    # Get explained variance
+    explained_variance_ratio = pca.explained_variance_ratio_
+    cumulative_variance_ratio = np.cumsum(explained_variance_ratio)
+    
+    print(f"✅ PCA completed")
+    print(f"  Original features: {X.shape[1]}")
+    print(f"  PCA components: {X_pca.shape[1]}")
     print()
     
-    # Show variance explained by each component
-    print("Variance explained by top 10 components:")
-    for i, var_ratio in enumerate(pca.explained_variance_ratio_[:10]):
-        print(f"  Component {i+1}: {var_ratio:.4f} ({var_ratio*100:.2f}%)")
+    print("Explained variance by components:")
+    for i, (var_ratio, cum_var_ratio) in enumerate(zip(explained_variance_ratio, cumulative_variance_ratio)):
+        print(f"  Component {i+1:2d}: {var_ratio:.3f} ({var_ratio*100:.1f}%) - Cumulative: {cum_var_ratio:.3f} ({cum_var_ratio*100:.1f}%)")
+        if cum_var_ratio >= 0.95:
+            print(f"    → 95% variance explained with {i+1} components")
+            break
     print()
     
-    # 2. Feature Selection with Model Performance
-    print("2. FEATURE SELECTION WITH MODEL PERFORMANCE:")
+    # 2. Feature Importance in PCA
+    print("2. FEATURE IMPORTANCE IN PCA:")
+    print("-" * 35)
+    
+    # Get feature importance (absolute loadings) for first 3 components
+    print("Top 5 features contributing to first 3 principal components:")
+    
+    for comp_idx in range(min(3, len(pca.components_))):
+        print(f"\nPrincipal Component {comp_idx + 1}:")
+        
+        # Get feature loadings for this component
+        loadings = np.abs(pca.components_[comp_idx])
+        feature_importance = pd.DataFrame({
+            'Feature': numerical_features,
+            'Loading': loadings
+        }).sort_values('Loading', ascending=False)
+        
+        for i, (_, row) in enumerate(feature_importance.head(5).iterrows()):
+            print(f"  {i+1:2d}. {row['Feature']:25s}: {row['Loading']:.3f}")
+    print()
+    
+    # 3. Dimensionality Reduction with Different Numbers of Components
+    print("3. DIMENSIONALITY REDUCTION WITH DIFFERENT COMPONENTS:")
+    print("-" * 55)
+    
+    # Test different numbers of components
+    n_components_list = [2, 3, 5, 10, 15, 20]
+    
+    print("Variance explained with different numbers of components:")
+    for n_comp in n_components_list:
+        if n_comp <= len(explained_variance_ratio):
+            var_explained = cumulative_variance_ratio[n_comp - 1]
+            print(f"  {n_comp:2d} components: {var_explained:.3f} ({var_explained*100:.1f}%)")
+    print()
+    
+    # 4. Create dimensionality reduction visualization
+    print("4. CREATING DIMENSIONALITY REDUCTION VISUALIZATION:")
     print("-" * 50)
     
-    from sklearn.model_selection import train_test_split
-    from sklearn.linear_model import LinearRegression
-    
-    # Split data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    
-    # Train model with all features
-    lr_full = LinearRegression()
-    lr_full.fit(X_train, y_train)
-    y_pred_full = lr_full.predict(X_test)
-    
-    # Calculate performance metrics
-    mse_full = mean_squared_error(y_test, y_pred_full)
-    r2_full = r2_score(y_test, y_pred_full)
-    
-    print("Model performance comparison:")
-    print(f"  Full feature set ({X.shape[1]} features):")
-    print(f"    MSE: ${mse_full:,.0f}")
-    print(f"    R²: {r2_full:.3f}")
-    print()
-    
-    # 3. Feature Selection Impact
-    print("3. FEATURE SELECTION IMPACT:")
-    print("-" * 30)
-    
-    # Test different feature selection methods
-    selection_results = {}
-    
-    for method_name, features in selected_features.items():
-        if len(features) > 0:
-            X_selected = df[features]
-            X_train_sel, X_test_sel, y_train_sel, y_test_sel = train_test_split(
-                X_selected, y, test_size=0.2, random_state=42
-            )
+    try:
+        # Create figure with subplots
+        fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+        fig.suptitle('Dimensionality Reduction Results - Real Iris Data', fontsize=16, fontweight='bold')
+        
+        # 1. Explained variance plot
+        n_components = min(20, len(explained_variance_ratio))
+        axes[0, 0].plot(range(1, n_components + 1), explained_variance_ratio[:n_components], 'bo-', linewidth=2, markersize=6)
+        axes[0, 0].set_title('Explained Variance by Component')
+        axes[0, 0].set_xlabel('Principal Component')
+        axes[0, 0].set_ylabel('Explained Variance Ratio')
+        axes[0, 0].grid(True, alpha=0.3)
+        
+        # 2. Cumulative explained variance
+        axes[0, 1].plot(range(1, n_components + 1), cumulative_variance_ratio[:n_components], 'ro-', linewidth=2, markersize=6)
+        axes[0, 1].axhline(y=0.95, color='green', linestyle='--', label='95% Threshold')
+        axes[0, 1].set_title('Cumulative Explained Variance')
+        axes[0, 1].set_xlabel('Number of Components')
+        axes[0, 1].set_ylabel('Cumulative Explained Variance Ratio')
+        axes[0, 1].legend()
+        axes[0, 1].grid(True, alpha=0.3)
+        
+        # 3. First two principal components scatter plot
+        if X_pca.shape[1] >= 2:
+            scatter = axes[1, 0].scatter(X_pca[:, 0], X_pca[:, 1], c=y, cmap='viridis', alpha=0.7)
+            axes[1, 0].set_title('First Two Principal Components')
+            axes[1, 0].set_xlabel('Principal Component 1')
+            axes[1, 0].set_ylabel('Principal Component 2')
+            axes[1, 0].grid(True, alpha=0.3)
+            plt.colorbar(scatter, ax=axes[1, 0], label='Target Class')
+        
+        # 4. Feature importance heatmap (first 5 components)
+        n_comp_heatmap = min(5, len(pca.components_))
+        if n_comp_heatmap > 0:
+            # Get top 10 features for heatmap
+            top_features_idx = np.argsort(np.sum(np.abs(pca.components_[:n_comp_heatmap]), axis=0))[-10:]
+            top_features = [numerical_features[i] for i in top_features_idx]
             
-            # Train model
-            lr_sel = LinearRegression()
-            lr_sel.fit(X_train_sel, y_train_sel)
-            y_pred_sel = lr_sel.predict(X_test_sel)
+            # Create heatmap data
+            heatmap_data = pca.components_[:n_comp_heatmap, top_features_idx]
             
-            # Calculate metrics
-            mse_sel = mean_squared_error(y_test_sel, y_pred_sel)
-            r2_sel = r2_score(y_test_sel, y_pred_sel)
-            
-            selection_results[method_name] = {
-                'n_features': len(features),
-                'mse': mse_sel,
-                'r2': r2_sel
-            }
+            sns.heatmap(heatmap_data, 
+                       xticklabels=top_features, 
+                       yticklabels=[f'PC{i+1}' for i in range(n_comp_heatmap)],
+                       cmap='coolwarm', center=0, 
+                       ax=axes[1, 1], 
+                       cbar_kws={'label': 'Component Loading'})
+            axes[1, 1].set_title('Feature Loadings in Top 5 Components')
+            axes[1, 1].tick_params(axis='x', rotation=45)
+        
+        plt.tight_layout()
+        
+        # Save the visualization
+        output_file = "feature_engineering_selection.png"
+        plt.savefig(output_file, dpi=300, bbox_inches='tight')
+        print(f"  ✅ Visualization saved: {output_file}")
+        
+        plt.show()
+        
+    except Exception as e:
+        print(f"  ❌ Error creating visualization: {e}")
     
-    # Display results
-    print("Feature selection method performance:")
-    for method, results in selection_results.items():
-        print(f"  {method:<15}: {results['n_features']:>2d} features, "
-              f"MSE: ${results['mse']:>10,.0f}, R²: {results['r2']:>6.3f}")
     print()
     
-    # 4. Visualization of Results
-    print("4. VISUALIZATION OF RESULTS:")
-    print("-" * 30)
+    # 5. Summary
+    print("5. DIMENSIONALITY REDUCTION SUMMARY:")
+    print("-" * 40)
     
-    # Create visualization
-    plt.figure(figsize=(15, 10))
-    
-    # Feature count vs performance
-    plt.subplot(2, 3, 1)
-    methods = list(selection_results.keys())
-    feature_counts = [selection_results[m]['n_features'] for m in methods]
-    r2_scores = [selection_results[m]['r2'] for m in methods]
-    
-    plt.scatter(feature_counts, r2_scores, s=100, alpha=0.7)
-    for i, method in enumerate(methods):
-        plt.annotate(method, (feature_counts[i], r2_scores[i]), 
-                    xytext=(5, 5), textcoords='offset points')
-    plt.xlabel('Number of Features')
-    plt.ylabel('R² Score')
-    plt.title('Feature Count vs Model Performance')
-    plt.grid(True, alpha=0.3)
-    
-    # PCA explained variance
-    plt.subplot(2, 3, 2)
-    n_components = min(20, len(pca.explained_variance_ratio_))
-    plt.bar(range(1, n_components + 1), pca.explained_variance_ratio_[:n_components])
-    plt.xlabel('Principal Component')
-    plt.ylabel('Explained Variance Ratio')
-    plt.title('PCA Explained Variance')
-    plt.xticks(range(1, n_components + 1, 2))
-    
-    # Feature importance comparison
-    plt.subplot(2, 3, 3)
-    rf_importance = selected_features['random_forest'][:10]
-    rf_importance_values = [0.1, 0.09, 0.08, 0.07, 0.06, 0.05, 0.04, 0.03, 0.02, 0.01]  # Simulated values
-    
-    plt.barh(range(len(rf_importance)), rf_importance_values)
-    plt.yticks(range(len(rf_importance)), [f.split('_')[0] for f in rf_importance])
-    plt.xlabel('Importance')
-    plt.title('Top 10 Features by Random Forest')
-    
-    # Performance comparison
-    plt.subplot(2, 3, 4)
-    mse_values = [selection_results[m]['mse'] for m in methods]
-    plt.bar(methods, mse_values, color=['skyblue', 'lightgreen', 'lightcoral', 'gold'])
-    plt.ylabel('Mean Squared Error')
-    plt.title('MSE Comparison Across Methods')
-    plt.xticks(rotation=45)
-    
-    # R² comparison
-    plt.subplot(2, 3, 5)
-    plt.bar(methods, r2_scores, color=['skyblue', 'lightgreen', 'lightcoral', 'gold'])
-    plt.ylabel('R² Score')
-    plt.title('R² Comparison Across Methods')
-    plt.xticks(rotation=45)
-    
-    # Feature reduction summary
-    plt.subplot(2, 3, 6)
-    original_features = len(advanced_dataset.columns) - 2  # -2 for target and date
-    reduced_features = [selection_results[m]['n_features'] for m in methods]
-    reduction_percentages = [(original_features - n) / original_features * 100 for n in reduced_features]
-    
-    plt.bar(methods, reduction_percentages, color=['skyblue', 'lightgreen', 'lightcoral', 'gold'])
-    plt.ylabel('Feature Reduction (%)')
-    plt.title('Feature Reduction by Method')
-    plt.xticks(rotation=45)
-    
-    plt.tight_layout()
-    plt.savefig('feature_engineering_selection.png', dpi=300, bbox_inches='tight')
-    print("✅ Feature engineering and selection visualization saved as 'feature_engineering_selection.png'")
-    plt.close()
-    
-    # 5. Final Recommendations
-    print("5. FINAL RECOMMENDATIONS:")
-    print("-" * 30)
-    
-    # Find best performing method
-    best_method = max(selection_results.items(), key=lambda x: x[1]['r2'])
-    
-    print(f"Best performing method: {best_method[0]}")
-    print(f"  Features: {best_method[1]['n_features']}")
-    print(f"  R² Score: {best_method[1]['r2']:.3f}")
-    print(f"  MSE: ${best_method[1]['mse']:,.0f}")
+    print(f"✅ PCA successfully reduced {X.shape[1]} features to {X_pca.shape[1]} components")
+    print(f"✅ 95% variance explained with {np.argmax(cumulative_variance_ratio >= 0.95) + 1} components")
+    print(f"✅ Top contributing features identified for each principal component")
+    print(f"✅ Visualization created showing explained variance and component relationships")
     print()
     
-    print("Feature Engineering and Selection Summary:")
-    print("✅ Created 50+ engineered features from 4 original features")
-    print("✅ Applied multiple feature selection methods")
-    print("✅ Evaluated impact on model performance")
-    print("✅ Demonstrated dimensionality reduction with PCA")
-    print("✅ Provided recommendations for optimal feature set")
-    print()
-    print("Key insights:")
-    print("  - Feature engineering can significantly improve model performance")
-    print("  - Different selection methods may yield different results")
-    print("  - Balance between feature count and model performance is crucial")
-    print("  - PCA provides effective dimensionality reduction")
+    return pca, X_pca
 
 if __name__ == "__main__":
     main()

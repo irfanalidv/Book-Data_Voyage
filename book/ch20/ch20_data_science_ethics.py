@@ -26,6 +26,8 @@ import random
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.datasets import load_breast_cancer, load_wine, load_digits, fetch_openml
+from sklearn.preprocessing import StandardScaler
 
 # Set up plotting style
 plt.style.use("default")
@@ -43,46 +45,116 @@ class PrivacyProtection:
         self.original_data = None
         self.anonymized_data = None
 
-    def create_sensitive_dataset(self):
-        """Create a synthetic dataset with sensitive information."""
+    def load_real_datasets(self):
+        """Load real datasets for privacy and ethics demonstration."""
         print("1. PRIVACY PROTECTION AND DATA ETHICS")
         print("=" * 50)
 
-        print("\n1.1 CREATING SENSITIVE DATASET:")
+        print("\n1.1 LOADING REAL DATASETS:")
         print("-" * 40)
 
-        # Generate synthetic sensitive data
-        n_records = 500
+        datasets = {}
 
-        sensitive_data = {
-            "patient_id": range(1, n_records + 1),
-            "name": [f"Patient_{i}" for i in range(1, n_records + 1)],
-            "ssn": [
-                f"{random.randint(100, 999)}-{random.randint(10, 99)}-{random.randint(1000, 9999)}"
-                for _ in range(n_records)
-            ],
-            "date_of_birth": pd.date_range("1950-01-01", periods=n_records, freq="D"),
-            "address": [
-                f"{random.randint(100, 9999)} {random.choice(['Main', 'Oak', 'Pine', 'Elm'])} St"
-                for _ in range(n_records)
-            ],
-            "phone": [
-                f"({random.randint(200, 999)}) {random.randint(200, 999)}-{random.randint(1000, 9999)}"
-                for _ in range(n_records)
-            ],
-            "medical_condition": np.random.choice(
-                ["Diabetes", "Hypertension", "Heart Disease", "Healthy"],
-                n_records,
-                p=[0.2, 0.3, 0.2, 0.3],
-            ),
-            "treatment_cost": np.random.lognormal(3, 0.8, n_records).astype(int),
-            "insurance_claim": np.random.choice([True, False], n_records, p=[0.7, 0.3]),
-        }
+        try:
+            # Load Breast Cancer dataset (medical data - privacy sensitive)
+            print("  Loading Breast Cancer dataset (medical data)...")
+            breast_cancer = load_breast_cancer()
+            X_bc, y_bc = breast_cancer.data, breast_cancer.target
+            feature_names = breast_cancer.feature_names
 
-        self.original_data = pd.DataFrame(sensitive_data)
+            # Create a realistic medical dataset with privacy concerns
+            medical_data = pd.DataFrame(X_bc, columns=feature_names)
+            medical_data["diagnosis"] = y_bc
+            medical_data["patient_id"] = range(1, len(medical_data) + 1)
+            medical_data["age"] = np.random.normal(55, 15, len(medical_data)).astype(
+                int
+            )
+            medical_data["age"] = np.clip(medical_data["age"], 25, 85)
+            medical_data["gender"] = np.random.choice(["M", "F"], len(medical_data))
+            medical_data["zip_code"] = np.random.choice(
+                ["10001", "10002", "10003", "10004", "10005"], len(medical_data)
+            )
 
-        print(f"  ✅ Sensitive dataset created: {len(self.original_data):,} records")
-        print(f"  🔒 Contains: Names, SSNs, Addresses, Phone numbers, Medical data")
+            datasets["breast_cancer"] = medical_data
+            print(f"    ✅ {breast_cancer.DESCR.split('\\n')[1]}")
+            print(f"    📊 Shape: {medical_data.shape}")
+            print(f"    🔒 Privacy concerns: Patient IDs, Age, Gender, Zip codes")
+
+            # Load Wine dataset (less sensitive but good for bias analysis)
+            print("  Loading Wine dataset...")
+            wine = load_wine()
+            X_wine, y_wine = wine.data, wine.target
+            wine_data = pd.DataFrame(X_wine, columns=wine.feature_names)
+            wine_data["quality"] = y_wine
+            wine_data["region"] = np.random.choice(
+                ["France", "Italy", "Spain"], len(wine_data)
+            )
+            wine_data["price_category"] = np.random.choice(
+                ["Budget", "Mid-range", "Premium"], len(wine_data)
+            )
+
+            datasets["wine"] = wine_data
+            print(f"    ✅ {wine.DESCR.split('\\n')[1]}")
+            print(f"    📊 Shape: {wine_data.shape}")
+
+        except Exception as e:
+            print(f"    ⚠️  Error loading datasets: {e}")
+            print("    📝 Using synthetic fallback data...")
+            datasets = self._create_synthetic_fallback()
+
+        return datasets
+
+    def _create_synthetic_fallback(self):
+        """Create synthetic data as fallback."""
+        print("    Creating synthetic fallback datasets...")
+
+        datasets = {}
+
+        # Synthetic medical data
+        n_records = 569
+        medical_data = pd.DataFrame(
+            {
+                "patient_id": range(1, n_records + 1),
+                "age": np.random.normal(55, 15, n_records).astype(int),
+                "gender": np.random.choice(["M", "F"], n_records),
+                "zip_code": np.random.choice(["10001", "10002", "10003"], n_records),
+                "diagnosis": np.random.choice([0, 1], n_records, p=[0.37, 0.63]),
+                "feature_1": np.random.randn(n_records),
+                "feature_2": np.random.randn(n_records),
+                "feature_3": np.random.randn(n_records),
+            }
+        )
+        datasets["breast_cancer"] = medical_data
+
+        # Synthetic wine data
+        n_records = 178
+        wine_data = pd.DataFrame(
+            {
+                "quality": np.random.choice([0, 1, 2], n_records, p=[0.33, 0.40, 0.27]),
+                "region": np.random.choice(["France", "Italy", "Spain"], n_records),
+                "price_category": np.random.choice(
+                    ["Budget", "Mid-range", "Premium"], n_records
+                ),
+                "feature_1": np.random.randn(n_records),
+                "feature_2": np.random.randn(n_records),
+            }
+        )
+        datasets["wine"] = wine_data
+
+        return datasets
+
+    def create_sensitive_dataset(self):
+        """Create a sensitive dataset from real medical data."""
+        # Load real datasets
+        all_datasets = self.load_real_datasets()
+
+        # Use breast cancer dataset as it's medical data with privacy concerns
+        self.original_data = all_datasets["breast_cancer"]
+
+        print(f"\n  ✅ Sensitive dataset loaded: {len(self.original_data):,} records")
+        print(
+            f"  🔒 Contains: Patient IDs, Age, Gender, Zip codes, Medical measurements"
+        )
         print(f"  📊 Sample data:")
         print(self.original_data.head(3).to_string(index=False))
 
@@ -96,35 +168,36 @@ class PrivacyProtection:
         anonymized = self.original_data.copy()
 
         # 1. Direct identifier removal
-        direct_identifiers = ["name", "ssn", "phone", "address"]
-        anonymized = anonymized.drop(columns=direct_identifiers)
+        direct_identifiers = ["patient_id", "age", "gender", "zip_code"]
+        # Only drop columns that exist
+        existing_identifiers = [
+            col for col in direct_identifiers if col in anonymized.columns
+        ]
+        anonymized = anonymized.drop(columns=existing_identifiers)
 
-        # 2. Date generalization (year only)
-        anonymized["birth_year"] = anonymized["date_of_birth"].dt.year
-        anonymized = anonymized.drop(columns=["date_of_birth"])
+        # 2. Age grouping (if age column exists)
+        if "age" in anonymized.columns:
+            anonymized["age_group"] = pd.cut(
+                anonymized["age"],
+                bins=[0, 25, 35, 45, 55, 65, 100],
+                labels=["18-25", "26-35", "36-45", "46-55", "56-65", "65+"],
+            )
+            anonymized = anonymized.drop(columns=["age"])
 
-        # 3. Age grouping
-        anonymized["age"] = datetime.now().year - anonymized["birth_year"]
-        anonymized["age_group"] = pd.cut(
-            anonymized["age"],
-            bins=[0, 25, 35, 45, 55, 65, 100],
-            labels=["18-25", "26-35", "36-45", "46-55", "56-65", "65+"],
-        )
-        anonymized = anonymized.drop(columns=["birth_year", "age"])
+        # 4. Feature binning (for numerical features)
+        if "feature_1" in anonymized.columns:
+            anonymized["feature_1_category"] = pd.cut(
+                anonymized["feature_1"],
+                bins=[-np.inf, -1, 0, 1, np.inf],
+                labels=["Very Low", "Low", "High", "Very High"],
+            )
+            anonymized = anonymized.drop(columns=["feature_1"])
 
-        # 4. Cost binning
-        anonymized["cost_category"] = pd.cut(
-            anonymized["treatment_cost"],
-            bins=[0, 1000, 5000, 10000, 50000],
-            labels=["Low", "Medium", "High", "Very High"],
-        )
-        anonymized = anonymized.drop(columns=["treatment_cost"])
-
-        # 5. Patient ID hashing
-        anonymized["hashed_id"] = anonymized["patient_id"].apply(
-            lambda x: hashlib.md5(str(x).encode()).hexdigest()[:8]
-        )
-        anonymized = anonymized.drop(columns=["patient_id"])
+        # 5. Create hashed ID from diagnosis (if patient_id was already dropped)
+        if "diagnosis" in anonymized.columns:
+            anonymized["hashed_diagnosis"] = anonymized["diagnosis"].apply(
+                lambda x: hashlib.md5(str(x).encode()).hexdigest()[:8]
+            )
 
         self.anonymized_data = anonymized
 
@@ -148,7 +221,24 @@ class PrivacyProtection:
         print("-" * 40)
 
         # Simulate differential privacy with noise addition
-        original_counts = self.anonymized_data["medical_condition"].value_counts()
+        if "diagnosis" in self.anonymized_data.columns:
+            original_counts = self.anonymized_data["diagnosis"].value_counts()
+        else:
+            # Fallback to feature columns
+            feature_cols = [
+                col
+                for col in self.anonymized_data.columns
+                if col.startswith("feature_")
+            ]
+            if feature_cols:
+                original_counts = (
+                    self.anonymized_data[feature_cols[0]].value_counts().head(5)
+                )
+            else:
+                print(
+                    "    ⚠️  No suitable columns found for differential privacy analysis"
+                )
+                return {}
 
         # Add Laplace noise for differential privacy
         epsilon = 1.0  # Privacy parameter (lower = more private)
@@ -184,18 +274,62 @@ class BiasDetection:
         self.model = None
 
     def create_biased_dataset(self):
-        """Create a synthetic dataset with intentional bias."""
+        """Create a dataset with real data for bias analysis."""
         print("\n2. BIAS DETECTION AND MITIGATION")
         print("=" * 50)
 
-        print("\n2.1 CREATING BIASED DATASET:")
-        print("-" * 35)
+        print("\n2.1 ANALYZING REAL DATASET FOR BIAS:")
+        print("-" * 40)
 
-        # Generate synthetic data with intentional bias
-        n_samples = 1000
+        # Load real datasets for bias analysis
+        try:
+            # Use wine dataset for bias analysis (region, price category)
+            print("  Loading Wine dataset for bias analysis...")
+            wine = load_wine()
+            X_wine, y_wine = wine.data, wine.target
+            wine_data = pd.DataFrame(X_wine, columns=wine.feature_names)
+            wine_data["quality"] = y_wine
 
-        # Create biased features
-        np.random.seed(42)
+            # Add demographic-like features for bias analysis
+            wine_data["region"] = np.random.choice(
+                ["France", "Italy", "Spain"], len(wine_data)
+            )
+            wine_data["price_category"] = np.random.choice(
+                ["Budget", "Mid-range", "Premium"], len(wine_data)
+            )
+            wine_data["production_year"] = np.random.choice(
+                [2018, 2019, 2020, 2021, 2022], len(wine_data)
+            )
+
+            self.dataset = wine_data
+            print(f"    ✅ {wine.DESCR.split('\\n')[1]}")
+            print(f"    📊 Shape: {wine_data.shape}")
+            print(
+                f"    🔍 Bias analysis features: Region, Price Category, Production Year"
+            )
+
+        except Exception as e:
+            print(f"    ⚠️  Error loading wine dataset: {e}")
+            print("    📝 Using synthetic fallback data...")
+            # Create synthetic wine-like data
+            n_samples = 178
+            wine_data = pd.DataFrame(
+                {
+                    "quality": np.random.choice(
+                        [0, 1, 2], n_samples, p=[0.33, 0.40, 0.27]
+                    ),
+                    "region": np.random.choice(["France", "Italy", "Spain"], n_samples),
+                    "price_category": np.random.choice(
+                        ["Budget", "Mid-range", "Premium"], n_samples
+                    ),
+                    "production_year": np.random.choice(
+                        [2018, 2019, 2020, 2021, 2022], n_samples
+                    ),
+                    "feature_1": np.random.randn(n_samples),
+                    "feature_2": np.random.randn(n_samples),
+                }
+            )
+            self.dataset = wine_data
 
         # Feature 1: Education level (biased by demographic)
         education_bias = np.random.choice(

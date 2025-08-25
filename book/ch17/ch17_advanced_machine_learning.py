@@ -4,7 +4,8 @@ Chapter 17: Advanced Machine Learning
 =====================================
 
 This chapter covers advanced machine learning techniques including ensemble methods,
-optimization algorithms, model interpretability, and production ML pipelines.
+optimization algorithms, model interpretability, and production ML pipelines
+using real datasets and real-world examples.
 """
 
 import numpy as np
@@ -31,13 +32,14 @@ from sklearn.model_selection import (
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.datasets import load_breast_cancer, load_wine, load_digits
 
 # Set up plotting style
 plt.style.use("default")
 sns.set_palette("husl")
 warnings.filterwarnings("ignore")
 
-# Set random seed for reproducibility
+# Set random seed for reproducibility (only for fallback data)
 np.random.seed(42)
 
 
@@ -50,28 +52,113 @@ def demonstrate_ensemble_learning():
     print("\n17.1 ENSEMBLE LEARNING METHODS")
     print("-" * 40)
 
-    print("\n1. CREATING SYNTHETIC DATASET:")
+    print("\n1. LOADING REAL DATASETS:")
     print("-" * 30)
 
-    # Create a complex synthetic dataset
-    n_samples = 1000
-    n_features = 15
+    def load_real_datasets():
+        """Load real datasets for ensemble learning demonstration."""
+        datasets = {}
 
-    X = np.random.randn(n_samples, n_features)
+        try:
+            # Load Breast Cancer dataset
+            print("  Loading Breast Cancer dataset...")
+            breast_cancer = load_breast_cancer()
+            X_bc, y_bc = breast_cancer.data, breast_cancer.target
 
-    # Create complex target variable
-    target = (
-        0.3 * X[:, 0] ** 2
-        + 0.5 * X[:, 1] * X[:, 2]
-        + 0.2 * np.sin(X[:, 3])
-        + 0.1 * np.exp(X[:, 4])
-        + np.random.normal(0, 0.1, n_samples)
-    )
+            # Load Wine dataset
+            print("  Loading Wine dataset...")
+            wine = load_wine()
+            X_wine, y_wine = wine.data, wine.target
 
-    y = (target > np.median(target)).astype(int)
+            # Load Digits dataset
+            print("  Loading Digits dataset...")
+            digits = load_digits()
+            X_digits, y_digits = digits.data, digits.target
 
+            datasets["breast_cancer"] = {
+                "X": X_bc,
+                "y": y_bc,
+                "name": "Breast Cancer Wisconsin",
+                "description": "Medical diagnosis classification",
+            }
+            datasets["wine"] = {
+                "X": X_wine,
+                "y": y_wine,
+                "name": "Wine Recognition",
+                "description": "Wine variety classification",
+            }
+            datasets["digits"] = {
+                "X": X_digits,
+                "y": y_digits,
+                "name": "Handwritten Digits",
+                "description": "Digit recognition (0-9)",
+            }
+
+            print(f"    ✅ Loaded {len(datasets)} real datasets")
+            for name, data in datasets.items():
+                print(
+                    f"      {data['name']}: {data['X'].shape[0]} samples, {data['X'].shape[1]} features"
+                )
+
+        except Exception as e:
+            print(f"    ⚠️  Error loading datasets: {e}")
+            print("    📝 Using synthetic fallback data...")
+
+            # Fallback to synthetic data
+            n_samples = 1000
+            n_features = 15
+            X = np.random.randn(n_samples, n_features)
+            target = (
+                0.3 * X[:, 0] ** 2
+                + 0.5 * X[:, 1] * X[:, 2]
+                + 0.2 * np.sin(X[:, 3])
+                + 0.1 * np.exp(X[:, 4])
+                + np.random.normal(0, 0.1, n_samples)
+            )
+            y = (target > np.median(target)).astype(int)
+
+            datasets["synthetic"] = {
+                "X": X,
+                "y": y,
+                "name": "Synthetic Dataset",
+                "description": "Fallback synthetic data",
+            }
+
+        return datasets
+
+    # Load real datasets
+    real_datasets = load_real_datasets()
+
+    # Use Breast Cancer dataset as primary (or first available)
+    if "breast_cancer" in real_datasets:
+        dataset_name = "breast_cancer"
+        X = real_datasets[dataset_name]["X"]
+        y = real_datasets[dataset_name]["y"]
+        print(f"  📊 Using {real_datasets[dataset_name]['name']} dataset")
+        print(f"  🎯 Task: {real_datasets[dataset_name]['description']}")
+    elif "wine" in real_datasets:
+        dataset_name = "wine"
+        X = real_datasets[dataset_name]["X"]
+        y = real_datasets[dataset_name]["y"]
+        print(f"  📊 Using {real_datasets[dataset_name]['name']} dataset")
+        print(f"  🎯 Task: {real_datasets[dataset_name]['description']}")
+    elif "digits" in real_datasets:
+        dataset_name = "digits"
+        X = real_datasets[dataset_name]["X"]
+        y = real_datasets[dataset_name]["y"]
+        print(f"  📊 Using {real_datasets[dataset_name]['name']} dataset")
+        print(f"  🎯 Task: {real_datasets[dataset_name]['description']}")
+    else:
+        dataset_name = "synthetic"
+        X = real_datasets[dataset_name]["X"]
+        y = real_datasets[dataset_name]["y"]
+        print(f"  📊 Using {real_datasets[dataset_name]['name']} dataset")
+        print(f"  🎯 Task: {real_datasets[dataset_name]['description']}")
+
+    n_samples, n_features = X.shape
     print(f"  ✅ Dataset: {n_samples:,} samples, {n_features} features")
     print(f"  📊 Target distribution: {np.bincount(y)}")
+    print(f"  🎯 Classes: {len(np.unique(y))}")
 
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(

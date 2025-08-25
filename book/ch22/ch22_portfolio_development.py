@@ -28,6 +28,7 @@ from sklearn.metrics import mean_squared_error, r2_score, roc_auc_score
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
+from sklearn.datasets import load_breast_cancer, load_wine, load_digits, fetch_openml
 
 # Set up plotting style
 plt.style.use("default")
@@ -44,22 +45,133 @@ class PortfolioProject:
     def __init__(self):
         self.project_data = None
         self.project_metrics = None
+        self.real_datasets = None
 
-    def create_portfolio_dataset(self):
-        """Create a synthetic dataset for portfolio project demonstration."""
+    def load_real_datasets(self):
+        """Load real datasets for portfolio project demonstration."""
         print("1. PORTFOLIO PROJECT DESIGN AND STRATEGY")
         print("=" * 60)
 
-        print("\n1.1 CREATING PORTFOLIO PROJECT DATASET:")
+        print("\n1.1 LOADING REAL DATASETS FOR PORTFOLIO PROJECTS:")
+        print("-" * 55)
+
+        datasets = {}
+        
+        try:
+            # Load Breast Cancer dataset (Healthcare ML project)
+            print("  Loading Breast Cancer dataset (Healthcare ML project)...")
+            breast_cancer = load_breast_cancer()
+            X_bc, y_bc = breast_cancer.data, breast_cancer.target
+            feature_names = breast_cancer.feature_names
+            
+            # Create healthcare dataset with patient context
+            healthcare_data = pd.DataFrame(X_bc, columns=feature_names)
+            healthcare_data['diagnosis'] = y_bc
+            healthcare_data['patient_id'] = range(1, len(healthcare_data) + 1)
+            healthcare_data['age_group'] = np.random.choice(['25-35', '36-45', '46-55', '56-65', '65+'], len(healthcare_data))
+            healthcare_data['region'] = np.random.choice(['Urban', 'Suburban', 'Rural'], len(healthcare_data))
+            
+            datasets['healthcare_ml'] = healthcare_data
+            print(f"    ✅ {breast_cancer.DESCR.split('\\n')[1]}")
+            print(f"    📊 Shape: {healthcare_data.shape}")
+            print(f"    🏥 Portfolio Project: Medical Diagnosis ML Model")
+            
+            # Load Wine dataset (Quality Assessment project)
+            print("  Loading Wine dataset (Quality Assessment project)...")
+            wine = load_wine()
+            X_wine, y_wine = wine.data, wine.target
+            wine_data = pd.DataFrame(X_wine, columns=wine.feature_names)
+            wine_data['quality'] = y_wine
+            wine_data['region'] = np.random.choice(['France', 'Italy', 'Spain'], len(wine_data))
+            wine_data['price_category'] = np.random.choice(['Budget', 'Mid-range', 'Premium'], len(wine_data))
+            wine_data['production_year'] = np.random.choice([2018, 2019, 2020, 2021, 2022], len(wine_data))
+            
+            datasets['wine_quality'] = wine_data
+            print(f"    ✅ {wine.DESCR.split('\\n')[1]}")
+            print(f"    📊 Shape: {wine_data.shape}")
+            print(f"    🍷 Portfolio Project: Wine Quality Prediction System")
+            
+            # Load Digits dataset (Computer Vision project)
+            print("  Loading Digits dataset (Computer Vision project)...")
+            digits = load_digits()
+            X_digits, y_digits = digits.data, digits.target
+            digits_data = pd.DataFrame(X_digits, columns=[f'pixel_{i}' for i in range(64)])
+            digits_data['digit'] = y_digits
+            digits_data['image_id'] = range(1, len(digits_data) + 1)
+            digits_data['source'] = np.random.choice(['Handwritten', 'Scanned', 'Digital'], len(digits_data))
+            digits_data['quality_score'] = np.random.uniform(0.7, 1.0, len(digits_data))
+            
+            datasets['computer_vision'] = digits_data
+            print(f"    ✅ {digits.DESCR.split('\\n')[1]}")
+            print(f"    📊 Shape: {digits_data.shape}")
+            print(f"    👁️  Portfolio Project: Handwritten Digit Recognition System")
+            
+        except Exception as e:
+            print(f"    ⚠️  Error loading datasets: {e}")
+            print("    📝 Using synthetic fallback data...")
+            datasets = self._create_synthetic_fallback()
+        
+        self.real_datasets = datasets
+        return datasets
+    
+    def _create_synthetic_fallback(self):
+        """Create synthetic data as fallback."""
+        print("    Creating synthetic fallback datasets...")
+        
+        datasets = {}
+        
+        # Synthetic healthcare data
+        n_records = 569
+        healthcare_data = pd.DataFrame({
+            'patient_id': range(1, n_records + 1),
+            'age_group': np.random.choice(['25-35', '36-45', '46-55', '56-65', '65+'], n_records),
+            'region': np.random.choice(['Urban', 'Suburban', 'Rural'], n_records),
+            'diagnosis': np.random.choice([0, 1], n_records, p=[0.37, 0.63]),
+            'feature_1': np.random.randn(n_records),
+            'feature_2': np.random.randn(n_records),
+            'feature_3': np.random.randn(n_records)
+        })
+        datasets['healthcare_ml'] = healthcare_data
+        
+        # Synthetic wine data
+        n_records = 178
+        wine_data = pd.DataFrame({
+            'quality': np.random.choice([0, 1, 2], n_records, p=[0.33, 0.40, 0.27]),
+            'region': np.random.choice(['France', 'Italy', 'Spain'], n_records),
+            'price_category': np.random.choice(['Budget', 'Mid-range', 'Premium'], n_records),
+            'production_year': np.random.choice([2018, 2019, 2020, 2021, 2022], n_records),
+            'feature_1': np.random.randn(n_records),
+            'feature_2': np.random.randn(n_records)
+        })
+        datasets['wine_quality'] = wine_data
+        
+        # Synthetic digits data
+        n_records = 1797
+        digits_data = pd.DataFrame({
+            'digit': np.random.choice(range(10), n_records),
+            'image_id': range(1, n_records + 1),
+            'source': np.random.choice(['Handwritten', 'Scanned', 'Digital'], n_records),
+            'quality_score': np.random.uniform(0.7, 1.0, n_records),
+            'feature_1': np.random.randn(n_records),
+            'feature_2': np.random.randn(n_records)
+        })
+        datasets['computer_vision'] = digits_data
+        
+        return datasets
+
+    def create_portfolio_dataset(self):
+        """Create portfolio project dataset from real data examples."""
+        # Load real datasets first
+        self.load_real_datasets()
+        
+        # Create portfolio project metadata
+        print("\n1.2 CREATING PORTFOLIO PROJECT METADATA:")
         print("-" * 45)
 
-        # Generate synthetic portfolio project data
-        n_projects = 50
-
-        # Project types and domains
+        # Project types and domains based on real datasets
         project_types = [
             "ML Prediction",
-            "Data Visualization",
+            "Data Visualization", 
             "NLP Analysis",
             "Computer Vision",
             "Time Series",
@@ -68,16 +180,19 @@ class PortfolioProject:
             "Anomaly Detection",
         ]
         domains = [
-            "E-commerce",
             "Healthcare",
+            "Manufacturing", 
             "Finance",
             "Marketing",
             "Transportation",
             "Education",
             "Entertainment",
-            "Manufacturing",
+            "E-commerce",
         ]
         complexity_levels = ["Beginner", "Intermediate", "Advanced", "Expert"]
+
+        # Create realistic portfolio project data
+        n_projects = 50
 
         portfolio_data = {
             "project_id": range(1, n_projects + 1),
