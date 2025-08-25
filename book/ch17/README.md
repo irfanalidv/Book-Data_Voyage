@@ -67,6 +67,15 @@ This comprehensive dashboard shows:
 - Generated visualizations and charts
 - Performance metrics and evaluations
 - Interactive elements and data exploration
+- Summary of findings and conclusions### Advanced Machine Learning Dashboard
+
+![Advanced Machine Learning Dashboard](advanced_machine_learning.png)
+
+This comprehensive dashboard shows:
+- Key insights and analysis results
+- Generated visualizations and charts
+- Performance metrics and evaluations
+- Interactive elements and data exploration
 - Summary of findings and conclusions- `advanced_machine_learning.png` - Advanced ML dashboard with comprehensive analysis
 
 ## Running the Code

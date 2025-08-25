@@ -90,6 +90,28 @@ This chapter generates multiple visualizations showing:
 
 - Computer vision applications and results
 
+### Computer Vision Fundamentals Visualizations
+
+This chapter generates multiple visualizations showing:
+
+#### 1. Image Processing
+
+![Image Processing](image_processing.png)
+
+- Computer vision image processing techniques
+
+#### 2. Feature Extraction
+
+![Feature Extraction](feature_extraction.png)
+
+- Image feature extraction and analysis
+
+#### 3. Cv Applications
+
+![Cv Applications](cv_applications.png)
+
+- Computer vision applications and results
+
 - `image_processing.png` - Image processing techniques demonstration
 - `feature_extraction.png` - Feature extraction results and analysis
 - `cv_applications.png` - Computer vision applications and results

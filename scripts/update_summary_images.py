@@ -76,10 +76,22 @@ def update_summary_files():
         "ch25": ["python_library_development.png"],
     }
 
+    # Determine the correct path to the book directory
+    if os.path.exists("../book"):
+        book_path = "../book"
+    elif os.path.exists("book"):
+        book_path = "book"
+    else:
+        print("❌ Could not find 'book' directory!")
+        print("Please run this script from the root directory or scripts directory.")
+        return
+
     for chapter, image_files in chapters_with_images.items():
         # Extract chapter number
         chapter_num = chapter[2:]  # Remove 'ch' prefix
-        summary_path = f"book/{chapter}/CHAPTER{chapter_num}_SUMMARY.md"
+        summary_path = os.path.join(
+            book_path, chapter, f"CHAPTER{chapter_num}_SUMMARY.md"
+        )
 
         if not os.path.exists(summary_path):
             print(f"⚠️  Summary file {summary_path} not found, skipping...")

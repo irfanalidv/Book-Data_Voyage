@@ -64,6 +64,15 @@ This comprehensive dashboard shows:
 - Generated visualizations and charts
 - Performance metrics and evaluations
 - Interactive elements and data exploration
+- Summary of findings and conclusions### Real-World Case Studies Dashboard
+
+![Real-World Case Studies Dashboard](real_world_case_studies.png)
+
+This comprehensive dashboard shows:
+- Key insights and analysis results
+- Generated visualizations and charts
+- Performance metrics and evaluations
+- Interactive elements and data exploration
 - Summary of findings and conclusions- `real_world_case_studies.png` - Industry applications dashboard
 
 ## Running the Code

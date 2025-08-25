@@ -63,6 +63,15 @@ This comprehensive dashboard shows:
 - Generated visualizations and charts
 - Performance metrics and evaluations
 - Interactive elements and data exploration
+- Summary of findings and conclusions### Portfolio Development Dashboard
+
+![Portfolio Development Dashboard](portfolio_development.png)
+
+This comprehensive dashboard shows:
+- Key insights and analysis results
+- Generated visualizations and charts
+- Performance metrics and evaluations
+- Interactive elements and data exploration
 - Summary of findings and conclusions
 ## Running the Code
 

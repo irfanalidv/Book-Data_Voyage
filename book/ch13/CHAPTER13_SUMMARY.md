@@ -87,6 +87,29 @@ This chapter generates multiple visualizations:
 - Natural language processing applications
 
 
+### Generated Visualizations
+
+This chapter generates multiple visualizations:
+
+#### 1. Text Preprocessing
+
+![Text Preprocessing](text_preprocessing.png)
+
+- Natural language text preprocessing pipeline
+
+#### 2. Text Representation
+
+![Text Representation](text_representation.png)
+
+- Text representation and vectorization
+
+#### 3. Nlp Applications
+
+![Nlp Applications](nlp_applications.png)
+
+- Natural language processing applications
+
+
 ## Key Takeaways
 
 - Text preprocessing is crucial for NLP success

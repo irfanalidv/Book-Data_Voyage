@@ -93,6 +93,17 @@ This visualization shows:
 - Performance metrics and evaluations
 - Interactive elements and data exploration
 - Summary of findings and conclusions
+
+### Communication Storytelling
+
+![Communication Storytelling](communication_storytelling.png)
+
+This visualization shows:
+- Key insights and analysis results
+- Generated visualizations and charts
+- Performance metrics and evaluations
+- Interactive elements and data exploration
+- Summary of findings and conclusions
 ## Key Takeaways
 
 - Real medical and scientific datasets provide meaningful storytelling examples

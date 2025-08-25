@@ -70,6 +70,15 @@ This comprehensive dashboard shows:
 - Generated visualizations and charts
 - Performance metrics and evaluations
 - Interactive elements and data exploration
+- Summary of findings and conclusions### Advanced Career Specializations Dashboard
+
+![Advanced Career Specializations Dashboard](advanced_career_specializations.png)
+
+This comprehensive dashboard shows:
+- Key insights and analysis results
+- Generated visualizations and charts
+- Performance metrics and evaluations
+- Interactive elements and data exploration
 - Summary of findings and conclusions- `advanced_career_specializations.png` - Comprehensive specializations dashboard
 
 ## Running the Code

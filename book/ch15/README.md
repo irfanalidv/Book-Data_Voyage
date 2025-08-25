@@ -115,6 +115,40 @@ This chapter generates multiple visualizations showing:
 
 - Forecasting model residual analysis
 
+### Time Series Analysis Visualizations
+
+This chapter generates multiple visualizations showing:
+
+#### 1. Time Series Components
+
+![Time Series Components](time_series_components.png)
+
+- Time series decomposition and components
+
+#### 2. Seasonal Decomposition
+
+![Seasonal Decomposition](seasonal_decomposition.png)
+
+- Seasonal pattern analysis and decomposition
+
+#### 3. Stationarity Analysis
+
+![Stationarity Analysis](stationarity_analysis.png)
+
+- Time series stationarity testing
+
+#### 4. Time Series Forecasting
+
+![Time Series Forecasting](time_series_forecasting.png)
+
+- Time series forecasting models and predictions
+
+#### 5. Forecast Residuals
+
+![Forecast Residuals](forecast_residuals.png)
+
+- Forecasting model residual analysis
+
 - `stationarity_analysis.png` - Stationarity testing and transformation results
 - `time_series_forecasting.png` - Forecasting methods comparison and results
 - `forecast_residuals.png` - Model diagnostics and residual analysis

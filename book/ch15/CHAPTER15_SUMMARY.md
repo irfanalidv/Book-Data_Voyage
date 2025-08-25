@@ -124,6 +124,41 @@ This chapter generates multiple visualizations:
 - Forecasting model residual analysis
 
 
+### Generated Visualizations
+
+This chapter generates multiple visualizations:
+
+#### 1. Time Series Components
+
+![Time Series Components](time_series_components.png)
+
+- Time series decomposition and components
+
+#### 2. Seasonal Decomposition
+
+![Seasonal Decomposition](seasonal_decomposition.png)
+
+- Seasonal pattern analysis and decomposition
+
+#### 3. Stationarity Analysis
+
+![Stationarity Analysis](stationarity_analysis.png)
+
+- Time series stationarity testing
+
+#### 4. Time Series Forecasting
+
+![Time Series Forecasting](time_series_forecasting.png)
+
+- Time series forecasting models and predictions
+
+#### 5. Forecast Residuals
+
+![Forecast Residuals](forecast_residuals.png)
+
+- Forecasting model residual analysis
+
+
 ## Key Takeaways
 
 - Real COVID-19 data provides meaningful time series analysis examples
