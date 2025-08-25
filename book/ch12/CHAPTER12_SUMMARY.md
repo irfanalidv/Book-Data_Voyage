@@ -106,6 +106,29 @@ This chapter generates multiple visualizations:
 - Neural network training optimization
 
 
+### Generated Visualizations
+
+This chapter generates multiple visualizations:
+
+#### 1. Activation Functions
+
+![Activation Functions](activation_functions.png)
+
+- Neural network activation functions
+
+#### 2. Neural Network Results
+
+![Neural Network Results](neural_network_results.png)
+
+- Deep learning model training and results
+
+#### 3. Training Optimization
+
+![Training Optimization](training_optimization.png)
+
+- Neural network training optimization
+
+
 ## Key Takeaways
 
 - Deep learning models can learn complex patterns from real data

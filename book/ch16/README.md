@@ -69,6 +69,15 @@ This comprehensive dashboard shows:
 - Generated visualizations and charts
 - Performance metrics and evaluations
 - Interactive elements and data exploration
+- Summary of findings and conclusions### Big Data Processing Dashboard
+
+![Big Data Processing Dashboard](big_data_processing.png)
+
+This comprehensive dashboard shows:
+- Key insights and analysis results
+- Generated visualizations and charts
+- Performance metrics and evaluations
+- Interactive elements and data exploration
 - Summary of findings and conclusions- `big_data_processing.png` - Comprehensive big data processing dashboard
 
 ## Running the Code

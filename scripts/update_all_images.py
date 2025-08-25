@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Launcher script to update all markdown files with image displays.
-This script runs both the README and summary file updates from the root directory.
+This script runs both the README and summary file updates from the scripts directory.
 """
 
 import os
@@ -14,33 +14,22 @@ def main():
     print("🚀 Data Voyage - Image Display Update Launcher")
     print("=" * 60)
 
-    # Check if scripts directory exists
-    scripts_dir = "scripts"
-    if not os.path.exists(scripts_dir):
-        print(f"❌ Scripts directory '{scripts_dir}' not found!")
-        print("Please ensure the scripts folder exists with the update scripts.")
+    # Check if we're in the scripts directory
+    if not os.path.exists("update_markdown_images_v2.py"):
+        print("❌ This script must be run from the scripts directory!")
+        print("Please navigate to the scripts folder and run this script.")
         return
 
-    # Store current directory
-    current_dir = os.getcwd()
-
-    # Change to scripts directory
-    os.chdir(scripts_dir)
-    print(f"📁 Changed to {scripts_dir} directory")
+    print("📁 Running from scripts directory")
 
     # Run README updates
     print("\n📝 Step 1: Updating README.md files with image displays...")
     try:
-        # Set environment variable to indicate we're running from scripts directory
-        env = os.environ.copy()
-        env["RUNNING_FROM_SCRIPTS"] = "1"
-
         result = subprocess.run(
             [sys.executable, "update_markdown_images_v2.py"],
             capture_output=True,
             text=True,
             check=True,
-            env=env,
         )
         print(result.stdout)
     except subprocess.CalledProcessError as e:
@@ -56,16 +45,12 @@ def main():
             capture_output=True,
             text=True,
             check=True,
-            env=env,
         )
         print(result.stdout)
     except subprocess.CalledProcessError as e:
         print(f"❌ Error running summary updates: {e}")
         print(f"Error output: {e.stderr}")
         return
-
-    # Return to original directory
-    os.chdir(current_dir)
 
     print("\n" + "=" * 60)
     print("✅ All image display updates completed successfully!")
@@ -80,8 +65,8 @@ def main():
     print("3. Test the documentation in your markdown viewer")
     print("4. Commit changes to version control")
 
-    print("\n📁 Scripts are located in the 'scripts/' folder")
-    print("📚 Documentation for the scripts is in 'scripts/README.md'")
+    print("\n📁 All scripts are now located in this 'scripts/' folder")
+    print("📚 Documentation for the scripts is in 'README.md'")
 
 
 if __name__ == "__main__":

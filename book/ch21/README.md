@@ -79,6 +79,15 @@ This comprehensive dashboard shows:
 - Generated visualizations and charts
 - Performance metrics and evaluations
 - Interactive elements and data exploration
+- Summary of findings and conclusions### Communication and Storytelling Dashboard
+
+![Communication and Storytelling Dashboard](communication_storytelling.png)
+
+This comprehensive dashboard shows:
+- Key insights and analysis results
+- Generated visualizations and charts
+- Performance metrics and evaluations
+- Interactive elements and data exploration
 - Summary of findings and conclusions- `communication_storytelling.png` - Comprehensive communication dashboard
 
 ## Running the Code

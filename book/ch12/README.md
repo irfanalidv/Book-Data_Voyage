@@ -115,6 +115,28 @@ This chapter generates multiple visualizations showing:
 
 - Neural network training optimization
 
+### Deep Learning Fundamentals Visualizations
+
+This chapter generates multiple visualizations showing:
+
+#### 1. Activation Functions
+
+![Activation Functions](activation_functions.png)
+
+- Neural network activation functions
+
+#### 2. Neural Network Results
+
+![Neural Network Results](neural_network_results.png)
+
+- Deep learning model training and results
+
+#### 3. Training Optimization
+
+![Training Optimization](training_optimization.png)
+
+- Neural network training optimization
+
 - `neural_network_results.png` - Neural network training results and predictions
 
 ## Running the Code
