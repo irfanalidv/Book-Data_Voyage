@@ -2,6 +2,22 @@
 
 > _"The goal is to turn data into information, and information into insight."_ - Carly Fiorina
 
+## 📊 **Repository Statistics & Tracking**
+
+[![GitHub stars](https://img.shields.io/github/stars/irfanalidv/Book-Data_Voyage?style=for-the-badge&logo=github&color=gold)](https://github.com/irfanalidv/Book-Data_Voyage/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/irfanalidv/Book-Data_Voyage?style=for-the-badge&logo=github&color=blue)](https://github.com/irfanalidv/Book-Data_Voyage/network)
+[![GitHub issues](https://img.shields.io/github/issues/irfanalidv/Book-Data_Voyage?style=for-the-badge&logo=github&color=red)](https://github.com/irfanalidv/Book-Data_Voyage/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/irfanalidv/Book-Data_Voyage?style=for-the-badge&logo=github&color=green)](https://github.com/irfanalidv/Book-Data_Voyage/pulls)
+[![GitHub contributors](https://img.shields.io/github/contributors/irfanalidv/Book-Data_Voyage?style=for-the-badge&logo=github&color=purple)](https://github.com/irfanalidv/Book-Data_Voyage/graphs/contributors)
+[![GitHub last commit](https://img.shields.io/github/last-commit/irfanalidv/Book-Data_Voyage?style=for-the-badge&logo=github&color=orange)](https://github.com/irfanalidv/Book-Data_Voyage/commits/main)
+[![GitHub repo size](https://img.shields.io/github/repo-size/irfanalidv/Book-Data_Voyage?style=for-the-badge&logo=github&color=lightgrey)](https://github.com/irfanalidv/Book-Data_Voyage)
+[![GitHub language](https://img.shields.io/github/languages/top/irfanalidv/Book-Data_Voyage?style=for-the-badge&logo=python&color=blue)](https://github.com/irfanalidv/Book-Data_Voyage)
+[![GitHub license](https://img.shields.io/github/license/irfanalidv/Book-Data_Voyage?style=for-the-badge&logo=github&color=lightgrey)](https://github.com/irfanalidv/Book-Data_Voyage/blob/main/LICENSE)
+
+### 🌐 **Visitor Counter**
+
+[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Firfanalidv%2FBook-Data_Voyage&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Visitors&edge_flat=false)](https://hits.seeyoufarm.com)
+
 ## 🎉 **COMPLETE AND READY FOR USE!**
 
 **Data Voyage** is a comprehensive, professional-grade data science book that takes you from absolute beginner to advanced practitioner. **All 25 chapters are complete** with executable code, **REAL-WORLD DATA EXAMPLES**, and professional visualizations.
