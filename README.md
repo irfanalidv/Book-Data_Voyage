@@ -24,6 +24,27 @@
 
 [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Firfanalidv%2FBook-Data_Voyage&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Page%20Views&edge_flat=false)](https://hits.seeyoufarm.com)
 
+### 📊 **Usage & Engagement Tracking**
+
+<!-- Downloads Counter -->
+
+[![Downloads](https://img.shields.io/github/downloads/irfanalidv/Book-Data_Voyage/total?style=for-the-badge&logo=github&color=blue)](https://github.com/irfanalidv/Book-Data_Voyage/releases)
+
+<!-- Code Size & Activity -->
+
+[![Lines of Code](https://img.shields.io/tokei/lines/github/irfanalidv/Book-Data_Voyage?style=for-the-badge&logo=github&color=orange)](https://github.com/irfanalidv/Book-Data_Voyage)
+[![GitHub Code Size](https://img.shields.io/github/languages/code-size/irfanalidv/Book-Data_Voyage?style=for-the-badge&logo=github&color=lightgrey)](https://github.com/irfanalidv/Book-Data_Voyage)
+
+<!-- Activity & Engagement -->
+
+[![GitHub Discussions](https://img.shields.io/github/discussions/irfanalidv/Book-Data_Voyage?style=for-the-badge&logo=github&color=purple)](https://github.com/irfanalidv/Book-Data_Voyage/discussions)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/irfanalidv?style=for-the-badge&logo=github&color=pink)](https://github.com/sponsors/irfanalidv)
+
+<!-- Advanced Usage Tracking -->
+
+[![GitHub Search Hit](https://img.shields.io/github/search/irfanalidv/Book-Data_Voyage/Book-Data_Voyage?style=for-the-badge&logo=github&color=yellow)](https://github.com/search?q=repo%3Airfanalidv%2FBook-Data_Voyage)
+[![GitHub Dependents](https://img.shields.io/github/dependents/repo/irfanalidv/Book-Data_Voyage?style=for-the-badge&logo=github&color=green)](https://github.com/irfanalidv/Book-Data_Voyage/network/dependents)
+
 ## 🎉 **COMPLETE AND READY FOR USE!**
 
 **Data Voyage** is a comprehensive, professional-grade data science book that takes you from absolute beginner to advanced practitioner. **All 25 chapters are complete** with executable code, **REAL-WORLD DATA EXAMPLES**, and professional visualizations.
