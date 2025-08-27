@@ -1,5 +1,7 @@
 # Data Voyage: Mapping the Path to Discovery in Data Science
 
+<img width="1800" height="1365" alt="Image" src="https://github.com/user-attachments/assets/d9f78052-67c7-4ff5-81a9-802fd4908694" />
+
 > _"The goal is to turn data into information, and information into insight."_ - Carly Fiorina
 
 ## 📊 **Repository Statistics & Tracking**
@@ -59,7 +61,6 @@
 - **Web Scraping**: Real websites and content
 - **Built-in Datasets**: Industry-standard machine learning data
 
-<img width="1800" height="1365" alt="Image" src="https://github.com/user-attachments/assets/d9f78052-67c7-4ff5-81a9-802fd4908694" />
 
 **No more synthetic examples - learn with the same data data scientists use in production!**
 
