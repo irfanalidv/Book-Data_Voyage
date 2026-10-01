@@ -5,7 +5,7 @@
 <h1 align="center">Data Voyage</h1>
 
 <p align="center"><strong>Building Real AI Systems from Data to Deployment</strong><br>
-Irfan Ali</p>
+Irfan Ali · Published by DataCortex IQ</p>
 
 <p align="center">
   <a href="https://github.com/irfanalidv/Book-Data_Voyage/actions/workflows/ci.yml"><img src="https://github.com/irfanalidv/Book-Data_Voyage/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
@@ -169,6 +169,7 @@ Irfan Ali is a senior AI engineer with seven years of production experience and 
 ```bibtex
 @book{ali2026datavoyage,
   author    = {Irfan Ali},
+  publisher = {DataCortex IQ},
   title     = {Data Voyage: Building Real AI Systems from Data to Deployment},
   year      = {2026},
   edition   = {2.1},

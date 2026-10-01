@@ -38,7 +38,7 @@ author: "Irfan Ali"
 lang: en-IN
 date: "2026-10-01"
 rights: "Copyright © 2026 Irfan Ali. All rights reserved."
-publisher: "Irfan Ali"
+publisher: "DataCortex IQ"
 subject: ["Artificial intelligence", "Machine learning", "Software engineering"]
 description: >-
   Production AI engineering taught through one running project, TalentLens,

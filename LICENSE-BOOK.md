@@ -2,6 +2,7 @@
 
 *Data Voyage: Building Real AI Systems from Data to Deployment*
 Copyright © 2026 Irfan Ali. All rights reserved.
+Published by DataCortex IQ.
 
 This notice covers the text of the book: the chapter `README.md` files under `book/ch01/` to `book/ch24/`, the other Markdown files directly under `book/` (dedication, foreword, preface, acknowledgements, prologue, glossary, references, and the running-project guide), and everything under `manuscript/`.
 

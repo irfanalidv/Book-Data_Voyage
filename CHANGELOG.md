@@ -6,6 +6,11 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- DataCortex IQ is named as the book's publisher (copyright page, EPUB
+  metadata, README, citation). Copyright stays with the author.
+
 ### Fixed
 
 - `make type-check` always errored (it passed `book/` to mypy, which

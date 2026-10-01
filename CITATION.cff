@@ -6,6 +6,8 @@ authors:
   - family-names: Ali
     given-names: Irfan
     email: irfan@datacortex.in
+publisher:
+  name: DataCortex IQ
 version: "2.1.0"
 date-released: "2026-10-01"
 url: "https://github.com/irfanalidv/Book-Data_Voyage"

@@ -4,6 +4,8 @@
 
 by Irfan Ali
 
+Published by DataCortex IQ.
+
 Copyright © 2026 Irfan Ali. All rights reserved.
 
 No part of the text of this book may be reproduced, stored, or transmitted in any form without written permission from the author, except for short quotations with attribution in reviews and articles.
