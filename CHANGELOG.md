@@ -13,6 +13,16 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Every file and folder the book names (270 references) links to it in
+  the public GitHub repository, in the PDF, EPUB, and Leanpub editions.
+- Chapter 23 case study 3 rewritten from the public RAGNav and ragfallback
+  repositories, with excerpts of their code (MIT). It previously credited
+  RAGNav with features it does not have and invented some numbers; Chapter 22's
+  RAGNav download figures and README quote are corrected to the real ones. All
+  case studies now link their live sites and repositories.
+- Chapter 23 gains a fourth case study, StackSift (https://stacksift.in),
+  written from its codebase: evaluation set, review routing, and the prompt
+  optimisation that was reverted. About the Author and the README mention it.
 - The ebook is on sale at https://leanpub.com/datavoyage; the README links to it.
 - `make pdf`: a typeset 7 x 9.25 in PDF (cover, linked contents, bookmarks,
   page numbers) built with pandoc and headless Chrome.
@@ -32,6 +42,8 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   use matching fonts; figures are capped at 4.6 in tall.
 - EPUB: code blocks wrap on e-readers instead of being cut off, with an
   e-reader stylesheet that leaves body fonts to the reader.
+- PDF and EPUB: 89 bulleted lists that start straight after a line of text
+  rendered as run-on paragraphs; the builds now read them as lists.
 - Part pages showed the raw Leanpub marker `{class: part}` in the EPUB; both
   builds now turn it into a styled heading.
 - `make type-check` always errored (it passed `book/` to mypy, which

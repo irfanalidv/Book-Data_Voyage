@@ -135,6 +135,7 @@ class Report:
     images_copied: list[str] = field(default_factory=list)
     broken_images: list[str] = field(default_factory=list)
     rewritten_images: int = 0
+    code_links: int = 0
     link_rewrites: list[str] = field(default_factory=list)
     leftover_md_links: list[str] = field(default_factory=list)
     placeholders_safe: list[str] = field(default_factory=list)
@@ -207,6 +208,72 @@ def _classify_placeholders(text: str, src: Path, report: Report) -> None:
             report.placeholders_bare.append(loc)
 
 
+GITHUB_BLOB = "https://github.com/irfanalidv/Book-Data_Voyage/blob/main/"
+GITHUB_TREE = "https://github.com/irfanalidv/Book-Data_Voyage/tree/main/"
+_ROOT_FILES = {"Dockerfile", "Makefile", "pyproject.toml", "render.yaml", "LICENSE", "README.md"}
+_CODE_PATH = re.compile(r"(?<![\[`])`(\.?/?[A-Za-z0-9_.\-/]+?)(?::(\d+))?`(?!\])")
+
+
+def _tracked_paths() -> tuple[set[str], set[str]]:
+    """Files git tracks, and every directory that contains one."""
+    import subprocess
+
+    out = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True)
+    files = set(out.stdout.split())
+    dirs = {"/".join(f.split("/")[:i]) for f in files for i in range(1, f.count("/") + 1)}
+    return files, dirs
+
+
+try:
+    _TRACKED = _tracked_paths()
+except Exception:  # no git checkout: leave code spans as plain text
+    _TRACKED = (set(), set())
+
+
+def _link_code_paths(text: str, src: Path, report: "Report") -> str:
+    """Turn `book/ch05/x.py`-style code spans into links to the file on GitHub.
+
+    Only spans that resolve to a file or folder git tracks are linked (paths in
+    a chapter folder resolve relative to it too); API routes, generated files
+    and placeholders stay plain. Fenced code, headings, and spans already
+    inside a link are left alone.
+    """
+    files, dirs = _TRACKED
+    chapter_dir = src.parent.relative_to(ROOT).as_posix()
+
+    def resolve(raw: str) -> str | None:
+        p = raw.removeprefix("./").rstrip("/")
+        if not p or ("/" not in p and p not in _ROOT_FILES and not p.startswith("requirements")):
+            return None
+        for cand in (p, f"{chapter_dir}/{p}", f"{chapter_dir}/reports/{p}"):
+            if cand in files or cand in dirs:
+                return cand
+        return None
+
+    def repl(m: re.Match) -> str:
+        target = resolve(m.group(1))
+        if target is None:
+            return m.group(0)
+        report.code_links += 1
+        if target in files:
+            url = GITHUB_BLOB + target + (f"#L{m.group(2)}" if m.group(2) else "")
+        else:
+            url = GITHUB_TREE + target
+        return f"[{m.group(0)}]({url})"
+
+    out = []
+    for i, part in enumerate(re.split(r"(```.*?```|~~~.*?~~~)", text, flags=re.S)):
+        if i % 2:
+            out.append(part)
+            continue
+        lines = [
+            ln if ln.lstrip().startswith("#") else _CODE_PATH.sub(repl, ln)
+            for ln in part.split("\n")
+        ]
+        out.append("\n".join(lines))
+    return "".join(out)
+
+
 def _rewrite_images(text: str, src: Path, dest_stem: str, report: Report) -> str:
     def replace_image(match: re.Match[str]) -> str:
         alt, rel = match.group(1), match.group(2)
@@ -233,6 +300,7 @@ def _rewrite_content(text: str, src: Path, dest_stem: str, report: Report) -> st
     _classify_placeholders(text, src, report)
     new_text = _rewrite_images(text, src, dest_stem, report)
     new_text = _rewrite_md_links(new_text, src, report)
+    new_text = _link_code_paths(new_text, src, report)
     return new_text
 
 
@@ -317,6 +385,7 @@ def print_report(report: Report) -> int:
     print(f"files in manuscript/ (excl. images/): {len(report.files_written)}")
     print(f"images copied: {len(report.images_copied)}")
     print(f"image embeds rewritten: {report.rewritten_images}")
+    print(f"code paths linked to GitHub: {report.code_links}")
     print(f"broken image references: {len(report.broken_images)}")
     for row in report.broken_images:
         print(f"  - {row}")

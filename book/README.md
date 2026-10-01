@@ -78,7 +78,7 @@ Every chapter folder holds a `README.md` (the chapter text), a runnable script, 
 
 | # | Chapter | What it covers |
 |---|---------|----------------|
-| 23 | [Real-World Case Studies](ch23/README.md) | Reflecta, Godam, RAGNav: architecture decisions and what broke |
+| 23 | [Real-World Case Studies](ch23/README.md) | Reflecta, Godam, RAGNav and ragfallback, StackSift: architecture decisions and what broke |
 | 24 | [The India Playbook](ch24/README.md) | Five markets, negotiation, remote contracts, and which claims you can measure |
 
 ---

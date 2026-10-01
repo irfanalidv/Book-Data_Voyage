@@ -246,7 +246,7 @@ Downloads (last 30 days): 187
   - From your own machines:  ~10  (you)
 ```
 
-187 downloads in a month is a respectable result for a personal library nobody has marketed. RAGNav, for reference, sat at ~150/month for its first three months before mentions on Hacker News and a couple of blog posts pushed it past 1,000/month.
+187 downloads in a month is a respectable result for a personal library nobody has marketed. RAGNav, for reference, had about 2,250 downloads in total by October 2026, seven months after its first release, and many months were far quieter than this one (figures from pepy.tech and pypistats.org).
 
 **What "good" looks like for a small library at 6 months:**
 
@@ -357,13 +357,13 @@ Template answer: "Three steps. First, fix it immediately: patch the issue and sh
 
 **Q5: What's the most important thing in a Python library's README?**
 
-Template answer: "The first 30 seconds. If a reader can't tell in 30 seconds what this library does and whether it solves a problem they have, they close the tab. So the structure I use is: one-sentence what-this-is, then a five-line code example showing the most common usage, then a short list of what makes this different from alternatives. After that you can have installation, full API docs, examples, but if the top doesn't land, no one reads the rest. RAGNav's README opens with three lines: 'Production hybrid RAG retrieval with confidence scoring and graph-aware reranking. R@3 = 0.956 on SQuAD. Fully offline.' That's the whole pitch. People who care read on; people who don't, leave. That's fine."
+Template answer: "The first 30 seconds. If a reader can't tell in 30 seconds what this library does and whether it solves a problem they have, they close the tab. So the structure I use is: one-sentence what-this-is, then a five-line code example showing the most common usage, then a short list of what makes this different from alternatives. After that you can have installation, full API docs, examples, but if the top doesn't land, no one reads the rest. RAGNav's README opens with what it does and one reproducible number: hybrid BM25 plus embeddings, recall@3 of 0.956 on 500 SQuAD questions, fully offline. That's the whole pitch. People who care read on; people who don't, leave. That's fine."
 
 ---
 
 ## What's next
 
-Chapter 23 takes everything we've built (the API, the deployment pipeline, the published library) and steps back from TalentLens to look at three other production systems: Reflecta (voice-first AI), Godam (FMCG inventory for Nepal), and RAGNav (hybrid retrieval library). Each is a real product that's been in production. Each made architecture decisions that look obvious in hindsight and weren't obvious at the time. Each broke in ways no test suite caught. The case studies show what happens after deployment: the parts that don't fit into a single chapter because they only become visible when real users start using your code.
+Chapter 23 takes everything we've built (the API, the deployment pipeline, the published library) and steps back from TalentLens to look at other production systems: Reflecta (voice-first AI), Godam (FMCG inventory for Nepal), the open-source RAGNav and ragfallback libraries, and StackSift (a B2B product intelligence API). Each is a real product that's been in production. Each made architecture decisions that look obvious in hindsight and weren't obvious at the time. Each broke in ways no test suite caught. The case studies show what happens after deployment: the parts that don't fit into a single chapter because they only become visible when real users start using your code.
 
 Then Chapter 24 closes the book with the career playbook: how to use what you've built to get hired in the AI/ML job market, with TalentLens data telling you what the market pays.
 

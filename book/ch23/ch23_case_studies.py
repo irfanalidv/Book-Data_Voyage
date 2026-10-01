@@ -51,7 +51,7 @@ CASE_STUDIES = [
     {
         "name": "Reflecta",
         "tagline": "Voice-first AI wellness companion",
-        "url": "app.getreflecta.com",
+        "url": "getreflecta.com",
         "stack": [
             "Next.js 15",
             "Neon Postgres + pgvector",
@@ -130,46 +130,47 @@ CASE_STUDIES = [
     },
     {
         "name": "RAGNav",
-        "tagline": "Open-source hybrid RAG retrieval library",
-        "url": "pypi.org/project/ragnav",
+        "tagline": "Open-source hybrid retrieval library",
+        "url": "github.com/irfanalidv/RAGNav",
         "stack": [
             "Python",
             "BM25 (rank-bm25)",
-            "FAISS",
+            "NumPy",
             "SentenceTransformers",
-            "MLflow",
+            "PyMuPDF",
             "GitHub Actions",
         ],
         "what_it_does": (
-            "A PyPI library for hybrid BM25 + dense retrieval with production "
-            "monitoring. SQuAD benchmark R@3 = 0.956. Includes ConfidenceDriftMonitor "
-            "(PSI/KS tests), MLflowLogger, and a GitHub Actions CI with a "
-            "regression gate that fails the build if R@3 drops below threshold."
+            "A PyPI library (MIT) for hybrid BM25 + dense retrieval with "
+            "structure-aware expansion, fully offline. On 500 SQuAD questions, "
+            "recall@3 is 0.956 hybrid vs 0.932 BM25-only and 0.906 embedding-only, "
+            "with results committed in the repository. Its companion library, "
+            "ragfallback, adds a CI regression gate for RAG pipelines."
         ),
         "key_lessons": [
-            "Open-source libraries need a README that shows results in the first "
-            "three lines. Benchmarks (R@3=0.956) get stars. Descriptions of "
-            "architecture do not.",
-            "The CI regression gate (fail build if accuracy drops) was the "
-            "single most valuable engineering decision. It caught 4 regressions "
-            "introduced by dependency updates over 6 months.",
-            "Hybrid retrieval (BM25 + dense) outperforms either alone by 8-12% "
-            "on R@3. The exact keyword match from BM25 fills gaps the embedding "
-            "model misses on technical terms.",
-            "Publishing to PyPI is the easy part. Maintaining documentation, "
-            "answering issues, and keeping dependencies updated is the actual work.",
+            "Lead the README with one reproducible number. The SQuAD benchmark "
+            "and the script that regenerates it say more than any architecture "
+            "description.",
+            "Fuse rankings, not raw scores: BM25 and cosine similarity live on "
+            "different scales, so Reciprocal Rank Fusion combines rank positions.",
+            "Report the hard cases. On legal contracts (CUAD) block-level "
+            "recall@3 is 0.047, and the README says so under Limitations.",
+            "Publishing to PyPI is the easy part. Tests, CI, and documentation "
+            "are the ongoing work.",
         ],
         "what_broke": [
-            "FAISS on Apple Silicon required a different install path than on Linux. "
-            "Lost a weekend to this. Test on multiple platforms before announcing.",
-            "MLflowLogger added a hard dependency on mlflow that bloated the "
-            "install for users who didn't need logging. Moved to optional extras.",
+            "Release 0.3.0 combined document-level and block-level access rules "
+            "with OR, so a document's permissions could widen access to a "
+            "restricted block. 0.4.0 changed it to AND, alongside new CI and "
+            "test coverage of about 72%.",
+            "The library shipped before it had CI; lint, tests, and coverage "
+            "arrived only in 0.4.0.",
         ],
         "metrics": {
             "stack_complexity": 5,
             "months_to_ship": 1,
-            "lines_of_code": 2800,
-            "prod_incidents": 0,
+            "lines_of_code": 5742,
+            "prod_incidents": 1,
         },
     },
 ]
@@ -251,9 +252,9 @@ def plot_system_architectures(cfg: Config) -> Path:
         "Namecheap DNS": "Infrastructure",
         "Python": "Backend",
         "BM25 (rank-bm25)": "AI/ML",
-        "FAISS": "AI/ML",
+        "NumPy": "Backend",
         "SentenceTransformers": "AI/ML",
-        "MLflow": "Monitoring",
+        "PyMuPDF": "Backend",
         "GitHub Actions": "Infrastructure",
     }
 

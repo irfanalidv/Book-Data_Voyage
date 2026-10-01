@@ -87,8 +87,11 @@ Canonical documentation and data sources for the tools, standards, and influence
 
 Libraries and systems built or operated in production and discussed as case studies (see the Acknowledgements):
 
-- **RAGNav**: open-source hybrid retrieval (Chapter 23)
-- **ragfallback**, **AgentEnsemble**, **AgentCare**, **scrapeflow-py**: PyPI libraries under the author's GitHub account
+- **RAGNav**: open-source hybrid retrieval, https://github.com/irfanalidv/RAGNav (Chapter 23)
+- **ragfallback**: reliability layer and CI gate for RAG pipelines, https://github.com/irfanalidv/ragfallback (Chapter 23)
+- **StackSift**: B2B product intelligence API, https://stacksift.in/ (Chapter 23)
+- **Reflecta**: https://www.getreflecta.com/ and **Godam**: https://www.getgodam.com/ (Chapter 23)
+- **AgentEnsemble**, **AgentCare**, **scrapeflow-py**: PyPI libraries under the author's GitHub account
 - **Reflecta**, **Godam**: production case studies (Chapter 23)
 - **talentlens-core**: the library packaged in Chapter 22
 

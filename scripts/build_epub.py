@@ -139,6 +139,9 @@ def main() -> None:
         subprocess.run(
             [
                 "pandoc",
+                # GitHub and Leanpub allow a list right after a line of text;
+                # plain pandoc Markdown needs a blank line, so turn that on.
+                "--from=markdown+lists_without_preceding_blankline",
                 "metadata.yaml",
                 "book.md",
                 "-o",

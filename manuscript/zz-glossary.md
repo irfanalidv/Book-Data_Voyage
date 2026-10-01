@@ -14,9 +14,9 @@ These are the technical terms and TalentLens-specific names used across *Data Vo
 
 **Demo vs live collection**: Demo mode generates seeded synthetic postings for reproducibility; live mode calls the Adzuna and RemoteOK APIs with your keys. Numbers in the book come from demo mode; live runs will differ. (Chapter 5)
 
-**jobs_clean.csv**: The cleaned posting file Chapters 6–7 produce under `data/clean/`. Downstream ML, RAG, API, and career scripts read this path via `jobs_clean_path()`. (Chapter 6)
+**jobs_clean.csv**: The cleaned posting file Chapters 6–7 produce under [`data/clean/`](https://github.com/irfanalidv/Book-Data_Voyage/tree/main/data/clean). Downstream ML, RAG, API, and career scripts read this path via `jobs_clean_path()`. (Chapter 6)
 
-**jobs_raw.csv**: The raw collected file Chapter 5 writes under `data/raw/`. Cleaning is a separate step so you can re-run Chapter 6 without re-fetching. (Chapter 5)
+**jobs_raw.csv**: The raw collected file Chapter 5 writes under [`data/raw/`](https://github.com/irfanalidv/Book-Data_Voyage/tree/main/data/raw). Cleaning is a separate step so you can re-run Chapter 6 without re-fetching. (Chapter 5)
 
 **Role taxonomy**: The five supervised labels TalentLens uses: Data Analyst (DA), Data Scientist (DS), Data Engineer (DE), ML Engineer (MLE), and AI Engineer (AIE). Chapter 6 derives initial `role_category` from title keywords; Chapter 9 learns from body text. (Chapter 1)
 
@@ -160,7 +160,7 @@ These are the technical terms and TalentLens-specific names used across *Data Vo
 
 **OpenAPI**: Machine-readable HTTP API schema FastAPI generates from Pydantic models at `/openapi.json` and `/docs`. (Chapter 19)
 
-**Optional dependencies**: Extra install groups in `pyproject.toml` (`ml`, `llm`, `vectors`) so readers install heavy stacks only when a chapter needs them. (Chapter 2)
+**Optional dependencies**: Extra install groups in [`pyproject.toml`](https://github.com/irfanalidv/Book-Data_Voyage/blob/main/pyproject.toml) (`ml`, `llm`, `vectors`) so readers install heavy stacks only when a chapter needs them. (Chapter 2)
 
 **Overfitting**: The model fits training noise: training loss keeps falling while validation loss rises. Stop at the best validation epoch, not the last one. (Chapter 12)
 
@@ -210,7 +210,7 @@ These are the technical terms and TalentLens-specific names used across *Data Vo
 
 **SMOTE**: Synthetic Minority Over-sampling Technique: interpolates new minority-class examples for imbalanced tabular data. Named in interview prep; we default to `class_weight='balanced'` first. (Chapter 9)
 
-**SPDX license expression**: Standard string for package licenses (`MIT`, `Apache-2.0`) in `pyproject.toml`. (Chapter 22)
+**SPDX license expression**: Standard string for package licenses (`MIT`, `Apache-2.0`) in [`pyproject.toml`](https://github.com/irfanalidv/Book-Data_Voyage/blob/main/pyproject.toml). (Chapter 22)
 
 **Standardisation (scaling)**: Rescaling each feature to mean 0 and standard deviation 1, fitted on training rows only. Essential for neural networks and distance-based methods; irrelevant to trees. (Chapter 12)
 

@@ -44,7 +44,7 @@ Canonical documentation and data sources for the tools, standards, and influence
 | **Render** | https://render.com/docs | Managed deployment target for the TalentLens API (Chapter 20) |
 | **pgvector** | https://github.com/pgvector/pgvector | PostgreSQL vector extension for production RAG (Chapter 16) |
 
-**Lockfiles:** `requirements.txt` declares compatible-release pins; `requirements-lock.txt` holds exact versions for CI and readers. Regenerate with `uv` via `make lock`.
+**Lockfiles:** [`requirements.txt`](https://github.com/irfanalidv/Book-Data_Voyage/blob/main/requirements.txt) declares compatible-release pins; [`requirements-lock.txt`](https://github.com/irfanalidv/Book-Data_Voyage/blob/main/requirements-lock.txt) holds exact versions for CI and readers. Regenerate with `uv` via `make lock`.
 
 **Maintainers we stand on:** Wes McKinney (pandas), the scikit-learn community, Sebastián Ramírez (FastAPI), and Nils Reimers (sentence-transformers).
 
@@ -70,7 +70,7 @@ Canonical documentation and data sources for the tools, standards, and influence
 | **Keep a Changelog** | https://keepachangelog.com | `CHANGELOG.md` format |
 | **Semantic Versioning** | https://semver.org | Package and release versioning (Chapter 22) |
 | **PyPI Trusted Publishing** | https://docs.pypi.org/trusted-publishers/ | CI releases without long-lived API tokens (Chapter 22) |
-| **SPDX license identifiers** | https://spdx.org/licenses | `license` field in `pyproject.toml` (Chapter 22) |
+| **SPDX license identifiers** | https://spdx.org/licenses | `license` field in [`pyproject.toml`](https://github.com/irfanalidv/Book-Data_Voyage/blob/main/pyproject.toml) (Chapter 22) |
 | **Diátaxis** | https://diataxis.fr | Documentation framing behind the book's split between explanation, reference boxes, and how-to steps |
 
 ---
@@ -87,8 +87,11 @@ Canonical documentation and data sources for the tools, standards, and influence
 
 Libraries and systems built or operated in production and discussed as case studies (see the Acknowledgements):
 
-- **RAGNav**: open-source hybrid retrieval (Chapter 23)
-- **ragfallback**, **AgentEnsemble**, **AgentCare**, **scrapeflow-py**: PyPI libraries under the author's GitHub account
+- **RAGNav**: open-source hybrid retrieval, https://github.com/irfanalidv/RAGNav (Chapter 23)
+- **ragfallback**: reliability layer and CI gate for RAG pipelines, https://github.com/irfanalidv/ragfallback (Chapter 23)
+- **StackSift**: B2B product intelligence API, https://stacksift.in/ (Chapter 23)
+- **Reflecta**: https://www.getreflecta.com/ and **Godam**: https://www.getgodam.com/ (Chapter 23)
+- **AgentEnsemble**, **AgentCare**, **scrapeflow-py**: PyPI libraries under the author's GitHub account
 - **Reflecta**, **Godam**: production case studies (Chapter 23)
 - **talentlens-core**: the library packaged in Chapter 22
 

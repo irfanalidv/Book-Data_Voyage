@@ -26,7 +26,7 @@ My mother, whose belief in this work made everything else possible.
 
 The salary benchmarks in Chapter 24 are my read of the early-2026 Indian AI/ML market, informed by seven years of offers, contracts, and hiring conversations, cross-checked against public compensation data. TalentLens is the method readers can use to verify against live postings: the chapter script measures remote-vs-on-site medians on your corpus; the five-market and negotiation bands are reference material until you have enough disclosed salaries to compute your own. Those figures will shift. Treat them as a starting point for your own research, not as fixed facts.
 
-The technical content reflects production patterns from real systems: Reflecta (a voice-first AI wellness platform), Godam (an FMCG inventory platform serving Nepal), RAGNav (open-source hybrid retrieval library), and various client projects under DataCortex IQ. When something is described as working in production, it has been running in production.
+The technical content reflects production patterns from real systems: Reflecta (a voice-first AI wellness platform), Godam (an FMCG inventory platform serving Nepal), RAGNav and ragfallback (open-source RAG libraries), StackSift (a B2B product intelligence API), and various client projects under DataCortex IQ. When something is described as working in production, it has been running in production.
 
 The open-source libraries cited throughout (RAGNav, ragfallback, AgentEnsemble, AgentCare, scrapeflow-py, and others) are all available on PyPI under my GitHub account. Use them, fork them, send patches.
 

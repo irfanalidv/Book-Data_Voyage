@@ -3,7 +3,7 @@
 Three systems I built and shipped. What worked, what broke, and what you can borrow.
 
 ## Reflecta — Voice-first AI wellness companion
-*app.getreflecta.com*
+*getreflecta.com*
 
 **What it does:**
 Users call a phone number and talk to an AI wellness companion. The call is transcribed, analysed by an LLM, and summarised into a personal dashboard. The LLM tracks mood patterns over time using pgvector similarity search on past conversation embeddings.
@@ -42,23 +42,23 @@ Inventory management for a Nepal-based FMCG distribution business. Three user ro
 
 ---
 
-## RAGNav — Open-source hybrid RAG retrieval library
-*pypi.org/project/ragnav*
+## RAGNav — Open-source hybrid retrieval library
+*github.com/irfanalidv/RAGNav*
 
 **What it does:**
-A PyPI library for hybrid BM25 + dense retrieval with production monitoring. SQuAD benchmark R@3 = 0.956. Includes ConfidenceDriftMonitor (PSI/KS tests), MLflowLogger, and a GitHub Actions CI with a regression gate that fails the build if R@3 drops below threshold.
+A PyPI library (MIT) for hybrid BM25 + dense retrieval with structure-aware expansion, fully offline. On 500 SQuAD questions, recall@3 is 0.956 hybrid vs 0.932 BM25-only and 0.906 embedding-only, with results committed in the repository. Its companion library, ragfallback, adds a CI regression gate for RAG pipelines.
 
-**Stack:** Python, BM25 (rank-bm25), FAISS, SentenceTransformers, MLflow, GitHub Actions
+**Stack:** Python, BM25 (rank-bm25), NumPy, SentenceTransformers, PyMuPDF, GitHub Actions
 
 **Key lessons:**
-- Open-source libraries need a README that shows results in the first three lines. Benchmarks (R@3=0.956) get stars. Descriptions of architecture do not.
-- The CI regression gate (fail build if accuracy drops) was the single most valuable engineering decision. It caught 4 regressions introduced by dependency updates over 6 months.
-- Hybrid retrieval (BM25 + dense) outperforms either alone by 8-12% on R@3. The exact keyword match from BM25 fills gaps the embedding model misses on technical terms.
-- Publishing to PyPI is the easy part. Maintaining documentation, answering issues, and keeping dependencies updated is the actual work.
+- Lead the README with one reproducible number. The SQuAD benchmark and the script that regenerates it say more than any architecture description.
+- Fuse rankings, not raw scores: BM25 and cosine similarity live on different scales, so Reciprocal Rank Fusion combines rank positions.
+- Report the hard cases. On legal contracts (CUAD) block-level recall@3 is 0.047, and the README says so under Limitations.
+- Publishing to PyPI is the easy part. Tests, CI, and documentation are the ongoing work.
 
 **What broke (and why):**
-- FAISS on Apple Silicon required a different install path than on Linux. Lost a weekend to this. Test on multiple platforms before announcing.
-- MLflowLogger added a hard dependency on mlflow that bloated the install for users who didn't need logging. Moved to optional extras.
+- Release 0.3.0 combined document-level and block-level access rules with OR, so a document's permissions could widen access to a restricted block. 0.4.0 changed it to AND, alongside new CI and test coverage of about 72%.
+- The library shipped before it had CI; lint, tests, and coverage arrived only in 0.4.0.
 
 ---
 
