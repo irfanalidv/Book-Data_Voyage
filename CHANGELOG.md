@@ -13,6 +13,11 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- README: a Quality and verification section (what is checked, where, and
+  the command to run it), a requirements table, how to build the ebook, and
+  edition, support, and acknowledgement sections.
+- CONTRIBUTING.md, SECURITY.md, CODE_OF_CONDUCT.md, issue templates for
+  reproducibility reports and text corrections, and a pull request template.
 - Every file and folder the book names (270 references) links to it in
   the public GitHub repository, in the PDF, EPUB, and Leanpub editions.
 - Chapter 23 case study 3 rewritten from the public RAGNav and ragfallback

@@ -1,0 +1,43 @@
+name: Number or script does not reproduce
+description: A chapter script fails, or prints something different from the book.
+labels: [reproducibility]
+body:
+  - type: input
+    id: chapter
+    attributes:
+      label: Chapter and script
+      placeholder: "Chapter 10, book/ch10/ch10_feature_engineering_selection.py"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What the book says
+      description: Quote the number or output and give the section heading.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What you got
+      description: Paste the output or the full traceback.
+      render: text
+    validations:
+      required: true
+  - type: dropdown
+    id: dataset
+    attributes:
+      label: Dataset
+      options:
+        - Bundled 576-row corpus (no jobs_clean.large.csv)
+        - My own collected data (jobs_clean.large.csv exists)
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: "macOS 15, Python 3.11.9, installed with make install"
+    validations:
+      required: true

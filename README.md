@@ -10,7 +10,9 @@ Irfan Ali · Published by DataCortex IQ</p>
 <p align="center">
   <a href="https://leanpub.com/datavoyage"><img src="https://img.shields.io/badge/buy%20the%20ebook-Leanpub-1A5FB4" alt="Buy on Leanpub"></a>
   <a href="https://github.com/irfanalidv/Book-Data_Voyage/actions/workflows/ci.yml"><img src="https://github.com/irfanalidv/Book-Data_Voyage/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <img src="https://img.shields.io/badge/python-3.11-3776AB?logo=python&logoColor=white" alt="Python 3.11">
+  <a href="https://github.com/irfanalidv/Book-Data_Voyage/releases/latest"><img src="https://img.shields.io/github/v/release/irfanalidv/Book-Data_Voyage?label=edition" alt="Latest edition"></a>
+  <img src="https://img.shields.io/badge/python-3.11%20%7C%203.12-3776AB?logo=python&logoColor=white" alt="Python 3.11 and 3.12">
+  <img src="https://img.shields.io/badge/tests-425-2EA44F" alt="425 tests">
   <a href="LICENSE"><img src="https://img.shields.io/badge/code-MIT-green" alt="Code license: MIT"></a>
   <a href="LICENSE-BOOK.md"><img src="https://img.shields.io/badge/book%20text-%C2%A9%20all%20rights%20reserved-lightgrey" alt="Book text: all rights reserved"></a>
   <img src="https://img.shields.io/badge/code%20style-black-000000" alt="Code style: black">
@@ -32,13 +34,19 @@ Students in India: use [this link for the student price](https://leanpub.com/dat
 
 ---
 
-**Contents:** [Get the book](#get-the-book) · [Quick start](#quick-start) · [How to read along](#how-to-read-along) · [What you will build](#what-you-will-build) · [Repository layout](#whats-in-this-repository) · [The dataset](#the-dataset) · [Troubleshooting](#troubleshooting) · [About the author](#about-the-author) · [Cite this book](#cite-this-book) · [License](#license)
+**Contents:** [Get the book](#get-the-book) · [Quick start](#quick-start) · [How to read along](#how-to-read-along) · [What you will build](#what-you-will-build) · [Repository layout](#whats-in-this-repository) · [Quality and verification](#quality-and-verification) · [The dataset](#the-dataset) · [Building the ebook](#building-the-ebook) · [Troubleshooting](#troubleshooting) · [Editions and roadmap](#editions-and-roadmap) · [About the author](#about-the-author) · [Cite this book](#cite-this-book) · [License](#license) · [Contributing and support](#contributing-and-support) · [Acknowledgements](#acknowledgements)
 
 ---
 
 ## Quick start
 
-You need Python 3.11 and about 1.5 GB of disk space (most of it is PyTorch).
+| Requirement | Details |
+|---|---|
+| Python | 3.11 or 3.12 (CI tests both) |
+| Operating system | macOS, Linux, or Windows (CI runs on Ubuntu; the author works on macOS) |
+| Disk space | About 1.5 GB, most of it PyTorch |
+| Network | Only for installation. Every chapter then runs offline. |
+| API keys | None required. Adzuna and LLM keys are optional (see [The dataset](#the-dataset)). |
 
 ```bash
 git clone https://github.com/irfanalidv/Book-Data_Voyage
@@ -129,6 +137,27 @@ make pdf            # build the typeset PDF in dist/ (needs pandoc + Chrome)
 
 ---
 
+## Quality and verification
+
+The book promises that every number in it reproduces from a fresh clone. These checks hold it to that promise.
+
+| Check | What it guarantees | Where it runs | Run it yourself |
+|---|---|---|---|
+| Test suite (425 tests) | Every chapter's code behaves as the text describes | CI, Python 3.11 and 3.12 | `make test` |
+| Bundled dataset | The Chapter 5 and 6 pipeline regenerates `data/clean/jobs_clean.csv` byte for byte | CI (part of the suite) | `pytest tests/test_bundled_dataset.py` |
+| Schema contract | The `jobs_clean.csv` columns every later chapter reads stay unchanged | CI (part of the suite) | `pytest tests/test_schema_contract.py` |
+| Lint | ruff rules E, F, W, I across `book/`, `tests/`, `talentlens/` | CI (blocking) | `make lint` |
+| Formatting | black, line length 100 | CI (advisory) | `make format-check` |
+| Types | mypy on the shared `talentlens` package (chapter scripts are excluded) | Local and pre-commit | `make type-check` |
+| Docker image | The Chapter 20 image builds, starts, and answers `GET /health`, `POST /api/v1/search` and `POST /api/v1/classify` | CI, every push to `main` | `make docker` |
+| Slim runtime deps | `requirements-api.txt` alone is enough to import the API | Local | `make verify-api-deps` |
+| Chapter scripts | All 25 chapter scripts run end to end on the bundled data | Before each release | `python book/chNN/<script>.py` |
+| Ebook | The EPUB passes EPUBCheck with no errors or warnings; the PDF is checked for text past the margins and headings stranded at the foot of a page; every code link in the text resolves to a file in this repository | Before each release | `make epub`, `make pdf` |
+
+Dependencies are pinned in `requirements-lock.txt`, so a fresh install today gets the versions the book was tested with. Pull requests also run a faster test-and-lint check ([`pr-check.yml`](.github/workflows/pr-check.yml)). GitHub Dependabot alerts are on. The remaining advisories, for PyTorch and Transformers, need major upgrades that would shift numbers quoted in Chapters 12, 13 and 16, so [ROADMAP.md](./ROADMAP.md) schedules them for the next edition together with a re-run of those chapters.
+
+---
+
 ## The dataset
 
 The repository ships `data/clean/jobs_clean.csv`: 576 cleaned job postings from fictional employers. Chapter 5's demo mode generates them with a fixed seed and Chapter 6 cleans them. The data is synthetic but behaves like real postings: salaries depend on role and seniority and are right-skewed, neighbouring roles share duties, and about one posting in five hides its salary.
@@ -149,6 +178,20 @@ Real-data results in the book come from The Adzuna API. The repository does not 
 
 ---
 
+## Building the ebook
+
+The Leanpub edition is built from this repository. Anyone can rebuild it:
+
+```bash
+make manuscript     # book/ -> manuscript/ (Leanpub format, code paths linked to GitHub)
+make epub           # dist/data-voyage.epub (needs pandoc 3)
+make pdf            # dist/data-voyage.pdf, 7 x 9.25 in (needs pandoc 3 and Google Chrome)
+```
+
+Set `CHROME` to use another Chromium-based browser for the PDF. To validate the EPUB, run [EPUBCheck](https://github.com/w3c/epubcheck): `java -jar epubcheck.jar dist/data-voyage.epub`. The cover comes from `scripts/make_cover.py`.
+
+---
+
 ## Troubleshooting
 
 - **`No module named ruff` or `pytest`:** run `make install-dev`. The runtime install leaves out development tools on purpose.
@@ -160,9 +203,12 @@ To change dependencies, edit `requirements.txt`, run `pip install uv && make loc
 
 ---
 
-## Known limits and plans
+## Editions and roadmap
 
-[ROADMAP.md](./ROADMAP.md) lists what the book deliberately leaves out and what is planned for the next edition. [CHANGELOG.md](./CHANGELOG.md) records what changed between releases.
+The current edition is **2.1**, released on 1 October 2026. Each edition is a tagged [GitHub release](https://github.com/irfanalidv/Book-Data_Voyage/releases), and Leanpub readers get every new edition free.
+
+- [CHANGELOG.md](./CHANGELOG.md) records what changed in each edition.
+- [ROADMAP.md](./ROADMAP.md) lists what the book deliberately leaves out and what is planned next.
 
 ---
 
@@ -199,6 +245,19 @@ GitHub also reads [`CITATION.cff`](CITATION.cff) and offers a "Cite this reposit
 
 ---
 
-## Contributing
+## Contributing and support
 
-Bug reports and code fixes are welcome as GitHub issues or pull requests. So are notes from your own production experience that contradict something in a chapter.
+- **Found a bug, a typo, or a number that does not reproduce?** [Open an issue](https://github.com/irfanalidv/Book-Data_Voyage/issues/new/choose). The templates ask for what the maintainer needs to reproduce it.
+- **Want to fix it yourself?** Pull requests are welcome. [CONTRIBUTING.md](./CONTRIBUTING.md) lists the checks to run first.
+- **Production experience that contradicts a chapter?** Open an issue. It is the most useful kind of report.
+- **Security problem?** Do not open a public issue. Follow [SECURITY.md](./SECURITY.md).
+- **Anything else,** including bulk or classroom licensing: irfan@datacortex.in.
+
+Everyone taking part is expected to follow the [Code of Conduct](./CODE_OF_CONDUCT.md).
+
+---
+
+## Acknowledgements
+
+- Real-data results use the [Adzuna API](https://developer.adzuna.com). Listing excerpts in Chapter 13 are labelled "Jobs by Adzuna" and link to the original ads.
+- The book stands on open-source work: pandas, NumPy, scikit-learn, PyTorch, Hugging Face Transformers, Sentence Transformers, spaCy, FastAPI, Pydantic, matplotlib, and pandoc for the ebook.

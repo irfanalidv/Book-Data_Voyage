@@ -1,0 +1,23 @@
+name: Correction to the text
+description: A factual error, broken link, typo, or a claim that does not match your experience.
+labels: [correction]
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Where
+      description: Chapter and section heading. For the ebook, add the version shown on the copyright page.
+      placeholder: "Chapter 16, section: Why RAG, and why now"
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong
+    validations:
+      required: true
+  - type: textarea
+    id: fix
+    attributes:
+      label: Suggested fix or source
+      description: Optional, but a source or a suggested wording helps.
