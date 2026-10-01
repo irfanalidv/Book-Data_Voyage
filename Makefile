@@ -106,7 +106,7 @@ verify-api-deps: ## Verify requirements-api.txt is sufficient for the ch19 servi
 	rm -rf /tmp/talentlens-slim-test
 	$(PYTHON) -m venv /tmp/talentlens-slim-test
 	/tmp/talentlens-slim-test/bin/pip install --quiet -r requirements-api.txt
-	/tmp/talentlens-slim-test/bin/pip install --quiet -e .
+	/tmp/talentlens-slim-test/bin/pip install --quiet --no-deps -e .  # same as the Dockerfile
 	/tmp/talentlens-slim-test/bin/python -c "import book.ch19.ch19_fastapi_deployment; print('OK: ch19 imports cleanly with slim deps')"
 	rm -rf /tmp/talentlens-slim-test
 	@echo "$(GREEN)Verified.$(RESET)"
@@ -202,9 +202,9 @@ format: ## Format code with black
 format-check: ## Check formatting without making changes (used in CI)
 	$(PYTHON) -m black $(BOOK_DIR)/ $(TEST_DIR)/ --line-length 100 --check
 
-type-check: ## Run mypy type checking
+type-check: ## Run mypy on talentlens/ (strict; chapter scripts are excluded in pyproject.toml)
 	@echo "$(GREEN)Type checking...$(RESET)"
-	$(PYTHON) -m mypy $(BOOK_DIR)/ talentlens/ --ignore-missing-imports --no-strict-optional
+	$(PYTHON) -m mypy talentlens/ --ignore-missing-imports --no-strict-optional
 	@echo "$(GREEN)Type check passed.$(RESET)"
 
 # ── Running the API ───────────────────────────────────────────────────────────

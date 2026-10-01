@@ -10,7 +10,7 @@ Public API (stable; consumed by ch18, future ch22):
     Agent: class - .run(query) -> AgentResult
     AgentResult: dataclass - final response, tool trace, latency
     TOOLS: dict - registered tool functions, name -> callable
-    TOOL_SPECS: list[dict] - JSON Schema specs for the LLM
+    TOOL_SPECS: list[dict[str, Any]] - JSON Schema specs for the LLM
 """
 
 from __future__ import annotations
@@ -78,7 +78,7 @@ class AgentResult:
 #
 # Schema follows OpenAI's function-calling format, which Groq
 # mirrors. type: "object" + properties + required is the standard.
-TOOL_SPECS: list[dict] = [
+TOOL_SPECS: list[dict[str, Any]] = [
     {
         "type": "function",
         "function": {
@@ -134,8 +134,7 @@ TOOL_SPECS: list[dict] = [
                     "job_id": {
                         "type": "string",
                         "description": (
-                            "The job_id from search_jobs results, e.g. "
-                            "'demo_42_0123'."
+                            "The job_id from search_jobs results, e.g. " "'demo_42_0123'."
                         ),
                     },
                 },
@@ -238,7 +237,7 @@ AGENT_SYSTEM_PROMPT = (
 TOOLS: dict[str, Any] = {}
 
 
-def search_jobs(query: str, k: int = 5) -> list[dict]:
+def search_jobs(query: str, k: int = 5) -> list[dict[str, Any]]:
     """Search the TalentLens corpus via hybrid retrieval.
 
     Wraps Chapter 16's hybrid_search but returns LLM-friendly dicts
@@ -274,7 +273,7 @@ def search_jobs(query: str, k: int = 5) -> list[dict]:
     df["_score"] = df["_text"].apply(lambda t: keyword_score(query, t))
     ranked = df.nlargest(k, "_score")
 
-    results: list[dict] = []
+    results: list[dict[str, Any]] = []
     for _, row in ranked.iterrows():
         if row["_score"] <= 0.0:
             continue
@@ -286,9 +285,7 @@ def search_jobs(query: str, k: int = 5) -> list[dict]:
                 "title": str(row.get("title", "")),
                 "company": str(row.get("company", "")),
                 "city": str(row.get("city", "")),
-                "salary_annual_inr": (
-                    float(salary) if pd.notna(salary) else None
-                ),
+                "salary_annual_inr": (float(salary) if pd.notna(salary) else None),
                 "excerpt": excerpt,
                 "score": round(float(row["_score"]), 3),
             }
@@ -296,7 +293,7 @@ def search_jobs(query: str, k: int = 5) -> list[dict]:
     return results
 
 
-def get_job_detail(job_id: str) -> dict:
+def get_job_detail(job_id: str) -> dict[str, Any]:
     """Fetch one posting by job_id.
 
     Returns the full record as a JSON-serialisable dict. Errors
@@ -323,7 +320,7 @@ def get_job_detail(job_id: str) -> dict:
 
     row = match.iloc[0]
 
-    def _val(col, default=None):
+    def _val(col: str, default: Any = None) -> Any:
         v = row.get(col, default)
         if pd.isna(v):
             return None
@@ -345,7 +342,7 @@ def get_job_detail(job_id: str) -> dict:
     }
 
 
-def classify_role(job_id: str) -> dict:
+def classify_role(job_id: str) -> dict[str, Any]:
     """Classify a posting's role via the Chapter 10 v2 classifier.
 
     Args:
@@ -447,9 +444,7 @@ def summarise_for_candidate(
         return "ERROR: candidate_skills is empty; cannot tailor summary"
 
     posting_skills_str = detail.get("skills_normalised") or ""
-    posting_skills = {
-        s.strip() for s in posting_skills_str.split("|") if s.strip()
-    }
+    posting_skills = {s.strip() for s in posting_skills_str.split("|") if s.strip()}
     candidate_set = set(candidate_skills)
     matched = sorted(posting_skills & candidate_set)
     missing = sorted(posting_skills - candidate_set)
@@ -459,8 +454,7 @@ def summarise_for_candidate(
         "",
         f"Salary: {detail.get('salary_annual_inr', 'not disclosed')}",
         "",
-        f"Skill match: {len(matched)}/{len(posting_skills)} "
-        f"of the posting's listed skills",
+        f"Skill match: {len(matched)}/{len(posting_skills)} " f"of the posting's listed skills",
         f"- Matched: {', '.join(matched) if matched else '(none)'}",
         f"- Missing: {', '.join(missing) if missing else '(none)'}",
     ]
@@ -491,17 +485,12 @@ class Agent:
         # TALENTLENS_AGENT_MODEL rather than editing code.
         self.model = model or os.environ.get("TALENTLENS_AGENT_MODEL", DEFAULT_AGENT_MODEL)
         self.max_steps = max_steps
-        self.use_cache = use_cache and not os.environ.get(
-            "AGENT_NO_CACHE", ""
-        )
-        self.cache_dir = Path(
-            cache_dir
-            or "book/ch18/reports/traces/cache"
-        )
+        self.use_cache = use_cache and not os.environ.get("AGENT_NO_CACHE", "")
+        self.cache_dir = Path(cache_dir or "book/ch18/reports/traces/cache")
         self.temperature = temperature
-        self._client = None
+        self._client: Any = None
 
-    def _ensure_client(self):
+    def _ensure_client(self) -> Any:
         """Lazy-load groq client. Tests that don't run agents shouldn't pay import cost."""
         if self._client is None:
             try:
@@ -535,9 +524,7 @@ class Agent:
             return None
         try:
             data = json.loads(path.read_text())
-            tool_calls = [
-                ToolCall(**tc) for tc in data.pop("tool_calls", [])
-            ]
+            tool_calls = [ToolCall(**tc) for tc in data.pop("tool_calls", [])]
             result = AgentResult(**data, tool_calls=tool_calls)
             return replace(result, stop_reason="cached")
         except (json.JSONDecodeError, TypeError) as e:
@@ -571,7 +558,7 @@ class Agent:
         }
         path.write_text(json.dumps(payload, ensure_ascii=False, indent=2))
 
-    def _dispatch_tool(self, name: str, arguments: dict) -> tuple[Any, str | None]:
+    def _dispatch_tool(self, name: str, arguments: dict[str, Any]) -> tuple[Any, str | None]:
         """Execute one tool call. Returns (result, error_string_or_None)."""
         if name not in TOOLS:
             return None, f"Unknown tool: {name!r}. Available: {sorted(TOOLS)}"
@@ -594,7 +581,7 @@ class Agent:
                 return cached
 
         client = self._ensure_client()
-        messages: list[dict] = [
+        messages: list[dict[str, Any]] = [
             {"role": "system", "content": AGENT_SYSTEM_PROMPT},
             {"role": "user", "content": query},
         ]
@@ -644,7 +631,7 @@ class Agent:
 
             msg = response.choices[0].message
 
-            assistant_msg: dict = {"role": "assistant"}
+            assistant_msg: dict[str, Any] = {"role": "assistant"}
             if msg.content:
                 assistant_msg["content"] = msg.content
             if msg.tool_calls:
@@ -675,9 +662,7 @@ class Agent:
                     result = None
                     error = f"Malformed tool arguments: {e}"
                 else:
-                    result, error = self._dispatch_tool(
-                        tc.function.name, arguments
-                    )
+                    result, error = self._dispatch_tool(tc.function.name, arguments)
 
                 tool_elapsed = time.monotonic() - tool_start
                 tool_calls_made.append(
@@ -694,9 +679,7 @@ class Agent:
                     {
                         "role": "tool",
                         "tool_call_id": tc.id,
-                        "content": json.dumps(
-                            error if error else result, default=str
-                        ),
+                        "content": json.dumps(error if error else result, default=str),
                     }
                 )
 

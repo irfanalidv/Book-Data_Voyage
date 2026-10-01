@@ -19,8 +19,10 @@ Public API (stable; consumed by ch06, ch13, ch16, future ch22):
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Literal
+from pathlib import Path
+from typing import Any, Literal
 
 # CANONICAL_SKILLS and SKILL_ALIASES were originally defined in
 # book/ch06/ch06_data_cleaning_preprocessing.py. Relocating here
@@ -101,9 +103,7 @@ class ExtractedSkill:
     source_span: tuple[int, int] | None = None
 
 
-ExtractorMethod = Literal[
-    "regex", "spacy", "semantic", "sentence_transformer", "default"
-]
+ExtractorMethod = Literal["regex", "spacy", "semantic", "sentence_transformer", "default"]
 
 
 def extract_skills(
@@ -154,17 +154,12 @@ def extract_skills(
     if method == "regex":
         return _extract_skills_regex(text, skills_raw)
     if method == "spacy":
-        return _extract_skills_spacy(
-            text, skills_raw, include_abbreviations=spacy_abbreviations
-        )
+        return _extract_skills_spacy(text, skills_raw, include_abbreviations=spacy_abbreviations)
     if method in ("semantic", "sentence_transformer"):
-        return _extract_skills_semantic(
-            text, skills_raw, threshold=semantic_threshold
-        )
+        return _extract_skills_semantic(text, skills_raw, threshold=semantic_threshold)
     if method == "default":
         raise NotImplementedError(
-            "Default extractor is set in Chapter 13 iteration 6 "
-            "based on measurement."
+            "Default extractor is set in Chapter 13 iteration 6 " "based on measurement."
         )
     raise ValueError(f"Unknown method: {method!r}")
 
@@ -208,10 +203,7 @@ def _extract_skills_regex(
     """
     found = _skills_from_raw(skills_raw)
     found |= _skills_from_description_regex(text)
-    return [
-        ExtractedSkill(name=name, confidence=1.0, source_span=None)
-        for name in sorted(found)
-    ]
+    return [ExtractedSkill(name=name, confidence=1.0, source_span=None) for name in sorted(found)]
 
 
 def _skills_from_raw(skills_raw: str | None) -> set[str]:
@@ -255,16 +247,16 @@ def _alias_in_description(alias: str, desc_lower: str) -> bool:
 _spacy_cache: dict[bool, object] = {}
 
 
-def _build_spacy_patterns(include_abbreviations: bool) -> list[dict]:
-    patterns: list[dict] = []
+def _build_spacy_patterns(include_abbreviations: bool) -> list[dict[str, Any]]:
+    patterns: list[dict[str, Any]] = []
     seen: set[tuple[str, str]] = set()
 
-    def add_pattern(pattern: str | list, canonical: str) -> None:
+    def add_pattern(pattern: str | list[dict[str, Any]], canonical: str) -> None:
         key = (str(pattern), canonical)
         if key in seen:
             return
         seen.add(key)
-        entry: dict = {"label": "SKILL", "pattern": pattern, "id": canonical}
+        entry: dict[str, Any] = {"label": "SKILL", "pattern": pattern, "id": canonical}
         patterns.append(entry)
 
     for canonical in CANONICAL_SKILLS:
@@ -281,7 +273,7 @@ def _build_spacy_patterns(include_abbreviations: bool) -> list[dict]:
     return patterns
 
 
-def _get_spacy_nlp(include_abbreviations: bool = False):
+def _get_spacy_nlp(include_abbreviations: bool = False) -> Any:
     if include_abbreviations in _spacy_cache:
         return _spacy_cache[include_abbreviations]
     try:
@@ -293,7 +285,7 @@ def _get_spacy_nlp(include_abbreviations: bool = False):
         ) from err
 
     nlp = spacy.load("en_core_web_sm", disable=["parser", "ner", "lemmatizer"])
-    ruler = nlp.add_pipe(
+    ruler: Any = nlp.add_pipe(
         "entity_ruler",
         config={"phrase_matcher_attr": "LOWER", "validate": True},
     )
@@ -340,7 +332,7 @@ _semantic_skill_embeddings = None
 _semantic_skill_names: list[str] | None = None
 
 
-def _get_semantic_resources():
+def _get_semantic_resources() -> tuple[Any, Any, list[str]]:
     global _semantic_model, _semantic_skill_embeddings, _semantic_skill_names
     if _semantic_model is None:
         try:
@@ -364,11 +356,7 @@ def _get_semantic_resources():
 
 def _generate_semantic_candidates(text: str) -> list[str]:
     """Extract 1–3 word phrases as embedding candidates."""
-    tokens = [
-        t.lower()
-        for t in _CANDIDATE_TOKEN_PATTERN.findall(text or "")
-        if 2 <= len(t) <= 30
-    ]
+    tokens = [t.lower() for t in _CANDIDATE_TOKEN_PATTERN.findall(text or "") if 2 <= len(t) <= 30]
     candidates: set[str] = set()
     for i, t in enumerate(tokens):
         candidates.add(t)
@@ -486,8 +474,8 @@ def per_skill_metrics(metrics: ExtractorMetrics) -> dict[str, PerSkillMetrics]:
 
 
 def evaluate_extractor(
-    extractor_fn,
-    eval_set: list[dict],
+    extractor_fn: Callable[..., list[ExtractedSkill]],
+    eval_set: list[dict[str, Any]],
 ) -> ExtractorMetrics:
     """Score an extractor against the hand-labelled eval set.
 
@@ -541,8 +529,7 @@ def evaluate_extractor(
     n_skipped = len(eval_set) - len(labelled)
     if n_skipped:
         _logger.warning(
-            f"evaluate_extractor: skipped {n_skipped} unlabelled rows "
-            f"of {len(eval_set)} total"
+            f"evaluate_extractor: skipped {n_skipped} unlabelled rows " f"of {len(eval_set)} total"
         )
     if not labelled:
         raise ValueError(
@@ -556,9 +543,7 @@ def evaluate_extractor(
     n_predictions = 0
     n_truth = 0
 
-    per_skill_counts: dict[str, dict[str, int]] = defaultdict(
-        lambda: {"tp": 0, "fp": 0, "fn": 0}
-    )
+    per_skill_counts: dict[str, dict[str, int]] = defaultdict(lambda: {"tp": 0, "fp": 0, "fn": 0})
 
     for row in labelled:
         extracted = extractor_fn(
@@ -616,7 +601,7 @@ def evaluate_extractor(
     )
 
 
-def load_eval_set(path) -> list[dict]:
+def load_eval_set(path: str | Path) -> list[dict[str, Any]]:
     """Load the hand-labelled eval set from a JSONL file.
 
     Each line is a JSON object with at least 'description',
@@ -631,7 +616,6 @@ def load_eval_set(path) -> list[dict]:
         skipping them.
     """
     import json
-    from pathlib import Path
 
     path = Path(path)
     with path.open() as f:

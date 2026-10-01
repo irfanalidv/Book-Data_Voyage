@@ -33,3 +33,4 @@ data/clean/jobs_clean.csv.gz
 data/clean/jobs_clean.large.csv
 data/raw/jobs_raw.adzuna.csv
 *.demo.csv
+.coverage.*

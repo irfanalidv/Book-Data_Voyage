@@ -233,13 +233,9 @@ def select_features(
     X_num = X[numeric_cols].fillna(X[numeric_cols].median())  # noqa: N806 - matrix slice from X
 
     if method == "mutual_info":
-        varying_cols = [
-            c for c in numeric_cols if X_num[c].nunique(dropna=False) > 1
-        ]
+        varying_cols = [c for c in numeric_cols if X_num[c].nunique(dropna=False) > 1]
         mi = mutual_info_classif(X_num[varying_cols], y, random_state=42)
-        ranked = sorted(
-            zip(varying_cols, mi, strict=False), key=lambda kv: kv[1], reverse=True
-        )
+        ranked = sorted(zip(varying_cols, mi, strict=False), key=lambda kv: kv[1], reverse=True)
         return [name for name, score in ranked if score > _MI_NOISE_THRESHOLD][:k]
 
     if method == "rfe":
@@ -263,7 +259,15 @@ def select_features(
     if method == "l1":
         X_scaled = StandardScaler().fit_transform(X_num)  # noqa: N806 - scaled feature matrix
         nonzero_mask = None
-        for C in (0.01, 0.05, 0.1, 0.5, 1.0, 5.0, 10.0):  # noqa: N806 - sklearn regularisation strength
+        for C in (
+            0.01,
+            0.05,
+            0.1,
+            0.5,
+            1.0,
+            5.0,
+            10.0,
+        ):  # noqa: N806 - sklearn regularisation strength
             clf = LogisticRegression(
                 penalty="l1",
                 solver="liblinear",
@@ -319,8 +323,8 @@ def _add_title_features(df: pd.DataFrame) -> pd.DataFrame:
 
     df["seniority_level"] = titles.apply(_seniority_of).astype("int8")
 
-    df["is_remote_in_title"] = (
-        titles.str.contains(r"\bremote\b", regex=True, na=False).astype("int8")
+    df["is_remote_in_title"] = titles.str.contains(r"\bremote\b", regex=True, na=False).astype(
+        "int8"
     )
     return df
 
@@ -349,18 +353,16 @@ def _add_skill_features(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     skills_str = df["skills_normalised"].fillna("").astype(str).str.lower()
 
-    skill_lists = skills_str.str.split("|").apply(
-        lambda lst: [s.strip() for s in lst if s.strip()]
-    )
+    skill_lists = skills_str.str.split("|").apply(lambda lst: [s.strip() for s in lst if s.strip()])
     df["skill_count"] = skill_lists.apply(len).astype("int16")
 
     skill_sets = skill_lists.apply(set)
     for skill in HIGH_SIGNAL_SKILLS:
         col = f"has_{skill}"
         accepted = _SKILL_TOKEN_SYNONYMS.get(skill, frozenset({skill}))
-        df[col] = skill_sets.apply(
-            lambda s, accepted=accepted: int(bool(s & accepted))
-        ).astype("int8")
+        df[col] = skill_sets.apply(lambda s, accepted=accepted: int(bool(s & accepted))).astype(
+            "int8"
+        )
 
     return df
 
@@ -407,9 +409,8 @@ def _add_salary_features(df: pd.DataFrame) -> pd.DataFrame:
 
     city_grouped = df.groupby("city")["salary_annual_inr"]
     df["salary_in_band_for_city"] = (
-        (df["salary_annual_inr"] - city_grouped.transform("mean"))
-        / city_grouped.transform("std")
-    )
+        df["salary_annual_inr"] - city_grouped.transform("mean")
+    ) / city_grouped.transform("std")
     df["salary_in_band_for_city"] = df["salary_in_band_for_city"].fillna(0)
 
     return df
