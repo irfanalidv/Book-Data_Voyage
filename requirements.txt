@@ -1,0 +1,83 @@
+# Data Voyage — production requirements
+# Pinned to versions current as of September 2026.
+# Python: 3.11 or 3.12 recommended. Tested against 3.11.
+#
+# Pinning strategy:
+#   - Compatible-release operator (~=) on key libraries: locks the minor
+#     version but allows patch updates (bug fixes, security).
+#   - Strict equality (==) on libraries that have broken across patch
+#     versions in the past (pydantic, fastapi).
+#   - Upper bounds (<X) where a known-breaking major release exists.
+#
+# This file is the abstract dependency layer (compatible-release pins).
+# Readers and CI install from requirements-lock.txt (exact pins).
+# Regenerate: make lock  (requires uv)
+#
+# If you find a library used by chapter code that is not pinned here, that is a bug
+# — open an issue.
+
+# -- Core data stack -----------------------------------------------------
+numpy~=2.1.0
+pandas~=2.3.0
+# NOTE: pandas 3.0 (Jan 2026) introduces Copy-on-Write by default and requires
+# PyArrow. The book is pinned to 2.3 because most tutorials and StackOverflow
+# answers still reference 2.x semantics, and the chapter code does not depend
+# on 3.0-only features. Upgrade to 3.x is straightforward once the ecosystem
+# catches up — see https://pandas.pydata.org/docs/dev/whatsnew/v3.0.0.html
+scipy~=1.14.0
+statsmodels~=0.14.0
+
+# -- Plotting -----------------------------------------------------------
+matplotlib~=3.9.0
+seaborn~=0.13.0
+
+# -- Classical ML --------------------------------------------------------
+scikit-learn~=1.5.0
+joblib~=1.4.0
+imbalanced-learn~=0.13.0
+
+# -- Deep learning (sentence-transformers / fine-tuning the role classifier)
+# Pinned narrowly because torch + transformers + sentence-transformers form
+# a tight version triangle that breaks frequently across minor releases.
+torch~=2.8.0                   # >=2.6 required: CVE-2025-32434 (torch.load RCE)
+transformers~=4.57.0
+sentence-transformers~=5.1.0
+
+# -- NLP (Chapter 13) ---------------------------------------------------
+spacy~=3.8.0
+# Run after install:  python -m spacy download en_core_web_sm
+
+# -- Time series (Chapter 14) -------------------------------------------
+# statsmodels (above) covers the chapter. Prophet is mentioned as an
+# alternative only; install it yourself if you want to try it.
+
+# -- Scaling Python (Chapter 15) ----------------------------------------
+polars~=1.18.0
+dask[dataframe]~=2024.11.0
+pyarrow~=23.0.1   # needed by polars/dask and pandas 3.x preview
+
+# -- Vector search / RAG (Chapter 16) ------------------------------------
+# SQLite ships with Python; pgvector is optional (used only if PG is wired up).
+faiss-cpu~=1.9.0
+
+# -- LLM clients (Chapter 17) -------------------------------------------
+openai~=1.55.0
+groq~=0.13.0
+# Anthropic SDK pinned in case the reader wants to swap providers
+anthropic~=0.42.0
+
+# -- Web / API stack (Chapters 19-21) -----------------------------------
+fastapi==0.136.1
+uvicorn[standard]~=0.32.0
+pydantic==2.13.3
+pydantic-settings~=2.6.0
+httpx~=0.28.0
+
+# -- Data collection (Chapter 5) ----------------------------------------
+requests~=2.33.0
+
+# -- Config & environment ------------------------------------------------
+python-dotenv~=1.2.2
+
+# -- Utilities -----------------------------------------------------------
+tenacity~=9.0.0   # retry decorators shown in Chapter 17

@@ -1,0 +1,20 @@
+# Docker build context — keep the API image lean (Chapter 20)
+.venv/
+.git/
+.github/
+.pytest_cache/
+__pycache__/
+*.pyc
+.env
+.env.local
+*.ipynb_checkpoints
+data/raw/
+book/*/reports/
+book/*/*.png
+book/*/*.ipynb
+docs/
+tests/
+*.md
+!README.md
+!CHANGELOG.md
+!LICENSE

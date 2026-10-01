@@ -1,0 +1,10 @@
+Dataset: data/clean/jobs_clean.csv (540 rows)
+role_category distribution: {'Data Scientist': 266, 'ML Engineer': 147, 'Data Engineer': 127}
+
+Query ID                       Rows  Notes
+--------------------------------------------------------------------------------
+ml_engineer_simple              147  Simple 1-2 tool-call success path
+ml_engineer_classify_chain      147  Multi-step chain: search then classify
+no_good_answer                    0  No-good-answer case — tests graceful empty vs hallucination  [empty on this data]
+compare_top_three                 0  Tests agent's behaviour when query terminology doesn't match data taxonomy  [empty on this data]
+ambiguous                       540  Ambiguous query — tests clarification vs default behaviour

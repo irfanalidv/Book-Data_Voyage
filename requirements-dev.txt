@@ -1,0 +1,28 @@
+# Data Voyage — development requirements
+# Install with:  pip install -r requirements-dev.txt
+# This installs everything in requirements.txt plus the tooling below.
+
+-r requirements.txt
+
+# -- Testing -------------------------------------------------------------
+pytest~=9.0.3
+pytest-cov~=6.0.0
+pytest-mock~=3.14.0
+pytest-asyncio~=1.3.0   # pytest 9.x; needed for FastAPI test client async paths
+
+# -- Code quality --------------------------------------------------------
+# ruff lints; black checks formatting (CI runs both — see Chapter 21).
+ruff~=0.8.0
+black~=24.10.0
+mypy~=1.13.0
+
+# -- Notebook (optional) -----------------------------------------------
+jupyter~=1.1.0
+ipykernel~=6.29.0
+
+# -- Build & publish (Chapter 22) ---------------------------------------
+build~=1.2.0
+twine~=6.0.0
+
+# -- Pre-commit hooks ----------------------------------------------------
+pre-commit~=4.0.0

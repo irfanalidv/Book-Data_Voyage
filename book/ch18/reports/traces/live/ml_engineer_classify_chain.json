@@ -1,0 +1,195 @@
+{
+  "query_id": "ml_engineer_classify_chain",
+  "query": "Find ML Engineer postings, then classify each to confirm the actual role matches the title.",
+  "final_response": "All the job postings have a predicted role of ML Engineer with a confidence score of 0.73.",
+  "stop_reason": "cached",
+  "elapsed_seconds": 2.063,
+  "error_detail": null,
+  "n_llm_calls": 3,
+  "n_tool_calls": 11,
+  "input_tokens": 5100,
+  "output_tokens": 243,
+  "tool_calls": [
+    {
+      "name": "search_jobs",
+      "arguments": {
+        "k": 5,
+        "query": "ML Engineer"
+      },
+      "result": [
+        {
+          "job_id": "demo_42_0004",
+          "title": "ML Engineer",
+          "company": "DemoEmployer_0004",
+          "city": "Toronto",
+          "salary_annual_inr": 212000.0,
+          "excerpt": "ML Engineer — Python, SQL, cloud. Team builds models and data products. Req id 4.",
+          "score": 1.0
+        },
+        {
+          "job_id": "demo_42_0017",
+          "title": "ML Engineer",
+          "company": "DemoEmployer_0017",
+          "city": "New York",
+          "salary_annual_inr": 212000.0,
+          "excerpt": "ML Engineer — Python, SQL, cloud. Team builds models and data products. Req id 17.",
+          "score": 1.0
+        },
+        {
+          "job_id": "demo_42_0021",
+          "title": "ML Engineer",
+          "company": "DemoEmployer_0021",
+          "city": "London",
+          "salary_annual_inr": 212000.0,
+          "excerpt": "ML Engineer — Python, SQL, cloud. Team builds models and data products. Req id 21.",
+          "score": 1.0
+        },
+        {
+          "job_id": "demo_42_0033",
+          "title": "ML Engineer",
+          "company": "DemoEmployer_0033",
+          "city": "Bangalore",
+          "salary_annual_inr": 212000.0,
+          "excerpt": "ML Engineer — Python, SQL, cloud. Team builds models and data products. Req id 33.",
+          "score": 1.0
+        },
+        {
+          "job_id": "demo_42_0042",
+          "title": "ML Engineer",
+          "company": "DemoEmployer_0042",
+          "city": "New York",
+          "salary_annual_inr": 212000.0,
+          "excerpt": "ML Engineer — Python, SQL, cloud. Team builds models and data products. Req id 42.",
+          "score": 1.0
+        }
+      ],
+      "elapsed_seconds": 0.008,
+      "error": null
+    },
+    {
+      "name": "classify_role",
+      "arguments": {
+        "job_id": "job_id_from_search_results_1"
+      },
+      "result": {
+        "error": "not_found",
+        "job_id": "job_id_from_search_results_1"
+      },
+      "elapsed_seconds": 0.816,
+      "error": null
+    },
+    {
+      "name": "classify_role",
+      "arguments": {
+        "job_id": "job_id_from_search_results_2"
+      },
+      "result": {
+        "error": "not_found",
+        "job_id": "job_id_from_search_results_2"
+      },
+      "elapsed_seconds": 0.002,
+      "error": null
+    },
+    {
+      "name": "classify_role",
+      "arguments": {
+        "job_id": "job_id_from_search_results_3"
+      },
+      "result": {
+        "error": "not_found",
+        "job_id": "job_id_from_search_results_3"
+      },
+      "elapsed_seconds": 0.002,
+      "error": null
+    },
+    {
+      "name": "classify_role",
+      "arguments": {
+        "job_id": "job_id_from_search_results_4"
+      },
+      "result": {
+        "error": "not_found",
+        "job_id": "job_id_from_search_results_4"
+      },
+      "elapsed_seconds": 0.002,
+      "error": null
+    },
+    {
+      "name": "classify_role",
+      "arguments": {
+        "job_id": "job_id_from_search_results_5"
+      },
+      "result": {
+        "error": "not_found",
+        "job_id": "job_id_from_search_results_5"
+      },
+      "elapsed_seconds": 0.002,
+      "error": null
+    },
+    {
+      "name": "classify_role",
+      "arguments": {
+        "job_id": "demo_42_0004"
+      },
+      "result": {
+        "job_id": "demo_42_0004",
+        "predicted_role": "ML Engineer",
+        "confidence": 0.73
+      },
+      "elapsed_seconds": 0.032,
+      "error": null
+    },
+    {
+      "name": "classify_role",
+      "arguments": {
+        "job_id": "demo_42_0017"
+      },
+      "result": {
+        "job_id": "demo_42_0017",
+        "predicted_role": "ML Engineer",
+        "confidence": 0.73
+      },
+      "elapsed_seconds": 0.013,
+      "error": null
+    },
+    {
+      "name": "classify_role",
+      "arguments": {
+        "job_id": "demo_42_0021"
+      },
+      "result": {
+        "job_id": "demo_42_0021",
+        "predicted_role": "ML Engineer",
+        "confidence": 0.73
+      },
+      "elapsed_seconds": 0.01,
+      "error": null
+    },
+    {
+      "name": "classify_role",
+      "arguments": {
+        "job_id": "demo_42_0033"
+      },
+      "result": {
+        "job_id": "demo_42_0033",
+        "predicted_role": "ML Engineer",
+        "confidence": 0.73
+      },
+      "elapsed_seconds": 0.009,
+      "error": null
+    },
+    {
+      "name": "classify_role",
+      "arguments": {
+        "job_id": "demo_42_0042"
+      },
+      "result": {
+        "job_id": "demo_42_0042",
+        "predicted_role": "ML Engineer",
+        "confidence": 0.73
+      },
+      "elapsed_seconds": 0.008,
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,488 @@
+# Chapter 13: NLP — Extracting Skills from Job Postings
+
+> **TalentLens milestone:** Three approaches to extracting
+> canonical skill names from job descriptions: rule-based
+> regex, structured NER with spaCy + EntityRuler, and
+> semantic matching with sentence-transformers. All three
+> benchmarked on a real eval set of 200 LLM-labelled
+> real postings from the Adzuna India API. The result is more
+> interesting than "the smarter method wins."
+
+---
+
+## Setup (spaCy model)
+
+The spaCy + EntityRuler extractor (`method="spacy"`) needs the
+English model installed separately from pip:
+
+```bash
+python -m spacy download en_core_web_sm
+```
+
+`make install` at the repo root runs this after `pip install`.
+Without the model, `extract_skills(..., method="spacy")` fails
+with spaCy error E050.
+
+---
+
+## The problem we're solving
+
+Job descriptions don't tell you what skills they require
+in a structured way. The skill name might appear verbatim
+("PyTorch"), as an abbreviation ("ML"), as an alias
+("Google Cloud" for "GCP"), in a sentence about a related
+topic ("we love statistical analysis" → Statistics?), or
+not at all (a senior ML Engineer posting doesn't always
+say "Machine Learning"). Every method for extracting
+skills makes different tradeoffs across these patterns.
+
+Most chapters about NER teach you one method (usually
+spaCy or a fine-tuned BERT classifier) and stop. This
+chapter benchmarks three realistic options against a real
+eval set. The interesting finding is not which method
+wins; it's that for a controlled vocabulary on noisy
+text, the gaps between methods are smaller than the
+headline numbers suggest, and the right choice depends
+on tradeoffs that don't show up in a single accuracy
+number.
+
+---
+
+## Why NLP, and why now
+
+Skill extraction sits between cleaned postings (Chapter 6)
+and everything that consumes structured skills: the role
+classifier's feature columns (Chapters 9–10), semantic job
+search (Chapter 16), and LLM-generated match explanations
+(Chapter 17).
+
+**What NLP means here:** Turning messy description text into
+a controlled list of canonical skill names you can count,
+filter on, and index, not building a chatbot or training
+a general-purpose language model.
+
+**What this chapter narrows to:** The NLP you need to extract
+skills from job descriptions. We are not teaching every NLP
+task; we are benchmarking three extractors that share one
+interface (`extract_skills`) on the same eval set.
+
+**Alternatives considered (and why we're not leading with them):**
+
+- *Regex-only, forever*: Often the right production choice for
+  a closed vocabulary; this chapter measures when it stops being
+  enough.
+- *Semantic-only*: Attractive for fuzzy text, but on our labels
+  it ties regex while adding model weight and latency.
+- *LLM-direct extraction on every posting*: Highest ceiling,
+  highest cost; discussed in What's next.
+
+**What it unlocks downstream:** Canonical skills in
+`talentlens/skills.py` feed Chapter 16's RAG index (retrieval
+over postings with consistent skill tags) and Chapter 17's
+match explanations ("this role lists PyTorch and you have it").
+Chapter 9's classifier already uses skill text; cleaner extraction
+improves every downstream feature built from `skills_raw` and
+description fields.
+
+By the end of this chapter you'll have three extractors that
+share an interface (text + optional `skills_raw` in, list of
+canonical skills out):
+
+- **`extract_skills(text, method="regex")`**: case-
+  insensitive substring matching with `CANONICAL_SKILLS`
+  and `SKILL_ALIASES`. The simplest reasonable baseline.
+  ~50 lines of Python, no external dependencies beyond the
+  stdlib for the regex path.
+- **`extract_skills(text, method="spacy")`**: spaCy
+  with EntityRuler patterns built from the same canonical
+  list. Adds proper tokenization, escapes substring-
+  collision issues. Optional `spacy_abbreviations=True`
+  adds ML / DL / AI as token-level patterns.
+- **`extract_skills(text, method="semantic")`**:   sentence-transformers (`all-MiniLM-L6-v2`) embeds the
+  canonical skill names; for each posting, generate
+  1–3 word candidate phrases and match by cosine
+  similarity above a tunable threshold.
+
+Plus a measurement framework:
+
+- **`evaluate_extractor(extractor_fn, eval_rows)`**:   runs the extractor against the eval set, computes
+  per-skill precision/recall/F1 and macro averages.
+- **`load_eval_set(path)`**: reads the JSONL eval set
+  with LLM-derived gold labels in `skills_verified`.
+
+---
+
+## The methods
+
+This chapter benchmarks **regex**, **spaCy + EntityRuler**, and
+**semantic matching** in code. BERT NER fine-tuning and LLM-direct
+extraction are discussed at the end of this section but not
+implemented.
+
+### Regex matching
+
+**What it does in plain English:** Finds canonical skill names
+and aliases as substrings in the description, plus exact token
+matches in the structured `skills_raw` field.
+
+**When to use it:** Closed vocabulary, English postings, you want
+zero ML dependencies and predictable latency. Often the production
+default after you have measured it.
+
+**Key parameters:**
+- `method="regex"`: selects the regex implementation in
+  `extract_skills()`.
+- `text`: free-text description; case-insensitive substring scan
+  over `CANONICAL_SKILLS` and `SKILL_ALIASES`.
+- `skills_raw`: optional structured field; tokenised on `[,|;\s]+`,
+  each token lowercased and exact-matched to canonical names or
+  aliases (no substring match on tokens, which avoids "pythonic" → Python).
+
+**What the output tells you:** `list[ExtractedSkill]` with
+`confidence=1.0` for every hit; optional `source_span` on description
+matches.
+
+**Red flags:** Treating regex hits as ground truth without
+spot-checking; assuming substring match in description behaves
+like token match in `skills_raw` (they are intentionally different
+paths in `talentlens/skills.py`).
+
+### spaCy + EntityRuler
+
+**What it does in plain English:** Tokenises the description with
+spaCy, matches phrases from an EntityRuler built from the same
+canonical list and aliases, and merges in skills parsed from
+`skills_raw`.
+
+**When to use it:** You need span boundaries, want to avoid some
+substring false positives, or want optional abbreviation patterns
+(ML, DL, AI) at the cost of precision on ambiguous tokens.
+
+**Key parameters:**
+- `method="spacy"`: loads `en_core_web_sm` with
+  `disable=["parser", "ner", "lemmatizer"]`.
+- `spacy_abbreviations=False` (default): canonical names + aliases
+  only; `True` adds token patterns for ML, DL, ML/DL mapped to
+  Machine Learning / Deep Learning.
+- EntityRuler config: `phrase_matcher_attr="LOWER"`, `validate=True`;
+  patterns stored in `_build_spacy_patterns()`.
+
+**What the output tells you:** `ExtractedSkill` with
+`source_span=(start, end)` on ruler hits from the description;
+skills from `skills_raw` merged without spans.
+
+**Red flags:** Picking spaCy for +0.025 macro F1 without checking
+per-skill precision (abbreviation patterns can drop ML precision
+from 1.00 to ~0.83 on the eval set); shipping without installing
+`en_core_web_sm`.
+
+### Semantic matching (sentence-transformers)
+
+**What it does in plain English:** Embeds each canonical skill with
+`all-MiniLM-L6-v2`, generates 1–3 word candidate phrases from the
+posting text, and keeps skills whose best cosine similarity meets
+`semantic_threshold`.
+
+**When to use it:** Open or fast-changing vocabulary, fuzzy source
+text (OCR, transcripts), *after* you have tuned τ on a real eval
+set and accepted the dependency cost.
+
+**Key parameters:**
+- `method="semantic"` (alias `sentence_transformer`) loads
+  `SentenceTransformer("all-MiniLM-L6-v2")`.
+- `semantic_threshold`: minimum cosine similarity (default `0.6`
+  in `extract_skills()`; chapter benchmark uses `0.80` via
+  `SEMANTIC_THRESHOLD` in `ch13_skill_extraction.py`).
+- Candidate generation: `_generate_semantic_candidates()` builds
+  unigrams, bigrams, and trigrams from tokens matching
+  `[A-Za-z][A-Za-z0-9.+#\-]+`, length 2–30.
+
+**What the output tells you:** `ExtractedSkill` with `confidence`
+set to the best cosine score; `source_span=None` (phrase-level, not
+character-aligned).
+
+**Red flags:** Running at τ=0.50 (macro F1 ~0.50 on the bundled
+eval, worse than empty); assuming embeddings beat regex without
+reading the threshold sweep; running semantic extraction on 50k
+postings without batching or caching.
+
+### BERT NER and LLM-direct extraction (deferred)
+
+**What they would add:** A fine-tuned BERT tagger could learn
+span boundaries and context beyond ruler patterns; LLM-direct
+extraction skips the canonical list and asks a model per posting.
+
+**Why they're not benchmarked here:** No `method="bert"` or
+`method="llm"` in `talentlens/skills.py`. Fine-tuning needs GPU
+time and a much larger labelled set; LLM-direct extraction changes
+the cost model entirely. Both are sketched in What's next.
+
+---
+
+## The code
+
+The chapter executable is `book/ch13/ch13_skill_extraction.py`.
+Implementation lives in `talentlens/skills.py` (vocabulary +
+extractors + `evaluate_extractor` / `load_eval_set`).
+
+**`CANONICAL_SKILLS` as single source of truth**: 25 canonical
+names plus `SKILL_ALIASES` moved here from Chapter 6 so cleaning,
+extraction, and future chapters do not fork the vocabulary. The
+chapter's measurement is only meaningful because every method
+maps into the same closed set.
+
+**Shared eval harness**: `run_benchmarks()` in the chapter script
+calls `evaluate_extractor()` with partials bound to
+`method="regex"`, `method="spacy"` (with and without
+`spacy_abbreviations=True`), and `method="semantic"` at
+`SEMANTIC_THRESHOLD = 0.80`. One JSONL file
+(`data/eval_set_llm_labelled.jsonl`, 200 rows) is the gold
+standard for all comparisons.
+
+**Threshold sweep as first-class output**: `run_threshold_sweep()`
+varies `semantic_threshold` across
+`[0.50, 0.55, …, 0.90]`; `plot_threshold_sweep()` writes
+`reports/figures/ch13_threshold_sweep.png` (precision, recall,
+macro F1 vs τ). That figure is the chapter's main teaching
+artefact for why τ is not optional.
+
+Run from the repository root:
+
+```bash
+python book/ch13/ch13_skill_extraction.py
+```
+
+Outputs `reports/skill_extraction_eval.md` with the full
+measurement table, threshold sweep, and per-method
+diagnostics.
+
+---
+
+## Interpreting the output
+
+### The eval set
+
+200 postings sampled from a 1,190-row collection of real
+postings from The Adzuna API (Jobs by Adzuna, India), balanced
+across the five canonical roles.
+Stratified by description length, role, and `skills_raw`
+presence to ensure coverage.
+
+Gold labels produced by LLM (Groq Llama 3.3 70B for the
+first 24 rows, OpenAI gpt-4o-mini for the remaining
+176, a story in itself; see What's next). An automated
+audit flagged 7% of a 30-row sample as
+suspicious, mostly hallucinations like "Cloud (AWS)"
+inferred from generic context. The chapter is honest
+that this 7% is a label-quality floor; method-level
+differences smaller than this floor are not statistically
+meaningful.
+
+### Headline benchmark (macro averages)
+
+From the most recent run (`reports/skill_extraction_eval.md`):
+
+| Method | Macro P | Macro R | Macro F1 |
+|---|---|---|---|
+| Regex | 0.776 | 0.823 | 0.799 |
+| spaCy + EntityRuler | 0.777 | 0.820 | 0.798 |
+| spaCy + abbreviations | 0.798 | 0.852 | 0.824 |
+| Sentence-transformers | 0.785 | 0.815 | 0.800 |
+
+The chapter's central result: **spaCy with abbreviation
+patterns wins by +0.025 macro F1, paying for that gain
+with a precision drop on Machine Learning (1.00 → 0.83)**.
+Sentence-transformers ties regex despite carrying ~80MB
+of model weights and adding a heavy dependency.
+
+### Why the smarter method doesn't win
+
+The straightforward read of "regex 0.799, embeddings 0.800"
+is "embeddings don't help here." The interesting read is
+"for this task (closed vocabulary, controlled labels,
+noisy but English source text), embeddings do exactly
+what they're designed for, and that design is wrong for
+this task."
+
+Concrete example from the eval set: a posting says "we
+love statistical analysis." The LLM labeller (correctly, by
+its own criteria) didn't tag Statistics, because the
+posting isn't requiring statistical analysis as a
+discipline; it's using "statistical" descriptively. The
+regex doesn't fire on "statistical" because Statistics
+isn't a substring of it. The embedding model sees
+"statistical analysis" and finds high cosine similarity
+to "Statistics": semantically correct, but a false
+positive against our labels.
+
+This is not a bug in embeddings. It's a mismatch between
+what the method does (semantic generalization) and what
+the task requires (literal label matching). The lesson
+generalizes: match your method to your label distribution.
+
+### Reading `ch13_threshold_sweep.png`
+
+The plot's x-axis is **cosine similarity threshold (τ)**;
+y-axis is **score** (macro precision, macro recall, macro F1).
+Three curves: precision rises sharply as τ increases; recall
+is flatter above τ≈0.65; F1 peaks around τ=0.80 then plateaus.
+
+Threshold tuning table from the same run:
+
+| τ | Macro P | Macro R | Macro F1 |
+|---|---|---|---|
+| 0.50 | 0.365 | 0.782 | 0.497 |
+| 0.60 | 0.565 | 0.788 | 0.658 |
+| 0.70 | 0.732 | 0.820 | 0.773 |
+| 0.80 | 0.785 | 0.815 | 0.800 |
+| 0.90 | 0.799 | 0.793 | 0.796 |
+
+The shape is the chapter's key visual: F1 climbs steeply
+from τ=0.50 to τ=0.80 then plateaus. The climb is
+precision-driven; recall barely moves above τ=0.65.
+Below τ=0.70, the method is precision-bound noise;
+above τ=0.80, it plateaus and never beats the
+rule-based baselines.
+
+This is the visualization a reader needs to see to
+understand "semantic methods aren't magic." The threshold
+isn't a tuning knob you can hide; it's the method's
+operating point that determines whether it's useful at
+all.
+
+![Semantic threshold sweep: precision, recall, and macro F1 vs τ](reports/figures/ch13_threshold_sweep.png)
+
+---
+
+## Common mistakes I've seen (and made)
+
+**Mistake 1: comparing methods only by headline F1.**
+All four methods cluster between 0.798 and 0.824. The
+spread is smaller than the label-quality floor (7%
+flagged in audit). Headline F1 alone doesn't tell you
+which method to use; cost, latency, dependency size,
+and where the errors land all matter.
+
+**Mistake 2: assuming smarter methods help.**
+Sentence-transformers ties regex despite ~80MB of model
+weights, 2-second per-posting latency on CPU, and a heavy
+dependency. For a closed vocabulary on English-language
+job postings, the semantic generalization is often noise.
+The right time to reach for embeddings is when your
+vocabulary is open (new terms appear weekly) or the source
+text is fuzzy (transcribed speech, OCR errors).
+
+**Mistake 3: not tuning the threshold.** The semantic
+method at τ=0.50 returns macro F1 of 0.497, worse than
+"always return empty." The same method at τ=0.80 ties
+regex. The threshold isn't optional and isn't
+auto-selected; it has to be tuned on a real eval set.
+
+**Mistake 4: trusting LLM labels as ground truth.** Our
+eval set has a 7% audit flag rate. The LLM hallucinates
+skills from context ("ML/DL background required"
+becoming Machine Learning + Deep Learning even when
+"required" might be aspirational). For a first version of this
+chapter, accepting that floor is fine: the methods
+are compared against the same labels, so relative
+rankings are valid even if absolute numbers are noisy.
+Don't ship a downstream classifier trained on labels
+this loose without re-checking them.
+
+---
+
+## Interview questions
+
+**Q1: You're asked to extract skills from job postings. Regex, spaCy EntityRuler, and sentence-transformers are all available. Which do you reach for first?**
+
+Template answer: "Regex against a curated vocabulary with aliases. For a closed list of skills in English text it's the simplest method that often hits the ceiling. In my benchmark it scored 0.799 macro F1, level with an embedding model. It's fast, has no model dependency, and every match is explainable. I'd only move on after measuring it on a labelled eval set and finding specific failure patterns a heavier method would fix."
+
+**Q2: When should you use semantic matching over rule-based methods?**
+
+Template answer: "When the vocabulary is open (new tools and terms appear faster than you can add aliases) or the text is fuzzy: speech transcripts, OCR, heavy paraphrase. In those cases matching by meaning beats matching by form. On clean, closed-vocabulary text, semantic matching tends to over-generalise ('statistical analysis' matching 'Statistics' when the labels don't count it) and costs a model load and a tuned threshold."
+
+**Q3: Regex scores 0.799 macro F1 and sentence-transformers 0.800. Which do you ship?**
+
+Template answer: "Regex. A 0.001 gap is well inside the noise: the eval labels themselves had about a 7% error rate in an audit. The costs are not noise: an 80 MB model, slower inference, a threshold that needs retuning, and a heavier dependency tree. When scores tie, ship the cheaper, more explainable method."
+
+**Q4: Adding abbreviation patterns (ML, DL) raises macro F1 by 0.025 but drops precision on Machine Learning from 1.00 to 0.83. Do you ship it?**
+
+Template answer: "It depends on the consumer, so I'd ask who uses the output. For recommendations or search facets, recall matters more (an extra suggestion costs little), so I'd ship. For a hard filter like 'only show postings that require ML', precision matters more; false positives waste a candidate's time, so I'd keep abbreviations off or require a second signal. The metric trade-off is a product decision, and I'd make it with the product owner."
+
+**Q5: Better skill extraction feeds search, match explanations, and the role classifier. What does it improve, and what won't it fix?**
+
+Template answer: "It gives search and LLM explanations cleaner, consistent facets to filter on and cite: 'you have PyTorch and this role asks for it'. It won't fix problems upstream or downstream of extraction: label leakage in the classifier, too little labelled data, or an eval set whose labels are themselves noisy. I'd improve the extractor, then re-measure each consumer on its own eval rather than assuming the gain carries through."
+
+---
+
+## What's next
+
+Chapter 14 moves to time series: skill *trends* over time,
+not per-posting extraction. The vocabulary you stabilised here
+becomes the dimension you track: "is PyTorch mention share
+rising in Bangalore Q2?"
+
+For the GenAI stack: Chapter 16's RAG pipeline indexes postings
+with consistent skill tags from `talentlens/skills.py`; Chapter
+17's match explanations cite extracted skills when telling a
+candidate why a role fits. Chapter 9's classifier benefits
+indirectly when `skills_raw` and description-derived features
+are less noisy, but extraction quality never substitutes for
+the leakage checks and baselines you built in Chapters 9–10.
+
+### What's deferred
+
+Four extensions are worth building next:
+
+- **Custom NER fine-tuning.** Train a BERT-based NER
+  tagger on the labelled eval set + auto-labelled larger
+  corpus. Would likely beat all three current methods
+  on macro F1, but requires GPU access and a larger
+  training set.
+- **Multilingual extraction.** Adzuna India postings are
+  mostly English but include some Hindi and Tamil phrases.
+  None of the three methods handles non-English. A
+  multilingual sentence-transformer (paraphrase-multilingual-
+  MiniLM) would address this for a small accuracy cost.
+- **Vocabulary expansion.** `CANONICAL_SKILLS` has 25 entries;
+  a production system would have 200-500. Larger vocabulary
+  strains substring methods (more collisions) and helps
+  semantic methods (more dimensions to discriminate).
+- **LLM-direct extraction.** Skip the canonical list
+  entirely; ask the LLM to extract skills from each
+  posting at inference time. Highest quality, highest
+  cost; it would shift this chapter's economics significantly.
+
+---
+
+## TalentLens checkpoint
+
+At the end of this chapter, your project should have (paths
+relative to `book/ch13/` unless noted):
+
+- [ ] `talentlens/skills.py`: `CANONICAL_SKILLS`, `SKILL_ALIASES`,
+  `extract_skills()`, `evaluate_extractor()`, `load_eval_set()`
+- [ ] `reports/skill_extraction_eval.md`: benchmark table and
+  threshold sweep numbers
+- [ ] `reports/figures/ch13_threshold_sweep.png`: precision,
+  recall, macro F1 vs cosine threshold τ
+- [ ] `data/eval_set_llm_labelled.jsonl`: 200-row eval set
+- [ ] Tests passing from repo root: `pytest tests/test_skills.py -v`
+
+Reproduce everything from the repository root:
+
+```bash
+python book/ch13/ch13_skill_extraction.py
+pytest tests/test_skills.py -v
+```
+
+The chapter reads `book/ch13/data/eval_set_llm_labelled.jsonl` by
+default. Regenerating labels requires the scripts under
+`scripts/` and API keys documented in `.env.example`; the
+benchmark table is reproducible from the committed JSONL alone.
+
+**Concepts you own:**
+
+- Closed vocabulary favours rules: regex and spaCy often hit the ceiling before embeddings earn their cost
+- Threshold as operating point: semantic matching is useless or harmful until τ is tuned on a real eval set
+- Label quality as a floor: method gaps smaller than audit noise are not meaningful rankings

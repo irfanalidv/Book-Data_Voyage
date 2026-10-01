@@ -1,0 +1,330 @@
+# Chapter 9: Supervised Learning — The TalentLens Role Classifier
+
+> **TalentLens milestone:** We build a job role classifier that takes a job posting (title + description + skills) and predicts whether it's an AI Engineer, ML Engineer, Data Scientist, Data Engineer, or Data Analyst. This classifier is the first real ML output the book produces on TalentLens data; Chapter 18's agent calls it as a tool, and Chapter 22 wraps it in the `talentlens-core` package.
+
+---
+
+## The problem we're solving
+
+TalentLens has a clean corpus of job postings (the bundled 576 rows, or your own collection). Many of them have ambiguous or inconsistent titles. "Data Scientist" at one company means building ML models. At another it means writing SQL queries. "AI Engineer" is sometimes an NLP researcher and sometimes a prompt engineer.
+
+For TalentLens to work as a search and matching system, we need reliable role categories. A user who says "I want ML Engineer roles" shouldn't get Data Analyst positions because the company called them "ML Analyst." We need a classifier trained on the actual content of postings (description, skills, requirements), not just the title.
+
+This is a classic supervised classification problem. You have labelled examples (postings where the correct category is clear), you train a model on them, and you use the model to label the ambiguous ones.
+
+This chapter builds the full pipeline: feature engineering from text → model selection and training → evaluation → saving the model for production use. It's the chapter where "I understand machine learning" becomes "I shipped a machine learning model."
+
+---
+
+## Why this approach, and why now
+
+**Where do the labels come from?** Chapter 6 produced a `role_category` column for every posting by matching the **title** against a short list of keyword patterns. That's where ground truth lives in this book. It is a *heuristic*, and we're not pretending otherwise: Chapter 6 explicitly named it as a starting point that this chapter then builds on.
+
+Here is the critical decision in this chapter: **we train the classifier on `description` and `skills_normalised` only, never on `title`**. If we trained on title, the classifier would learn to reproduce Chapter 6's keyword rules, get F1 = 1.000 on a held-out set, and have learned nothing useful. Training on body text alone means the classifier has to do real work: it has to recognise that "Build RAG pipelines and LLM applications" is the language of an AI Engineer job, even when the title is `"Senior Engineer, AI Platform"` and gives no obvious clue.
+
+This separation, heuristic labels from one field and learned features from disjoint fields, is the sound version of the bootstrap pattern: you start with weak labels and use them to learn a stronger signal in a different feature space.
+
+The code also strips the five canonical role names from `description` before vectorisation. Many postings repeat the title in the body (the bundled corpus opens every description with "We are hiring a Senior Data Engineer at…"), and without scrubbing, the label string leaks through the description even when the title column is held out. `scrub_role_phrases_from_text()` in `talentlens/features.py` removes those phrases so the model has to learn from what the job involves, not from what it is called.
+
+**Why not just use keyword matching?** You could write rules: if the title contains "NLP" → label it NLP Engineer. This works for unambiguous cases and fails everywhere else. What category is "Senior Engineer, AI Platform"? Or "Applied Researcher (Foundation Models)"? A trained classifier generalises to these cases; a keyword rule set requires constant manual maintenance.
+
+**Why logistic regression before neural networks?** We train three models (Logistic Regression, Random Forest, and a linear SGD classifier) and compare them. (Chapter 12 adds a neural network to the comparison.) Logistic Regression often beats more complex models on text classification tasks with TF-IDF features because: (1) TF-IDF + Logistic Regression is a linear model that works well when the signal is sparse, (2) it's fast to train (seconds, not hours), (3) it's interpretable: you can see which words drive the prediction, (4) it's the baseline every other model must beat to justify its complexity.
+
+**Why TF-IDF over embeddings for this task?** Chapter 16 uses dense embeddings for semantic search. This chapter uses TF-IDF for classification because: classification needs discriminative features (what distinguishes one class from others), and TF-IDF captures this well. Embeddings capture semantic similarity, which is less useful for discrimination. On role classification, TF-IDF with logistic regression is a hard baseline to beat; fine-tuned transformers typically add a few points of accuracy at many times the compute cost. Start with the baseline, and make anything heavier earn its place against it.
+
+---
+
+## The methods
+
+### TF-IDF vectorisation
+
+**What it does in plain English:** Converts text into numbers. Each unique word becomes a feature; its value represents how important that word is to this specific document relative to all documents in the corpus.
+
+**TF (Term Frequency):** how often a word appears in this document. "Python" appearing 5 times in a job description scores higher than "Python" appearing once.
+
+**IDF (Inverse Document Frequency):** how rare a word is across all documents. "Python" appears in 70% of all postings, so its IDF is low. "pgvector" appears in 2% of postings, so its IDF is high. The product (TF × IDF) rewards words that are frequent in this document but rare across documents.
+
+**Key parameters:**
+
+```python
+TfidfVectorizer(
+    max_features=15_000,   # vocabulary size
+    ngram_range=(1, 2),    # unigrams and bigrams
+    min_df=3,              # ignore words appearing in fewer than 3 docs
+    max_df=0.90,           # ignore words appearing in more than 90% of docs
+    sublinear_tf=True,     # log(tf) instead of tf — reduces impact of very frequent terms
+)
+```
+
+`max_features=15_000`: keep at most the 15,000 most frequent terms. More features = slower training, more memory. 15k suits a corpus of tens of thousands of postings; on the bundled 576 the vocabulary after `min_df=3` is far smaller, so the cap never binds.
+
+`ngram_range=(1, 2)`: include single words ("machine", "learning") and adjacent word pairs ("machine learning", "deep learning"). Bigrams capture meaningful phrases that unigrams miss.
+
+`min_df=3`: ignore words appearing in fewer than 3 documents: likely typos or very rare terms that won't generalise.
+
+`max_df=0.90`: ignore words appearing in more than 90% of documents: likely stop words ("the", "a", "and") that don't discriminate between categories.
+
+`sublinear_tf=True`: uses log(1 + tf) instead of tf. Without this, a document with "Python" 50 times scores 50x higher than one with "Python" 1 time. With it, the score is log(51) vs log(2), a much smaller ratio. Prevents very frequent words from dominating.
+
+**What the output tells you:** A sparse matrix of shape (n_documents, max_features). Each row is a document, each column is a word, each value is the TF-IDF weight. Most values are zero (sparse) because most words don't appear in most documents. The sparsity ratio is typically 99.5%+.
+
+---
+
+### Logistic Regression for text classification
+
+**What it does in plain English:** Learns a set of weights (one per word, one per class) that predict the probability of each class given the word frequencies. The class with the highest probability is the prediction.
+
+**Key parameters:**
+
+```python
+LogisticRegression(
+    C=1.0,
+    max_iter=1000,
+    solver="lbfgs",
+    class_weight="balanced",
+)
+```
+
+`C=1.0`: regularisation strength. Smaller C = stronger regularisation = simpler model (fewer extreme weights). Larger C = less regularisation = model fits training data more closely (risk of overfitting). Tune this with cross-validation. Typical best values: 0.1 to 10.
+
+`solver="lbfgs"`: the optimisation algorithm. L-BFGS works well for dense feature spaces and multiple classes. For very large vocabularies (>100k features), `saga` is faster.
+
+With the `lbfgs` solver, scikit-learn fits a single multinomial model over all classes at once rather than one-vs-rest, which is generally better for multi-class problems. (Older tutorials pass `multi_class="multinomial"` explicitly; that argument is deprecated, and multinomial is already the default.)
+
+`class_weight="balanced"`: automatically adjusts weights to account for class imbalance. If "Data Analyst" appears 3x more in the training set than "AI Engineer", balanced weighting ensures the model doesn't just predict "Data Analyst" always.
+
+**What the output tells you:** `predict()` gives the predicted label. `predict_proba()` gives the probability for each class, useful for thresholding ("only return predictions where confidence > 0.7") and for displaying uncertainty to users.
+
+---
+
+### Cross-validation
+
+**What it does in plain English:** Rather than splitting data once into train/test, cross-validation splits it K times, trains K models, and averages the results. Gives a much more reliable accuracy estimate than a single split.
+
+```python
+from sklearn.model_selection import cross_val_score
+scores = cross_val_score(pipeline, X, y, cv=5, scoring="f1_macro")
+```
+
+`cv=5`: 5-fold cross-validation. The data is split into 5 equal parts; the model is trained 5 times, each time using 4 parts for training and 1 for testing. The 5 test scores are averaged.
+
+`scoring="f1_macro"`: F1 score averaged across all classes. Better than accuracy for imbalanced datasets: a model that always predicts the majority class gets high accuracy but low F1.
+
+**What the output tells you:** The mean and standard deviation of scores across folds. `mean=0.87, std=0.03` means the model reliably achieves 87% F1 with little variation. `mean=0.87, std=0.12` means high variance: the model is sensitive to which data it's trained on (possible overfitting or too little data).
+
+---
+
+### Classification report: interpreting the numbers
+
+**Precision:** Of all the postings we predicted as "ML Engineer", what fraction actually were? High precision = few false positives.
+
+**Recall:** Of all the actual "ML Engineer" postings, what fraction did we correctly identify? High recall = few false negatives.
+
+**F1:** Harmonic mean of precision and recall. Use this as your primary metric when classes are imbalanced.
+
+**What "good" looks like:**
+- F1 > 0.90: excellent (production-ready)
+- F1 0.80–0.90: good (usable with confidence thresholding)
+- F1 0.70–0.80: acceptable (consider more training data or feature engineering)
+- F1 < 0.70: investigate (class imbalance, ambiguous labels, or insufficient data)
+
+**Confusion matrix interpretation:** Off-diagonal cells show where the model confuses classes. "AI Engineer" predicted as "ML Engineer" is expected, because these roles overlap. "Data Analyst" predicted as "ML Engineer" is a problem: very different roles that should be clearly distinguished.
+
+---
+
+## The code
+
+The full implementation is in `ch09_supervised_learning.py`. It builds:
+
+1. Feature pipeline: scrub role phrases from `description`, append `skills_normalised` → TF-IDF on **description + skills only** (title excluded from training, because labels come from title heuristics in Chapter 6)
+2. Three-model comparison: Logistic Regression, Random Forest, SGD, selecting the simplest model within one standard deviation of the best
+3. Cross-validation and holdout evaluation with full classification report
+4. Confusion matrix visualisation
+5. Model persistence: saved as `models/role_classifier.joblib`
+6. Live inference: `predict_role(job_dict)` → label + confidence
+
+Run:
+```bash
+python book/ch09/ch09_supervised_learning.py
+```
+
+If `data/clean/jobs_clean.csv` is missing, the script generates a small synthetic set so it still runs standalone.
+
+**Three key code decisions:**
+
+*Why we build a `Pipeline` not separate steps:* scikit-learn `Pipeline` chains preprocessing and model into a single object. When you call `pipeline.fit(X_train, y_train)`, it fits the vectoriser on training data and immediately transforms it. When you call `pipeline.predict(X_test)`, it uses the vectoriser fitted on training data (no leakage). Without Pipeline, it's easy to accidentally fit the vectoriser on all data, a subtle data leak that inflates accuracy.
+
+*Why we train on description + skills, not title:* Labels come from Chapter 6's title keyword heuristic, so training on `title` would reproduce those rules (F1 ≈ 1.000, learned nothing). Body text and normalised skills carry the signal we want the classifier to generalise from. At inference, `predict_role()` accepts a `title` field for API convenience but **ignores it** when building `feature_text`; only `description` and `skills_normalised` feed the pipeline.
+
+*Why we save with `joblib` not plain `pickle`:* `joblib` is built on pickle but stores large numpy arrays efficiently and supports compression; it is what scikit-learn's documentation recommends for fitted pipelines. The saved pipeline here is about 120 KB. Like pickle, it executes code on load. Only load model files you trust, and load them with the same scikit-learn version that saved them.
+
+---
+
+## Interpreting the output
+
+When you run the script on the bundled corpus, it prints the label distribution, the model comparison, and the holdout evaluation, and writes all of it to `book/ch09/reports/model_evaluation.md`.
+
+```
+LABEL DISTRIBUTION
+  Data Scientist              134 (23.3%)
+  ML Engineer                 133 (23.1%)
+  AI Engineer                  95 (16.5%)
+  Data Engineer                88 (15.3%)
+  Data Analyst                 64 (11.1%)
+  Other                        62 (10.8%)
+
+Train: 460  Test: 116
+
+MODEL COMPARISON (5-fold cross-validation, macro F1)
+  Logistic Regression       F1=0.867 ± 0.050
+  Random Forest             F1=0.869 ± 0.058
+  SGD Classifier            F1=0.843 ± 0.061
+  Selected model: Logistic Regression — simplest model within one standard deviation of the top score
+
+HOLDOUT EVALUATION (macro F1 0.851)
+                  precision  recall  f1-score  support
+AI Engineer           0.818   0.947     0.878       19
+ML Engineer           0.793   0.852     0.821       27
+Data Scientist        0.923   0.889     0.906       27
+Data Engineer         0.895   0.944     0.919       18
+Data Analyst          0.846   0.846     0.846       13
+```
+
+(The model learns an `Other` class too (titles like "NLP Engineer" that fit none of the five roles), but the holdout table and macro F1 cover the five canonical roles the product cares about.)
+
+**Reading the model comparison:** Random Forest scores 0.869 and logistic regression 0.867. That 0.002 difference is a tiny fraction of the fold-to-fold standard deviation (±0.05), so it is not evidence that the forest is better. The script applies the **one-standard-error rule**: take the best mean score, then pick the simplest model within one standard deviation of it. Logistic regression wins: it is faster, it is interpretable (you can read which words push a posting towards each role), and on sparse TF-IDF features linear models are usually as good as anything else. Choosing the forest because 0.869 > 0.867 would be picking noise.
+
+A standard deviation of ±0.05 is large; it says the score moves a lot depending on which 92 postings land in a fold. That is what 576 rows buys you. On tens of thousands of postings, expect it to shrink below ±0.02.
+
+**Reading the holdout report:** Macro F1 of 0.851 on 116 held-out postings, in the "good (usable with confidence thresholding)" band from the scale above. The per-class rows tell the real story:
+
+- **ML Engineer is the hardest class** (F1 0.821, precision 0.793). Postings called "ML Engineer" in the corpus sometimes describe AI-engineer work, and vice versa, just as they do in real ads. The model is reading the job, and the job is ambiguous.
+- **AI Engineer has high recall and lower precision** (0.947 / 0.818): the model rarely misses an AI Engineer posting, but it also labels some ML Engineer postings as AI Engineer. That is the adjacent-role confusion Chapter 1 predicted.
+- **Data Engineer and Data Scientist are the cleanest** (F1 above 0.9): their vocabularies (pipelines and warehouses; experiments and statistics) overlap least with the others.
+
+These numbers are believable for body-text classification: good, not perfect, with errors concentrated between roles that really do overlap. That profile, rather than a single headline score, is what tells you the model learned something real.
+
+**The confusion matrix:**
+
+The cells you want to be large: the diagonal (correct predictions).
+The cells you want to be small: off-diagonal cells, especially non-adjacent roles.
+The cell to investigate: if "Data Analyst" is frequently predicted as "ML Engineer", your training labels are probably noisy: some postings are mislabelled.
+
+---
+
+## Common mistakes I've seen (and made)
+
+**Mistake: Training a classifier on the same field the labels were derived from**
+
+The most expensive lesson in this chapter, and the one that almost shipped in an earlier draft. Chapter 6 produces `role_category` by matching keyword patterns against the **title** field. An earlier version of this chapter then trained the classifier on `title + skills + description`, i.e. fed the title back into the classifier whose target was a function of the title.
+
+What happens: F1 = 1.000 on the test set. The classifier "learned" the regex that generated the labels. The model is useless on any input where the title is missing or ambiguous, which is exactly the production case the classifier was meant to solve.
+
+```python
+# WRONG — labels come from title, features include title.
+df["role_category"] = df["title"].apply(title_heuristic)   # in Chapter 6
+X = df["title"] + " " + df["description"]                  # in Chapter 9
+model.fit(X, df["role_category"])                          # F1 = 1.000 for the wrong reason
+
+# RIGHT — labels from title, features from description and skills only.
+X = df["description"] + " " + df["skills_normalised"]
+model.fit(X, df["role_category"])                          # F1 ≈ 0.85 here, earned
+```
+
+How to catch it: any time you see F1 above 0.95 on a real-world text classification task, look for this. Real role classification on noisy posting data lands in the 0.75–0.90 band; numbers above that are almost always a leakage tell. The single most useful diagnostic is: **list every field your label function reads, and assert none of them appear in your feature set.**
+
+There is still a *residual* path worth naming honestly: `skills_normalised` was extracted in Chapter 6 by keyword-scanning the description, and some of those skill keywords overlap with role-typical vocabulary. So a description that mentions "PyTorch" populates a token the classifier sees. We accept this because (a) the labels themselves are not derived from skills, so the path is not circular, and (b) excluding skills would cripple the classifier on the task it's actually for. Put plainly: "the label depends on title, the features depend on text adjacent to title; these are correlated, but not identical."
+
+---
+
+**Mistake: Fitting the vectoriser on all data before the train/test split**
+
+```python
+# WRONG — data leakage
+X_tfidf = vectorizer.fit_transform(all_texts)
+X_train, X_test = train_test_split(X_tfidf)
+```
+
+What happens: the vectoriser learned vocabulary statistics (IDF values) from the test set. The model effectively sees the test set during training. Accuracy looks 3–8% higher than it really is. Your model will underperform in production.
+
+Fix: use scikit-learn `Pipeline`. The vectoriser is fit only on the training fold.
+
+---
+
+**Mistake: Using accuracy as the only metric when classes are imbalanced**
+
+What happens: If 40% of your dataset is "Data Analyst", a model that predicts "Data Analyst" for everything achieves 40% accuracy. That's "better" than a naive baseline, but it's completely useless.
+
+Fix: always report F1 macro alongside accuracy. F1 macro penalises models that ignore minority classes.
+
+---
+
+**Mistake: Not checking the confusion matrix before deploying**
+
+What happens: overall F1 looks good at 0.87, but the confusion matrix shows your model never correctly predicts "AI Engineer"; it always confuses it with "ML Engineer". For TalentLens, this means AI Engineer search results are dominated by ML Engineer postings.
+
+Fix: always check the confusion matrix. Per-class F1 scores will also reveal this, but the matrix makes it visually obvious.
+
+---
+
+**Mistake: Evaluating on the training set**
+
+```python
+# WRONG — overly optimistic
+accuracy = model.score(X_train, y_train)
+```
+
+What happens: any model can achieve near-100% accuracy on its own training data. This number tells you nothing about how the model will perform on new data.
+
+Fix: always evaluate on a holdout set the model has never seen. With cross-validation, the holdout is automatic.
+
+---
+
+## Interview questions
+
+**Q1: Explain the bias-variance tradeoff in the context of this classifier.**
+
+Template answer: "Bias is error from wrong assumptions: a model that's too simple underfits, making the same mistakes regardless of input. Variance is error from sensitivity to training data: a model that's too complex overfits, performing perfectly on training data but poorly on new data. In our role classifier: Logistic Regression is a high-bias, low-variance model. It assumes the decision boundary is linear in TF-IDF space, which is not exactly true but close enough. A 200-tree Random Forest is lower bias but higher variance. On our dataset, Logistic Regression wins because the linear assumption is approximately correct and the variance of complex models isn't offset by their lower bias. The right model for a task is the simplest one that achieves acceptable performance, not the most complex one available."
+
+**Q2: What is TF-IDF and why does it work for text classification?**
+
+Template answer: "TF-IDF stands for Term Frequency-Inverse Document Frequency. TF measures how often a word appears in a specific document, capturing that word's local importance. IDF measures how rare a word is across all documents; it penalises common words that appear everywhere and rewards specific terms. The product gives high weight to words that are frequent in this document but rare across documents: exactly the words that distinguish one document from another. For job classification, words like 'RAG' and 'pgvector' appear in AI Engineer postings and almost nowhere else, so they get high TF-IDF scores for those postings and effectively signal the category. Words like 'experience required' appear in every posting, so they get near-zero IDF and don't influence the prediction. TF-IDF works because text classification is fundamentally a vocabulary discrimination problem."
+
+**Q3: Your classifier achieves 88% F1 in testing but 75% in production. What do you check?**
+
+Template answer: "This gap of 13 percentage points is large and suggests a data distribution shift between test and production. First, I check whether my test data was truly held out, not used in any preprocessing step including vectoriser fitting. Second, I look at the production data itself: what's the distribution of role categories, what's the average description length, are there new role titles that didn't appear in training. Third, I check for temporal drift: if I trained on 2024 data and the production data is 2026, job titles and skill requirements may have changed. Fourth, I look at my feature engineering. If I applied any normalisation or filtering on the full dataset before splitting, I have a leakage problem. The fix is to retrain on more recent data, add the drifting classes to the training set, and ensure strict train/test separation."
+
+**Q4: How do you handle class imbalance in this classifier?**
+
+Template answer: "Three approaches, in order of preference. First, `class_weight='balanced'` in the model. This re-weights the loss function so rare classes are penalised more heavily for errors. It's the simplest fix and often sufficient. Second, oversample the minority class (SMOTE, synthetic minority oversampling, which generates interpolated minority-class examples; see the imbalanced-learn docs) for numeric features, or duplicate samples for text). This works when the imbalance is severe (>10:1 ratio). Third, adjust the classification threshold: instead of predicting the class with highest probability, set a higher threshold for majority classes. For TalentLens, the imbalance is moderate (the most common class is 2–3x the least common), so `class_weight='balanced'` plus evaluating with F1 macro is sufficient. I'd move to SMOTE only if the per-class F1 for minority classes drops below 0.70."
+
+**Q5: How would you explain the model's predictions to a non-technical stakeholder?**
+
+Template answer: "I'd start with the overall metric in plain language: 'The model gets the job category right for about 85 out of 100 postings.' Then I'd show a confusion matrix simplified to the key trade-offs: 'AI Engineer and ML Engineer postings are sometimes confused with each other, because these roles overlap in the market. But Data Analyst is correctly identified almost every time because its vocabulary is very distinct.' For individual predictions, the model gives a confidence score, so I'd show something like: 'This posting was classified as ML Engineer with 91% confidence.' For lower-confidence predictions (below 70%), I'd flag them for human review rather than applying the label automatically. The key message: the model is a tool that automates the easy cases and flags the ambiguous ones. It makes humans more efficient, not redundant."
+
+---
+
+## What's next
+
+Chapter 10 asks whether engineered features (seniority, skill flags, salary) can beat this text-only baseline. The saved model (`book/ch09/models/role_classifier.joblib`) then feeds:
+- Chapter 18: the agent's `classify_role` tool
+- Chapter 22: `talentlens-core` wraps it as `predict_job_role()`
+- Chapter 19: the API serves search and a salary-band endpoint; wiring this classifier behind its own route is the natural next endpoint to add, and the chapter shows where it would go
+
+---
+
+## TalentLens checkpoint
+
+At the end of this chapter, your project should have:
+
+- [ ] `book/ch09/models/role_classifier.joblib`: trained model, ready to serve
+- [ ] `book/ch09/reports/figures/ch09_model_comparison.png`
+- [ ] `book/ch09/reports/figures/ch09_confusion_matrix.png`
+- [ ] `book/ch09/reports/figures/ch09_feature_importance.png`
+- [ ] `book/ch09/reports/model_evaluation.md`
+- [ ] `pytest tests/test_ch09.py -v`: all passing
+
+Run:
+```bash
+python book/ch09/ch09_supervised_learning.py
+```

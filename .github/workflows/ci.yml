@@ -1,0 +1,309 @@
+# .github/workflows/ci.yml
+#
+# TalentLens CI/CD Pipeline
+#
+# Triggers:
+#   push to main      → full pipeline (test → lint → docker → deploy)
+#   push to any PR    → test + lint only (no deploy)
+#   manual dispatch   → full pipeline on demand
+#
+# Jobs:
+#   test    → runs all pytest tests across Python 3.11 and 3.12
+#   lint    → ruff + black check
+#   docker  → builds image, checks size, validates health endpoint
+#   deploy  → triggers Render redeploy via deploy hook (main branch only)
+
+name: TalentLens CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+# Cancel in-progress runs on new push to same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.11"
+  IMAGE_NAME: talentlens
+  REGISTRY: ghcr.io
+  # Render deploy hook — set this in GitHub Secrets
+  # RENDER_DEPLOY_HOOK_URL: https://api.render.com/deploy/srv-xxx?key=yyy
+
+jobs:
+  # ── Job 1: Tests ─────────────────────────────────────────────────────────────
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+      fail-fast: false  # Run both versions even if one fails
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip  # Cache pip downloads between runs
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # CPU-only PyTorch: the book never uses a GPU, and the default Linux
+          # wheels pull several GB of CUDA libraries (enough to fill the runner disk).
+          pip install -r requirements-lock.txt --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install pytest pytest-asyncio pytest-cov
+
+      - name: Install spaCy model (Chapter 13 skill extractor)
+        run: python -m spacy download en_core_web_sm
+
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ \
+            -v \
+            --tb=short \
+            --cov=book \
+            --cov-report=xml:coverage.xml \
+            --cov-report=term-missing \
+            -q
+        env:
+          ENVIRONMENT: test
+          PYTHONPATH: ${{ github.workspace }}
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.11'  # Only upload once
+        continue-on-error: true  # Optional token / third-party availability
+        uses: codecov/codecov-action@v4
+        with:
+          file: coverage.xml
+          fail_ci_if_error: false  # Don't fail the build if Codecov is down
+
+      - name: Upload test results
+        if: always()  # Upload even if tests fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.python-version }}
+          path: |
+            coverage.xml
+            .pytest_cache/
+          retention-days: 7
+
+  # ── Job 2: Code quality ───────────────────────────────────────────────────────
+  lint:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install linting tools
+        run: pip install ruff==0.8.6 black==24.10.0  # same versions as requirements-dev-lock.txt
+
+      - name: Run ruff (fast linter)
+        run: |
+          ruff check book/ tests/ talentlens/ \
+            --output-format=github \
+            --select=E,F,W,I \
+            --ignore=E501
+        continue-on-error: false
+
+      - name: Check formatting with black
+        run: |
+          black book/ tests/ \
+            --line-length 100 \
+            --check \
+            --diff
+        continue-on-error: true  # Warn but don't block on formatting
+
+  # ── Job 3: Docker build + validation ──────────────────────────────────────────
+  docker:
+    name: Docker Build & Validate
+    runs-on: ubuntu-latest
+    needs: [test, lint]  # Only build if tests and lint pass
+
+    # Only build Docker image on pushes (not PRs from forks — no secrets access)
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false  # Don't push yet — just build and cache
+          load: true  # Load into host daemon for docker run health check (same job)
+          tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha          # Use GitHub Actions cache
+          cache-to: type=gha,mode=max   # Save to GitHub Actions cache
+
+      - name: Check image size
+        run: |
+          SIZE=$(docker image inspect ${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            --format='{{.Size}}' 2>/dev/null || echo "0")
+          SIZE_MB=$((SIZE / 1024 / 1024))
+          echo "Image size: ${SIZE_MB}MB"
+          echo "IMAGE_SIZE_MB=${SIZE_MB}" >> $GITHUB_ENV
+          # Warn if over 2GB (would exceed Render standard tier RAM)
+          if [ $SIZE_MB -gt 2048 ]; then
+            echo "::warning::Image size ${SIZE_MB}MB exceeds 2GB — check dependencies"
+          fi
+
+      - name: Start container and validate health endpoint
+        run: |
+          # Start the container
+          docker run -d \
+            --name talentlens-ci \
+            -p 8000:8000 \
+            -e ENVIRONMENT=test \
+            -e PORT=8000 \
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+          # Wait for startup (model loading can take time)
+          echo "Waiting for API startup..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8000/health > /dev/null 2>&1; then
+              echo "Health check passed after ${i}s"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "::error::Health check failed after 30s"
+              docker logs talentlens-ci
+              exit 1
+            fi
+            sleep 1
+          done
+
+      - name: Test API endpoints in container
+        run: |
+          ROOT=http://localhost:8000
+          API=$ROOT/api/v1
+
+          # Health (root — matches book/ch19 FastAPI)
+          HEALTH=$(curl -sf $ROOT/health)
+          echo "Health: $HEALTH"
+          echo $HEALTH | python3 -c "import sys,json; d=json.load(sys.stdin); assert d['status']=='ok', f'Expected ok, got {d}'"
+
+          # Search
+          SEARCH=$(curl -sf -X POST $API/search \
+            -H "Content-Type: application/json" \
+            -d '{"query": "Python machine learning engineer remote", "top_k": 3}')
+          echo "Search: $SEARCH"
+          echo $SEARCH | python3 -c "import sys,json; d=json.load(sys.stdin); assert 'results' in d, 'Missing results field'"
+
+          # Classify
+          CLASSIFY=$(curl -sf -X POST $API/classify \
+            -H "Content-Type: application/json" \
+            -d '{"text": "Senior NLP engineer with transformer and BERT experience"}')
+          echo "Classify: $CLASSIFY"
+          echo $CLASSIFY | python3 -c "import sys,json; d=json.load(sys.stdin); assert 'predicted_band' in d"
+
+          echo "All endpoint tests passed"
+
+      - name: Collect container logs on failure
+        if: failure()
+        run: docker logs talentlens-ci
+
+      - name: Stop container
+        if: always()
+        run: |
+          docker stop talentlens-ci 2>/dev/null || true
+          docker rm talentlens-ci 2>/dev/null || true
+
+      - name: Summary
+        run: |
+          echo "## Docker Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Image | \`${{ env.IMAGE_NAME }}:${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Size | ${IMAGE_SIZE_MB}MB |" >> $GITHUB_STEP_SUMMARY
+          echo "| Health check | Passed |" >> $GITHUB_STEP_SUMMARY
+          echo "| Endpoints tested | GET /health, POST /api/v1/search, POST /api/v1/classify |" >> $GITHUB_STEP_SUMMARY
+
+  # ── Job 4: Deploy to Render ────────────────────────────────────────────────────
+  deploy:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    needs: [test, lint, docker]  # All three must pass
+
+    # Only deploy from main branch — not PRs, not develop
+    if: |
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+
+    environment:
+      name: production
+      url: https://talentlens-api.onrender.com  # Update with your Render URL
+
+    steps:
+      - name: Trigger Render deploy
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::warning::RENDER_DEPLOY_HOOK_URL secret not set — skipping deploy trigger"
+            echo "Set this in GitHub → Settings → Secrets → Actions"
+            echo "Get the URL from Render → your service → Settings → Deploy Hook"
+            exit 0
+          fi
+
+          echo "Triggering Render deploy..."
+          RESPONSE=$(curl -sf -X POST "$RENDER_DEPLOY_HOOK_URL")
+          echo "Deploy triggered: $RESPONSE"
+
+      - name: Wait for deploy and verify
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          TALENTLENS_URL: ${{ secrets.TALENTLENS_PRODUCTION_URL }}
+        run: |
+          if [ -z "$TALENTLENS_URL" ]; then
+            echo "::warning::TALENTLENS_PRODUCTION_URL not set — skipping production verification"
+            exit 0
+          fi
+
+          echo "Waiting for Render to deploy (up to 5 minutes)..."
+          for i in $(seq 1 30); do
+            if curl -sf $TALENTLENS_URL/health > /dev/null 2>&1; then
+              echo "Production health check passed"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "::error::Production health check failed after 5 minutes"
+              exit 1
+            fi
+            sleep 10
+          done
+
+          # Verify production response
+          HEALTH=$(curl -sf $TALENTLENS_URL/health)
+          echo "Production health: $HEALTH"
+
+      - name: Deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Triggered by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | Deployed |" >> $GITHUB_STEP_SUMMARY

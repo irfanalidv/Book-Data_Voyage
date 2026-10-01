@@ -1,0 +1,16 @@
+{
+  "$schema_version": 1,
+  "current": "v1.0.0-dataset-1",
+  "versions": {
+    "v1.0.0-dataset-1": {
+      "description": "Balanced AI-focused dataset: 1,190 rows collected via Adzuna keyword search across 5 canonical TalentLens roles (AI Engineer, ML Engineer, Data Scientist, Data Engineer, Data Analyst). Each role queried separately; deduplicated by job_id; filtered to canonical roles only (no Other bucket). Schema matches tests/test_schema_contract.py.",
+      "rows": 1190,
+      "schema_commit": "624098ec4d4f605f854bfdb1408250bb75dd9ac9",
+      "url": "https://github.com/irfanalidv/Book-Data_Voyage/releases/download/v1.0.0-dataset-1/jobs_clean.csv.gz",
+      "sha256": "edba4f5c4c6fcc306db2efc4009e2a8aaa6bcec3e83860a099189de950acb23f",
+      "filename": "jobs_clean.csv.gz",
+      "compressed_bytes": 285603,
+      "uncompressed_bytes": 1002701
+    }
+  }
+}

@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this book or its code, please cite it as below."
+type: book
+title: "Data Voyage: Building Real AI Systems from Data to Deployment"
+authors:
+  - family-names: Ali
+    given-names: Irfan
+    email: irfan@datacortex.in
+version: "2.1.0"
+date-released: "2026-10-01"
+url: "https://github.com/irfanalidv/Book-Data_Voyage"
+repository-code: "https://github.com/irfanalidv/Book-Data_Voyage"
+license: MIT
+keywords:
+  - machine-learning
+  - ai-engineering
+  - mlops
+  - rag
+  - llm
+  - fastapi
+  - python
+  - data-science

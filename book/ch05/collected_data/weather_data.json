@@ -1,0 +1,11 @@
+{
+  "main": {
+    "temp": 18.5,
+    "humidity": 65
+  },
+  "weather": [
+    {
+      "description": "scattered clouds"
+    }
+  ]
+}

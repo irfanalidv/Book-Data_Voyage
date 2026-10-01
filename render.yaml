@@ -1,0 +1,29 @@
+# Render.com — infrastructure as code for TalentLens (Data Voyage Ch21)
+# Docs: https://render.com/docs/blueprint-spec
+#
+# Free tier: web services sleep after ~15 min idle; first request cold-starts.
+# Paid: disable sleep, more RAM/CPU — set plan under `services[].plan`.
+
+services:
+  # Docker-backed FastAPI from repo-root Dockerfile
+  - type: web
+    name: talentlens-api
+    region: oregon # change to frankfurt / singapore if closer to users
+    plan: free # free | starter | standard | pro — free is fine for demos
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # Render sets PORT; our Dockerfile CMD uses ${PORT:-8000}
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHONPATH
+        value: /app
+      # Example: wire when Ch18 is enabled (set value in dashboard, not committed)
+      # - key: OPENAI_API_KEY
+      #   sync: false
+
+# Not used for Docker web services, but shown for completeness when you add Postgres:
+# databases:
+#   - name: talentlens-db
+#     plan: free
+#     region: oregon

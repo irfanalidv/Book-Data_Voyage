@@ -1,0 +1,82 @@
+# .github/workflows/publish.yml
+#
+# Chapter 22 — release talentlens-core with PyPI Trusted Publishing.
+#
+# Trigger: push a tag of the form talentlens-core-v0.1.0. The prefix keeps
+# package releases separate from the book's own version tags.
+#
+# One-time setup (see Chapter 22):
+#   1. On pypi.org (and test.pypi.org), add a "pending publisher" for this
+#      repository, workflow file publish.yml, environment "pypi" / "testpypi".
+#   2. In GitHub → Settings → Environments, create "pypi" and "testpypi".
+# No API tokens are stored anywhere: PyPI issues a short-lived token to this
+# workflow via OpenID Connect.
+
+name: Publish talentlens-core
+
+on:
+  push:
+    tags: ["talentlens-core-v*"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build sdist and wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Check tag matches pyproject version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#talentlens-core-v}"
+          PKG_VERSION=$(python -c "import tomllib; print(tomllib.load(open('book/ch22/pyproject.toml','rb'))['project']['version'])")
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag $TAG_VERSION does not match pyproject version $PKG_VERSION"
+            exit 1
+          fi
+
+      - name: Build
+        run: |
+          python -m pip install --upgrade build twine
+          python -m build book/ch22 --outdir dist/
+          python -m twine check dist/*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  testpypi:
+    name: Publish to TestPyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment: testpypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  pypi:
+    name: Publish to PyPI
+    needs: testpypi
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

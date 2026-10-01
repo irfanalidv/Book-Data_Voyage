@@ -1,0 +1,258 @@
+# Chapter 19: FastAPI — Ship TalentLens as an API
+
+> **TalentLens milestone:** Everything we built (EDA, vectors, classifiers) only matters if someone can call it. This chapter exposes **search** and **salary-band classification** as versioned HTTP endpoints with request validation, OpenAPI docs, basic rate limiting, and a layout you can drop behind Docker and a reverse proxy in Chapter 20.
+
+---
+
+## The problem we're solving
+
+Your PM does not want a `.py` file and a README that says “clone the repo.” They want a **URL** and a **JSON contract**: `POST /api/v1/search` with a query string, `200` with ranked jobs, predictable errors when the input is wrong, and a `/health` endpoint the platform team can wire to a load balancer.
+
+Until you ship an API, TalentLens is a script. After this chapter, it is a **service**, the same boundary real teams use between “model code” and “product surface.” That boundary is where caching, auth, rate limits, and observability attach. FastAPI is the tool we use because it gives you typed request/response models, automatic OpenAPI, and async-ready ASGI without boilerplate.
+
+---
+
+## Why FastAPI, and why now
+
+**What FastAPI is:** An ASGI web framework built around type hints. You declare Pydantic models for bodies and responses; FastAPI validates JSON, generates `422` errors for bad input, and publishes `/openapi.json` for free.
+
+**Why not Flask alone:** Flask is excellent for tiny services, but you hand-write validation and OpenAPI unless you add extensions. For a teaching codebase that must read like production, FastAPI’s **first-class Pydantic integration** keeps the chapter focused on contracts and behaviour instead of glue code.
+
+**Why not Django:** Django is the right default for large CRUD apps with admin, ORM, and sessions. TalentLens here is a **narrow inference API** (a few POST routes backed by dataframes and vector code), so a slim ASGI stack fits better.
+
+**Why Pydantic models live at module level:** Router decorators resolve response models at import/registration time. Nesting `class SearchRequest(BaseModel)` inside `build_app()` can break model resolution with some Python/FastAPI combinations (closure scoping). **All request/response models in this chapter are defined next to `_RateLimiter` at module top**: one import path, one set of types, stable OpenAPI.
+
+**What Chapters 16–17 gain from this API surface:** Chapter 16's hybrid retrieval and Chapter 17's generation layer (CV parsing, match explanations) plug in behind the same service boundary the routes call, with no duplicate business logic. You can swap keyword `rank_jobs` for vector search from Chapter 16 and add LLM wrappers from Chapter 17 without changing the HTTP contract clients already depend on.
+
+---
+
+## The methods
+
+### `build_app()` (application factory)
+
+**What it does in plain English:** Builds a fresh FastAPI instance with middleware, routes, and an in-memory rate limiter bound to that instance.
+
+**When to use it:** Tests call `build_app(rate_limit_max=…)` so rate-limit behaviour is deterministic. Production can import the module-level `app` or call the factory with injected dependencies.
+
+**Key parameters:**
+
+- `jobs_df`: optional pre-loaded postings. If omitted, `load_jobs_dataframe()` reads `data/clean/jobs_clean.csv` when present and **normalises** columns (`role_category` → `title`, `salary_annual_inr` → min/max band) so one schema serves Chapters 5–7 CSVs.
+- `rate_limit_max` / `rate_window_seconds`: sliding-window style cap on non-exempt paths (health and docs stay exempt so probes never flap).
+
+### Pydantic `Field` constraints
+
+**What they do:** Reject bad JSON before your handler runs.
+
+**Examples in this chapter:**
+
+- `SearchRequest.query`: `min_length=1`, `max_length=2000`; empty search is `422`, not a silent “no results”.
+- `SearchRequest.top_k`: `ge=1`, `le=50`: protects you from someone requesting a million rows.
+
+### Keyword ranking (`keyword_score` + `rank_jobs`)
+
+**What it does:** Token overlap score between query and each job’s title, description, skills, and company text: fast, explainable, and good enough for the HTTP shell. Chapter 16’s embeddings plug in behind the same function boundary later.
+
+**Red flags:** If every score is `0.0`, your CSV columns are not mapped. Use `normalise_jobs_schema()` or check that `description` / `skills_normalised` are populated.
+
+### Heuristic `classify_salary_band`
+
+**What it does:** Maps free text to coarse Indian-market salary bands. **Heuristic by design**: keyword scoring over seniority phrases ("senior", "lead", "junior", years of experience). It is not the trained role classifier from Chapter 9: that model predicts *role*, this endpoint predicts *pay band*, and a keyword heuristic keeps the serving image free of scikit-learn (Chapter 20 explains why that matters). Serving the role classifier is a separate route; What's next sketches it.
+
+---
+
+## The code
+
+Full implementation: `ch19_fastapi_deployment.py`.
+
+**Run locally (repo root, `PYTHONPATH` includes the repo):**
+
+```bash
+export PYTHONPATH=.
+uvicorn book.ch19.ch19_fastapi_deployment:app --reload --port 8765
+# or from repo root: make run   (serves on http://127.0.0.1:8000)
+```
+
+Then open `http://127.0.0.1:8765/docs` (or `:8000/docs` with `make run`) for the interactive Swagger UI generated from the same Pydantic models production uses.
+
+**Design choices called out in code:**
+
+1. **Module-level models**: `HealthResponse`, `JobResult`, `SearchRequest`, `SearchResponse`, `ClassifyRequest`, `ClassifyResponse` sit beside `_RateLimiter`, not inside `build_app()`, so FastAPI’s router always resolves the same model objects OpenAPI references.
+2. **Schema normalisation**: real TalentLens CSVs may expose `role_category` and `salary_annual_inr` instead of `title` / `salary_min`; `normalise_jobs_schema()` keeps the API layer boring.
+3. **ASGI `app` export**: `app = build_app(...)` at module bottom matches `uvicorn book.ch19.ch19_fastapi_deployment:app`.
+
+**Outputs:**
+
+- `reports/figures/ch19_api_architecture.png`: client → FastAPI → services → data diagram (run `plot_api_architecture()` or execute the module once).
+
+---
+
+## Interpreting the output
+
+- **`/health`**: Should return `{"status":"ok",…}` quickly. If it does not, the process is wedged before business logic. Fix memory, event loop, or startup hooks first.
+- **`took_ms` on `/api/v1/search`**: End-to-end ranking time for the in-process dataframe slice. Expect milliseconds to low tens of ms for thousands of rows. If it spikes, profile `rank_jobs` before blaming the network.
+- **`score` in each `JobResult`**: Normalised token overlap in `[0,1]`, not cosine similarity yet. When you wire Chapter 16, document the field rename (`similarity` vs `score`) for API clients.
+- **`predicted_band` on `/api/v1/classify`**: Coarse market buckets for storytelling, not individual offer predictions. Treat confidence as ordinal, not calibrated probability.
+
+**Worked example (`POST /api/v1/search`):**
+
+```bash
+# With make run (port 8000):
+curl -s -X POST http://127.0.0.1:8000/api/v1/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "data scientist python sql", "top_k": 3}'
+# Health probe (load balancers): curl -s http://127.0.0.1:8000/health
+```
+
+Example response shape (captured from `make run` against the bundled corpus):
+
+```json
+{
+  "query": "data scientist python sql",
+  "results": [
+    {
+      "job_id": "demo_00011",
+      "title": "Data Scientist",
+      "company": "Coral Edtech",
+      "score": 0.75,
+      "salary_min_l": 13.0,
+      "salary_max_l": 17.6,
+      "is_remote": false
+    },
+    {
+      "job_id": "demo_00046",
+      "title": "Data Scientist",
+      "company": "Indigo Logistics",
+      "score": 0.75,
+      "salary_min_l": 20.9,
+      "salary_max_l": 28.3,
+      "is_remote": false
+    },
+    {
+      "job_id": "demo_00073",
+      "title": "Junior Data Scientist",
+      "company": "Palash Travel",
+      "score": 0.75,
+      "salary_min_l": 12.7,
+      "salary_max_l": 17.1,
+      "is_remote": false
+    }
+  ],
+  "took_ms": 15.2
+}
+```
+
+And the salary-band endpoint:
+
+```bash
+curl -s -X POST http://127.0.0.1:8000/api/v1/classify \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Senior ML engineer, 6 years, production PyTorch"}'
+```
+
+```json
+{"predicted_band": "₹15–30L", "confidence": 0.68, "rationale": "Mid-senior language without junior markers."}
+```
+
+`score` is normalised token overlap in `[0, 1]`. All three results score `0.75` because three of the four query tokens appear in each, and many more postings tie at the same score. Keyword ranking cannot break those ties; that's the job Chapter 16's embeddings do. `took_ms` is end-to-end ranking time in-process; on a few thousand rows expect tens of milliseconds, not network latency. `salary_min_l` / `salary_max_l` are lakhs derived from `salary_annual_inr` when present.
+
+---
+
+## Common mistakes I've seen (and made)
+
+**Mistake: Nesting Pydantic models inside `build_app()`**
+
+What happens: you define `class SearchRequest(BaseModel)` inside the factory closure to keep types "near" the routes. FastAPI resolves `response_model` at route registration time; nested classes can break OpenAPI schema generation and model reuse across tests, because different `build_app()` calls see different type objects.
+
+How to catch it: `/openapi.json` missing `SearchRequest` in `components.schemas`, or `TestClient` round-trips failing with validation errors that do not match module-level models.
+
+Fix: keep every request/response model at module level next to `_RateLimiter`, exactly as this chapter does.
+
+---
+
+**Mistake: Treating heuristic `predicted_band` as a calibrated probability**
+
+What happens: `classify_salary_band()` returns `confidence` values like `0.72` because the response schema needs a float, and readers wire them into pricing logic or rank candidates by "model confidence." The heuristic is ordinal storytelling (seniority keywords → band), not a trained classifier.
+
+How to catch it: `/api/v1/classify` returns the same band for paraphrases that should differ, or confidence does not move when you ablate keywords.
+
+Fix: label the endpoint as heuristic in the OpenAPI description and the response (`rationale` does this), and replace it with a trained, calibrated model before anyone makes a pricing decision from it.
+
+---
+
+**Mistake: Returning raw exceptions or stack traces to API clients**
+
+What happens: an unhandled `KeyError` in `rank_jobs` becomes a `500` with a Python traceback in the JSON body. Clients log it, attackers map your internals, and retries amplify load.
+
+How to catch it: integration tests that assert error bodies never contain `Traceback` or file paths; production logs that have stack traces server-side only.
+
+Fix: catch service-layer failures, return stable `{"detail": "..."}` or domain error codes (`503` with `error: "ranking_unavailable"`), log with `request_id` server-side, the pattern Interview Q5 describes.
+
+---
+
+**Mistake: Confusing rate limiting with authentication**
+
+What happens: we ship `_RateLimiter` on anonymous traffic and a PM says "we have auth." Capacity protection (500 requests per minute per process in the shipped `app`; the `build_app()` default is 120) stops abuse; it does not prove who called the API.
+
+How to catch it: anyone with the URL can hit `/api/v1/search` until `429`; no `Authorization` header is checked.
+
+Fix: keep rate limits at the edge for stability; add API keys or OAuth when identity matters. Two hooks, two jobs.
+
+---
+
+**Mistake: Blocking CPU work on the async event loop**
+
+What happens: `search()` is `async def` but calls synchronous `rank_jobs()` over the full dataframe. At small scale `took_ms` stays in the tens. When Chapter 16's embedding ranker plugs in, a sync call that takes hundreds of milliseconds wedges the ASGI worker under concurrent load, and health checks time out while one request scores vectors.
+
+How to catch it: `took_ms` climbs linearly with concurrent clients in a load test; `/health` flaps while search is hot.
+
+Fix: run CPU-bound scoring in `asyncio.to_thread()` or a process pool; reserve the event loop for I/O (remote LLM calls, DB).
+
+---
+
+## Interview questions
+
+**Q1: How do you structure a FastAPI service for testability?**  
+Factory (`build_app`) + dependency overrides for DB/session/clients + `TestClient` against an in-memory app. Keep Pydantic models importable without side effects.
+
+**Q2: Where do you validate inputs: Pydantic, or inside handlers?**  
+Shape and ranges in Pydantic (fail fast with `422`). Business rules (“query must match at least one skill category”) in services, returning `400` with a clear code if you need domain errors.
+
+**Q3: How does rate limiting differ from authentication?**  
+Rate limits protect **capacity** (cost + stability). Auth proves **identity**. You need both at the edge; this chapter implements only a simple limiter to show where the hook lives.
+
+**Q4: Why ASGI instead of WSGI for ML APIs?**  
+ASGI lets you mix async I/O (calling remote embedding or LLM APIs) without blocking threads. CPU-bound scoring may still run in executors; the pattern is async shell, sync core unless you go full async stack.
+
+**Q5: What do you return when the model errors?**  
+Never leak stack traces. Map known failures to `503` / `502` with stable `error` codes, log server-side with `request_id`, and keep payloads small enough for clients to retry safely.
+
+---
+
+## What's next
+
+Chapter 20 adds **Docker** and a **Render** (or similar) deployment path: same `app`, new packaging. Chapter 21 then adds the CI/CD pipeline that tests and deploys this service on every push to main.
+
+Three extensions are worth building on this base, each a route and a dependency decision: swap `rank_jobs` for Chapter 16's vector search behind the same `/api/v1/search` contract; add `POST /api/v1/classify-role` that loads the model from `talentlens.paths.role_classifier_path()` (which adds scikit-learn to the serving image); and put Chapter 17's `MatchExplainer` behind an optional `explain=true` flag, with the graceful fallback that chapter teaches.
+
+---
+
+## TalentLens checkpoint
+
+At the end of this chapter (paths relative to `book/ch19/` unless noted):
+
+- [ ] `ch19_fastapi_deployment.py` with module-level Pydantic models and `build_app()`
+- [ ] `reports/figures/ch19_api_architecture.png`
+- [ ] From repo root: `PYTHONPATH=. uvicorn book.ch19.ch19_fastapi_deployment:app --port 8765`
+- [ ] `pytest tests/test_ch19.py -v` passing
+
+**Concepts you own:**
+
+- HTTP as the product boundary: typed contracts (`SearchRequest` / `SearchResponse`) separate transport from ranking and classification services
+- Heuristic vs trained inference: the salary-band endpoint is keyword rules, labelled as such; a trained model is a separate, heavier route
+- ASGI capacity vs correctness: async routes still need non-blocking CPU paths before vector search lands
+
+Optional load smoke (requires `httpx`):
+
+```bash
+TALENTLENS_LOAD_TEST=1 PYTHONPATH=. python book/ch19/ch19_fastapi_deployment.py
+```

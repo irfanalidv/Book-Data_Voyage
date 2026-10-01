@@ -1,0 +1,17 @@
+# Runtime dependencies for the TalentLens API serving image (ch19).
+# This is the slim production set — ML libraries (torch, transformers,
+# sentence-transformers, spaCy, scikit-learn) are intentionally excluded
+# because the API does not import them at runtime. The full ML stack
+# lives in requirements.txt / requirements-lock.txt for development,
+# training, and the non-API chapters.
+#
+# Pins match requirements-lock.txt exactly. If you change this file,
+# re-run `make verify-api-deps` and update the ch20 prose.
+
+fastapi==0.136.1
+uvicorn[standard]==0.32.1
+pydantic==2.13.3
+pydantic-settings==2.6.1
+python-dotenv==1.2.3
+pandas==2.3.3
+numpy==2.1.3
