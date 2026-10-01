@@ -39,7 +39,7 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.12.3
     # via nbconvert
-black==24.10.0
+black==26.3.1
     # via -r requirements-dev.txt
 bleach==6.4.0
     # via nbconvert
@@ -358,6 +358,7 @@ numpy==2.1.3
     #   scikit-learn
     #   scipy
     #   seaborn
+    #   sentence-transformers
     #   spacy
     #   statsmodels
     #   thinc
@@ -386,6 +387,7 @@ packaging==26.2
     #   thinc
     #   transformers
     #   twine
+    #   virtualenv
     #   weasel
 pandas==2.3.3
     # via
@@ -407,16 +409,13 @@ patsy==1.0.2
 pexpect==4.9.0
     # via ipython
 pillow==12.3.0
-    # via
-    #   matplotlib
-    #   sentence-transformers
+    # via matplotlib
 pkginfo==1.12.1.2
     # via twine
 platformdirs==4.9.6
     # via
     #   black
     #   jupyter-core
-    #   python-discovery
     #   virtualenv
 pluggy==1.6.0
     # via pytest
@@ -496,7 +495,7 @@ python-dateutil==2.9.0.post0
     #   jupyter-client
     #   matplotlib
     #   pandas
-python-discovery==1.3.1
+python-discovery==1.6.1
     # via virtualenv
 python-dotenv==1.2.3
     # via
@@ -505,6 +504,8 @@ python-dotenv==1.2.3
     #   uvicorn
 python-json-logger==4.1.0
     # via jupyter-events
+pytokens==0.4.1
+    # via black
 pytz==2026.2
     # via pandas
 pyyaml==6.0.3
@@ -582,7 +583,7 @@ seaborn==0.13.2
     # via -r requirements.txt
 send2trash==2.1.0
     # via jupyter-server
-sentence-transformers==5.1.2
+sentence-transformers==5.6.1
     # via -r requirements.txt
 setuptools==84.0.0
     # via
@@ -720,7 +721,7 @@ tzdata==2026.2
     #   pandas
 uri-template==1.3.0
     # via jsonschema
-urllib3==2.7.0
+urllib3==2.8.0
     # via
     #   requests
     #   twine
@@ -728,7 +729,7 @@ uvicorn==0.32.1
     # via -r requirements.txt
 uvloop==0.22.1
     # via uvicorn
-virtualenv==21.3.3
+virtualenv==21.14.2
     # via pre-commit
 wasabi==1.1.3
     # via

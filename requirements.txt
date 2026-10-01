@@ -41,7 +41,7 @@ imbalanced-learn~=0.13.0
 # a tight version triangle that breaks frequently across minor releases.
 torch~=2.8.0                   # >=2.6 required: CVE-2025-32434 (torch.load RCE)
 transformers~=4.57.0
-sentence-transformers~=5.1.0
+sentence-transformers~=5.6.0
 
 # -- NLP (Chapter 13) ---------------------------------------------------
 spacy~=3.8.0

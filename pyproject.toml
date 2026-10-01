@@ -37,7 +37,7 @@ dev = [
 ml = [
     "torch~=2.8.0",
     "transformers~=4.57.0",
-    "sentence-transformers~=5.1.0",
+    "sentence-transformers~=5.6.0",
     "imbalanced-learn~=0.13.0",
 ]
 llm = [
@@ -59,6 +59,10 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "B", "C4", "SIM"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
 
 [tool.mypy]
 python_version = "3.11"

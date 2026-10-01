@@ -218,8 +218,7 @@ class VectorStore:
         """Open the SQLite connection and create tables if needed."""
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(str(self.db_path))
-        self._conn.execute(
-            """
+        self._conn.execute("""
             CREATE TABLE IF NOT EXISTS jobs (
                 id          INTEGER PRIMARY KEY AUTOINCREMENT,
                 job_id      TEXT UNIQUE,
@@ -232,16 +231,13 @@ class VectorStore:
                 chunk_index INTEGER DEFAULT 0,
                 chunk_text  TEXT
             )
-        """
-        )
-        self._conn.execute(
-            """
+        """)
+        self._conn.execute("""
             CREATE TABLE IF NOT EXISTS embeddings (
                 job_row_id  INTEGER PRIMARY KEY REFERENCES jobs(id),
                 vector_blob BLOB NOT NULL
             )
-        """
-        )
+        """)
         self._conn.commit()
 
     def upsert(

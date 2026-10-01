@@ -500,16 +500,14 @@ Required output format:
             # Truncate description to token budget
             desc = str(job.get("chunk_text", job.get("skills", "")))
             desc_truncated = desc[: self.cfg.max_job_tokens * 4]  # ~4 chars/token
-            parts.append(
-                f"""
+            parts.append(f"""
 Job ID: {job.get("job_id", "unknown")}
 Title: {job.get("title", "Unknown")}
 Skills required: {job.get("skills", "")}
 Remote: {job.get("is_remote", False)}
 Salary: {_format_salary(job.get("salary_min"), job.get("salary_max"))}
 Description: {desc_truncated}
----"""
-            )
+---""")
 
         parts.append("</job_postings>")
         parts.append("")
