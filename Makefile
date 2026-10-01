@@ -19,7 +19,7 @@
         run run-docker docker docker-build docker-run docker-stop \
         collect clean-data train-role eda rag llm api deploy-check clean clean-figures clean-cache \
         chapter-05 chapter-06 chapter-07 chapter-09 chapter-16 chapter-17 chapter-19 chapter-20 chapter-21 chapter-22 chapter-24 \
-        all-chapters publish-check collect-dataset fetch-dataset fetch-dataset-force publish-dataset manuscript epub
+        all-chapters publish-check collect-dataset fetch-dataset fetch-dataset-force publish-dataset manuscript epub pdf
 
 # ── Colours for terminal output ──────────────────────────────────────────────
 GREEN  := \033[0;32m
@@ -358,6 +358,9 @@ publish-check: ## Verify the PyPI package builds cleanly (Chapter 22)
 
 epub: manuscript ## Build dist/data-voyage.epub for Amazon KDP, Google Play, Apple Books (needs pandoc)
 	$(PYTHON) scripts/build_epub.py
+
+pdf: manuscript ## Build dist/data-voyage.pdf, the typeset ebook PDF (needs pandoc + Google Chrome)
+	$(PYTHON) scripts/build_pdf.py
 
 manuscript: ## Build Leanpub manuscript/ from book/ (Book.txt + rewritten image paths)
 	@echo "$(GREEN)Building Leanpub manuscript/…$(RESET)"

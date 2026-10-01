@@ -55,7 +55,19 @@ def combined_markdown() -> str:
     parts = []
     for name in (MANUSCRIPT / "Book.txt").read_text(encoding="utf-8").split():
         lines = (MANUSCRIPT / name).read_text(encoding="utf-8").splitlines()
-        parts.append("\n".join(ln for ln in lines if ln.strip() not in SECTION_MARKERS))
+        kept: list[str] = []
+        part_heading = False
+        for ln in lines:
+            if ln.strip() in SECTION_MARKERS:
+                continue
+            if ln.strip() == "{class: part}":  # Markua; pandoc wants a heading attribute
+                part_heading = True
+                continue
+            if part_heading and ln.startswith("# "):
+                ln = f"{ln} {{.part}}"
+                part_heading = False
+            kept.append(ln)
+        parts.append("\n".join(kept))
     return "\n\n".join(parts) + "\n"
 
 

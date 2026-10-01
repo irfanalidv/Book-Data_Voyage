@@ -115,6 +115,7 @@ make test           # full test suite
 make run            # start the Chapter 19 API on http://localhost:8000
 make docker         # build the Chapter 20 production image
 make epub           # build the ebook in dist/ (needs pandoc)
+make pdf            # build the typeset PDF in dist/ (needs pandoc + Chrome)
 ```
 
 ---

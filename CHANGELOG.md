@@ -11,8 +11,15 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - DataCortex IQ is named as the book's publisher (copyright page, EPUB
   metadata, README, citation). Copyright stays with the author.
 
+### Added
+
+- `make pdf`: a typeset 7 x 9.25 in PDF (cover, linked contents, bookmarks,
+  page numbers) built with pandoc and headless Chrome.
+
 ### Fixed
 
+- Part pages showed the raw Leanpub marker `{class: part}` in the EPUB; both
+  builds now turn it into a styled heading.
 - `make type-check` always errored (it passed `book/` to mypy, which
   `pyproject.toml` excludes). It now checks `talentlens/` in strict mode,
   which passes after adding the missing type hints.
