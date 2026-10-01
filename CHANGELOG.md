@@ -6,6 +6,21 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- `make type-check` always errored (it passed `book/` to mypy, which
+  `pyproject.toml` excludes). It now checks `talentlens/` in strict mode,
+  which passes after adding the missing type hints.
+- `make verify-api-deps` installed the package with all its dependencies, so
+  it could never catch a gap in `requirements-api.txt`. It now uses
+  `--no-deps`, like the Dockerfile.
+
+### Security
+
+- sentence-transformers 5.6 (critical advisory), urllib3 2.8, and, for
+  development, virtualenv 21.14 and black 26.3. Chapter 13 and 16 outputs
+  are unchanged and the stored embeddings are bit-identical.
+
 ## [2.1.0] - 2026-10-01
 
 First public release of the companion repository.
