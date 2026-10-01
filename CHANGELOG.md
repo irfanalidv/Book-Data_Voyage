@@ -13,6 +13,7 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- The ebook is on sale at https://leanpub.com/datavoyage; the README links to it.
 - `make pdf`: a typeset 7 x 9.25 in PDF (cover, linked contents, bookmarks,
   page numbers) built with pandoc and headless Chrome.
 

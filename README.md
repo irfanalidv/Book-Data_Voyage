@@ -8,6 +8,7 @@
 Irfan Ali · Published by DataCortex IQ</p>
 
 <p align="center">
+  <a href="https://leanpub.com/datavoyage"><img src="https://img.shields.io/badge/buy%20the%20ebook-Leanpub-1A5FB4" alt="Buy on Leanpub"></a>
   <a href="https://github.com/irfanalidv/Book-Data_Voyage/actions/workflows/ci.yml"><img src="https://github.com/irfanalidv/Book-Data_Voyage/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.11-3776AB?logo=python&logoColor=white" alt="Python 3.11">
   <a href="LICENSE"><img src="https://img.shields.io/badge/code-MIT-green" alt="Code license: MIT"></a>
@@ -23,7 +24,15 @@ Irfan Ali · Published by DataCortex IQ</p>
 
 This is the companion repository for the book *Data Voyage*. The book teaches production AI engineering through one running project, **TalentLens**, a job market intelligence platform that grows from raw data to a deployed API. Every chapter lives in `book/chNN/` and has two things: a `README.md` with the chapter text, and a Python script you can run.
 
-**Contents:** [Quick start](#quick-start) · [How to read along](#how-to-read-along) · [What you will build](#what-you-will-build) · [Repository layout](#whats-in-this-repository) · [The dataset](#the-dataset) · [Troubleshooting](#troubleshooting) · [About the author](#about-the-author) · [Cite this book](#cite-this-book) · [License](#license)
+## Get the book
+
+**Read it free right here on GitHub**, or get the typeset ebook (PDF and EPUB, readable offline, with free updates) on **[Leanpub](https://leanpub.com/datavoyage)**. Buying a copy is the best way to support the book.
+
+Students in India: use [this link for the student price](https://leanpub.com/datavoyage/c/INDIASTUDENTS).
+
+---
+
+**Contents:** [Get the book](#get-the-book) · [Quick start](#quick-start) · [How to read along](#how-to-read-along) · [What you will build](#what-you-will-build) · [Repository layout](#whats-in-this-repository) · [The dataset](#the-dataset) · [Troubleshooting](#troubleshooting) · [About the author](#about-the-author) · [Cite this book](#cite-this-book) · [License](#license)
 
 ---
 
