@@ -30,7 +30,6 @@ import time  # noqa: E402
 from dataclasses import dataclass  # noqa: E402
 from pathlib import Path  # noqa: E402
 
-import matplotlib.patches as mpatches  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
@@ -702,122 +701,30 @@ DEMO_JOBS = [
 
 
 def plot_generation_pipeline(cfg: Config) -> Path:
-    """Architecture diagram: CV + search results → LLM → structured advice."""
-    fig, ax = plt.subplots(figsize=(14, 6))
-    ax.set_xlim(0, 14)
-    ax.set_ylim(0, 6)
-    ax.axis("off")
+    """Architecture diagram: CV + search results -> two LLM calls -> validated advice."""
+    from talentlens.diagrams import Box, Diagram
 
-    def box(x, y, w, h, label, sub="", color="#2196F3"):
-        rect = plt.Rectangle(
-            (x, y),
-            w,
-            h,
-            facecolor=color,
-            alpha=0.18,
-            edgecolor=color,
-            linewidth=1.8,
-            zorder=2,
-            clip_on=False,
-        )
-        ax.add_patch(rect)
-        ax.text(
-            x + w / 2,
-            y + h / 2 + (0.16 if sub else 0),
-            label,
-            ha="center",
-            va="center",
-            fontsize=10,
-            fontweight="bold",
-            zorder=3,
-        )
-        if sub:
-            ax.text(
-                x + w / 2,
-                y + h / 2 - 0.22,
-                sub,
-                ha="center",
-                va="center",
-                fontsize=8,
-                color="#555555",
-                zorder=3,
-            )
-
-    def arr(x1, y1, x2, y2, label=""):
-        ax.annotate(
-            "",
-            xy=(x2, y2),
-            xytext=(x1, y1),
-            arrowprops=dict(arrowstyle="->", color="#555555", lw=1.8),
-        )
-        if label:
-            ax.text(
-                (x1 + x2) / 2, (y1 + y2) / 2 + 0.18, label, ha="center", fontsize=8, color="#555555"
-            )
-
-    # Inputs
-    box(0.2, 3.8, 1.8, 1.0, "CV text", "raw paste", "#9C27B0")
-    box(0.2, 2.2, 1.8, 1.0, "Job results", "Ch17 search", "#607D8B")
-
-    # CV Parser
-    arr(2.0, 4.3, 2.8, 4.3)
-    box(2.8, 3.8, 2.0, 1.0, "CV Parser", "LLM call #1", "#FF9800")
-
-    # Structured profile
-    arr(4.8, 4.3, 5.6, 4.3)
-    box(5.6, 3.8, 2.0, 1.0, "CV Profile", "skills, exp, role", "#4CAF50")
-
-    # Combine
-    arr(7.6, 4.3, 8.2, 3.5)
-    arr(2.0, 2.7, 8.2, 3.2)
-
-    # Prompt builder
-    box(8.2, 2.8, 1.8, 1.2, "Prompt", "builder", "#FF9800")
-
-    # LLM call
-    arr(10.0, 3.4, 10.8, 3.4)
-    box(10.8, 2.8, 1.8, 1.2, "LLM", "Groq / OpenAI\nJSON mode", "#2196F3")
-
-    # Output
-    arr(12.6, 3.4, 13.0, 3.4)
-    box(13.0, 2.5, 0.8, 1.8, "Advice", "fit\ngaps\napply?", "#4CAF50")
-
-    # Token budget annotation
-    ax.annotate(
-        "",
-        xy=(10.0, 1.8),
-        xytext=(8.2, 1.8),
-        arrowprops=dict(arrowstyle="<->", color="#F44336", lw=1.5),
+    d = Diagram(6.6, 2.8, "Generation pipeline: CV in, structured advice out")
+    w, h = 1.12, 0.62
+    d.box("cv", Box(0.1, 1.6, w, h, "CV text", "pasted by the user", "input"))
+    d.box("parse", Box(1.42, 1.6, w, h, "CV parser", "LLM call 1", "llm"))
+    d.box("profile", Box(2.74, 1.6, w, h, "CV profile", "skills, years, role", "step"))
+    d.box("jobs", Box(0.1, 0.55, w, h, "Matching jobs", "Chapter 16 search", "store"))
+    d.box("prompt", Box(4.06, 1.08, w, h, "Prompt", "profile + top 5 jobs", "step"))
+    d.box("llm", Box(5.38, 1.6, w, h, "Explainer", "LLM call 2 (JSON)", "llm"))
+    d.box("advice", Box(5.38, 0.55, w, h, "Advice", "checked by Pydantic", "output"))
+    d.arrow("cv", "parse")
+    d.arrow("parse", "profile")
+    d.arrow("profile", "prompt")
+    d.arrow("jobs", "prompt")
+    d.arrow("prompt", "llm")
+    d.arrow("llm", "advice")
+    d.note(
+        0.1,
+        0.22,
+        "If either LLM call fails, TalentLens returns the search results without explanations.",
     )
-    ax.text(
-        9.1, 1.6, "~4,200 tokens\n(system + CV + 5 jobs)", ha="center", fontsize=8, color="#F44336"
-    )
-
-    # Retry annotation
-    ax.annotate(
-        "",
-        xy=(10.8, 2.4),
-        xytext=(10.8, 1.5),
-        arrowprops=dict(arrowstyle="->", color="#607D8B", lw=1.5, linestyle="dashed"),
-    )
-    ax.text(10.8, 1.35, "retry (max 3)", ha="center", fontsize=8, color="#607D8B")
-
-    ax.set_title(
-        "TalentLens Generation Pipeline — CV → LLM → Structured Advice",
-        fontsize=13,
-        fontweight="bold",
-        pad=15,
-    )
-    legend_elements = [
-        mpatches.Patch(facecolor="#9C27B0", alpha=0.25, label="User input"),
-        mpatches.Patch(facecolor="#FF9800", alpha=0.25, label="LLM calls"),
-        mpatches.Patch(facecolor="#4CAF50", alpha=0.25, label="Structured output"),
-    ]
-    ax.legend(handles=legend_elements, loc="upper left", fontsize=9)
-    plt.tight_layout()
-    out = cfg.figures_dir / "ch17_generation_pipeline.png"
-    plt.savefig(out, dpi=SAVE_DPI, bbox_inches="tight")
-    plt.close()
+    out = d.save(cfg.figures_dir / "ch17_generation_pipeline.png")
     logger.info(f"Saved: {out}")
     return out
 

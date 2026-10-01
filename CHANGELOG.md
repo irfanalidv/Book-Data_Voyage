@@ -19,6 +19,19 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Diagrams redrawn at print size so their labels stay readable (about 7-9 pt on
+  the page, down from about 3 pt), using a shared `talentlens/diagrams.py`.
+  Four were also factually wrong and now match the code: the Chapter 18 agent
+  loop and run trace (the trace now plots the recorded run), the Chapter 20
+  deployment and layer-cache diagrams (python:3.12-slim, the real Dockerfile
+  steps), and the Chapter 22 release pipeline (trusted publishing, TestPyPI
+  first). Chapter 17 and 21 diagrams were redrawn for legibility.
+- Removed Chapter 20's build-size chart: its numbers were not measured.
+- Chapter 5's single-slice pie chart is now a compact bar chart.
+- PDF: headings never sit alone at the foot of a page; the rupee sign and arrows
+  use matching fonts; figures are capped at 4.6 in tall.
+- EPUB: code blocks wrap on e-readers instead of being cut off, with an
+  e-reader stylesheet that leaves body fonts to the reader.
 - Part pages showed the raw Leanpub marker `{class: part}` in the EPUB; both
   builds now turn it into a styled heading.
 - `make type-check` always errored (it passed `book/` to mypy, which

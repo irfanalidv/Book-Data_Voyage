@@ -440,6 +440,69 @@ def plot_image_size_comparison(out_dir: Path | None = None) -> Path:
 # ---------------------------------------------------------------------------
 
 
+def plot_deployment_architecture(out_dir: Path | None = None) -> Path:
+    """From git push to a public URL: GitHub Actions, Render, container, health check."""
+    from talentlens.diagrams import Box, Diagram
+
+    out_dir = out_dir or (_THIS / "reports" / "figures")
+    d = Diagram(6.6, 2.3, "From git push to a public URL")
+    w, h, y = 1.1, 0.72, 0.98
+    d.box("dev", Box(0.1, y, w, h, "Developer", "git push to main", "input"))
+    d.box("ci", Box(1.4, y, w, h, "GitHub Actions", "tests, lint,\nimage check", "step"))
+    d.box("render", Box(2.7, y, w, h, "Render", "builds the\nDockerfile", "step"))
+    d.box("app", Box(4.0, y, w, h, "Container", "python:3.12-slim\nuvicorn on $PORT", "output"))
+    d.box("users", Box(5.3, y, w, h, "Users", "HTTPS requests", "input"))
+    d.arrow("dev", "ci")
+    d.arrow("ci", "render")
+    d.arrow("render", "app")
+    d.arrow("users", "app")
+    d.note(
+        0.1,
+        0.42,
+        "Render deploys only after CI passes (the deploy hook is the last job).\n"
+        "Render's health check calls GET /health on the same app users hit,\n"
+        "and the Dockerfile HEALTHCHECK probes it every 30 s.",
+    )
+    path = d.save(out_dir / "ch20_deployment_architecture.png")
+    logger.info("Saved: %s", path)
+    return path
+
+
+def plot_docker_layer_cache(out_dir: Path | None = None) -> Path:
+    """The repository Dockerfile, step by step, marking which layers a code edit rebuilds."""
+    from talentlens.diagrams import Box, Diagram
+
+    out_dir = out_dir or (_THIS / "reports" / "figures")
+    d = Diagram(6.6, 3.55, "Layer order decides what a code change rebuilds")
+    d.note(0.15, 3.05, "Copy everything first", ha="left", size=8.5)
+    d.note(3.45, 3.05, "The TalentLens Dockerfile", ha="left", size=8.5)
+    slow = [
+        ("FROM python:3.12-slim", "base image", "good"),
+        ("COPY . /app", "changes on every commit", "bad"),
+        ("RUN pip install -r ...", "re-runs on every commit", "bad"),
+    ]
+    ours = [
+        ("FROM python:3.12-slim", "base image, pinned by digest", "good"),
+        ("COPY requirements-api.txt ...", "changes rarely", "good"),
+        ("RUN pip install -r ...", "cached unless deps change", "good"),
+        ("COPY talentlens/ + pip -e .", "rebuilt when talentlens/ changes", "bad"),
+        ("COPY data/ and book/", "rebuilt when you edit code", "bad"),
+    ]
+    for col, steps, x in (("s", slow, 0.15), ("o", ours, 3.45)):
+        for i, (title, sub, kind) in enumerate(steps):
+            d.box(f"{col}{i}", Box(x, 2.38 - i * 0.55, 3.0, 0.46, title, sub, kind))
+    d.note(
+        0.15,
+        0.62,
+        "Green: reused from cache.  Red: rebuilt.\n"
+        "Edit a Python file and only the last layers of\nthe right-hand order rebuild.",
+        size=7.2,
+    )
+    path = d.save(out_dir / "ch20_docker_layer_cache.png")
+    logger.info("Saved: %s", path)
+    return path
+
+
 def main() -> None:
     logger.info("Chapter 20 — Docker + Render")
     results = lint_repo_dockerfile()
@@ -450,6 +513,8 @@ def main() -> None:
     plot_lint_results(results)
     plot_layer_cache_diagram()
     plot_image_size_comparison()
+    plot_deployment_architecture()
+    plot_docker_layer_cache()
 
     if docker_cli_available():
         logger.info(

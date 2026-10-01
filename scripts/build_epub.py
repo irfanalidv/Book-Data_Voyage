@@ -31,6 +31,37 @@ DIST = ROOT / "dist"
 MAX_WIDTH = 1600
 SECTION_MARKERS = {"{frontmatter}", "{mainmatter}", "{backmatter}"}
 
+# E-reader stylesheet. pandoc's default scrolls wide code blocks, and most
+# e-readers (Kindle included) cannot scroll inside a block, so long lines would
+# be cut off. Body fonts are left to the reader's own settings.
+EPUB_CSS = """
+body { margin: 0 4%; line-height: 1.5; text-align: left; }
+h1 { font-size: 1.6em; line-height: 1.25; margin: 0.6em 0 0.8em; page-break-before: always; }
+h1.part { text-align: center; font-size: 1.9em; margin-top: 30%; }
+h1.part + p { text-align: center; font-style: italic; }
+h2 { font-size: 1.3em; margin: 1.4em 0 0.5em; page-break-after: avoid; }
+h3 { font-size: 1.1em; margin: 1.2em 0 0.4em; page-break-after: avoid; }
+h4 { font-size: 1em; margin: 1em 0 0.3em; page-break-after: avoid; }
+p { margin: 0 0 0.7em; }
+a { color: inherit; }
+code { font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 0.85em; }
+pre { font-size: 0.78em; line-height: 1.35; white-space: pre-wrap; word-wrap: break-word;
+      overflow-wrap: anywhere; border: 1px solid #ccc; padding: 0.5em; margin: 0.8em 0; }
+pre code { font-size: 1em; white-space: pre-wrap; }
+/* pandoc's highlighting styles set white-space: pre on these exact selectors
+   and only switch wrapping on for print, so override them for e-readers. */
+pre > code.sourceCode { white-space: pre-wrap !important; }
+div.sourceCode, .sourceCode { overflow: visible !important; }
+pre > code.sourceCode > span { text-indent: -2em; padding-left: 2em; }
+blockquote { margin: 1em 0; padding: 0.3em 0.8em; border-left: 3px solid #e2262c; }
+table { border-collapse: collapse; width: 100%; font-size: 0.8em; margin: 0.8em 0; }
+th, td { border-bottom: 1px solid #ccc; padding: 0.25em 0.4em; text-align: left; vertical-align: top; }
+img { max-width: 100%; height: auto; }
+figure { margin: 1em 0; text-align: center; page-break-inside: avoid; }
+figcaption { font-size: 0.85em; font-style: italic; }
+ul, ol { margin: 0 0 0.7em; padding-left: 1.3em; }
+"""
+
 METADATA = """---
 title: "Data Voyage"
 subtitle: "Building Real AI Systems from Data to Deployment"
@@ -103,6 +134,7 @@ def main() -> None:
         shrink_images(MANUSCRIPT / "images", work / "images")
         (work / "metadata.yaml").write_text(METADATA, encoding="utf-8")
         (work / "book.md").write_text(combined_markdown(), encoding="utf-8")
+        (work / "epub.css").write_text(EPUB_CSS, encoding="utf-8")
         args.out.parent.mkdir(parents=True, exist_ok=True)
         subprocess.run(
             [
@@ -115,6 +147,7 @@ def main() -> None:
                 "--toc-depth=2",
                 "--split-level=1",
                 f"--epub-cover-image={args.cover.resolve()}",
+                "--css=epub.css",
             ],
             cwd=work,
             check=True,

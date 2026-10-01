@@ -179,6 +179,108 @@ def _write_report(
 RECORDED_MODEL = "llama-3.3-70b-versatile"
 
 
+FIGURES_DIR = Path(__file__).resolve().parent / "reports" / "figures"
+
+
+def plot_agent_architecture(out_dir: Path = FIGURES_DIR) -> Path:
+    """The loop in talentlens/agent.py: the model picks a tool, or answers."""
+    from talentlens.diagrams import ACCENT, Box, Diagram
+
+    d = Diagram(6.6, 3.25, "The agent loop: the model chooses each tool")
+    d.box("query", Box(0.1, 1.7, 1.1, 0.62, "User query", "plain English", "input"))
+    d.box("llm", Box(1.65, 1.7, 1.4, 0.62, "LLM", "calls a tool or replies", "llm"))
+    d.box("answer", Box(1.65, 0.55, 1.4, 0.55, "Final answer", "text reply", "output"))
+    d.group(3.65, 0.55, 2.85, 2.38, "tools in talentlens/agent.py")
+    for i, name in enumerate(
+        [
+            "search_jobs(query, k)",
+            "get_job_detail(job_id)",
+            "classify_role(job_id)",
+            "summarise_for_candidate(...)",
+        ]
+    ):
+        d.box(f"t{i}", Box(3.8, 2.23 - i * 0.5, 2.55, 0.4, name, kind="store"))
+    d.arrow("query", "llm")
+    d.arrow("llm", "t0", label="tool call", start=(3.05, 2.17), end=(3.65, 2.17))
+    d.arrow(
+        "t0",
+        "llm",
+        label="result dict",
+        color=ACCENT,
+        dashed=True,
+        start=(3.65, 1.5),
+        end=(3.05, 1.83),
+        label_dy=-0.2,
+    )
+    d.arrow("llm", "answer")
+    d.note(
+        0.1,
+        0.14,
+        'Failed lookups come back as {"error": ...} instead of raising, so the model can correct itself.\n'
+        "The loop ends when the model replies with text, or after 8 steps.",
+    )
+    path = d.save(out_dir / "ch18_agent_architecture.png")
+    logger.info(f"Saved: {path}")
+    return path
+
+
+def plot_agent_run_trace(trace_path: Path, out_dir: Path = FIGURES_DIR) -> Path:
+    """Every tool call in one recorded run, marking the calls that failed."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    trace = json.loads(trace_path.read_text(encoding="utf-8"))
+    calls = trace["tool_calls"]
+    fig, ax = plt.subplots(figsize=(6.6, 0.32 * len(calls) + 1.1))
+    wasted = 0
+    for i, call in enumerate(calls):
+        result = call.get("result")
+        failed = bool(call.get("error")) or (isinstance(result, dict) and "error" in result)
+        wasted += failed
+        args = call["arguments"]
+        arg = args.get("query") or args.get("job_id") or next(iter(args.values()), "")
+        if failed:
+            outcome, color = "not found", "#cf222e"
+        elif isinstance(result, list):
+            outcome, color = f"{len(result)} postings", "#0969da"
+        else:
+            outcome, color = (
+                f"{result.get('predicted_role')} ({result.get('confidence')})",
+                "#1a7f37",
+            )
+        y = len(calls) - 1 - i
+        ax.barh(y, 1, color=color, alpha=0.18, edgecolor=color, height=0.72)
+        ax.text(
+            0.02,
+            y,
+            f"{i + 1:>2}. {call['name']}({arg!r})",
+            va="center",
+            ha="left",
+            fontsize=7.4,
+            family="monospace",
+            color="#1f2328",
+        )
+        ax.text(0.98, y, outcome, va="center", ha="right", fontsize=7.4, color=color)
+    ax.set_xlim(0, 1)
+    ax.set_ylim(-0.6, len(calls) - 0.4)
+    ax.axis("off")
+    ax.set_title(
+        f"Recorded run: {len(calls)} tool calls, {wasted} wasted on placeholder IDs",
+        fontsize=10,
+        fontweight="bold",
+        loc="left",
+    )
+    fig.tight_layout()
+    path = out_dir / "ch18_agent_run_trace.png"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=300, facecolor="white")
+    plt.close(fig)
+    logger.info(f"Saved: {path}")
+    return path
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -237,6 +339,8 @@ def main() -> int:
     logger.info("-" * 80)
     logger.info(f"Total estimated cost: ${total_cost:.5f} ({mode})")
     _write_report(results, REPORT_PATH, mode)
+    plot_agent_architecture()
+    plot_agent_run_trace(TRACES_LIVE_DIR / "ml_engineer_classify_chain.json")
     return 0
 
 

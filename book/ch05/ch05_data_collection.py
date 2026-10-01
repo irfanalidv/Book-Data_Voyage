@@ -947,34 +947,31 @@ def plot_collection_funnel(results: dict, cfg: Config) -> Path:
 
 
 def plot_source_breakdown(results: dict, cfg: Config) -> Path:
-    """Pie chart: proportion of postings by source."""
+    """Horizontal bars: valid postings per source, with each source's share."""
     stats = results["stats"]
     if not stats:
         logger.warning("No stats to plot source breakdown")
         return cfg.figures_dir / "ch05_source_breakdown.png"
 
-    labels = list(stats.keys())
+    labels = sorted(stats, key=lambda s: stats[s]["valid"])
     sizes = [stats[s]["valid"] for s in labels]
-    colors = ["#2196F3", "#4CAF50", "#FF9800", "#9C27B0"][: len(labels)]
+    total = sum(sizes) or 1
+    colors = ["#2196F3", "#4CAF50", "#FF9800", "#9C27B0"]
 
-    fig, ax = plt.subplots(figsize=(8, 6))
-    wedges, texts, autotexts = ax.pie(
-        sizes,
-        labels=labels,
-        colors=colors,
-        autopct="%1.0f%%",
-        startangle=90,
-        pctdistance=0.85,
-    )
-    for at in autotexts:
-        at.set_fontsize(11)
-        at.set_fontweight("bold")
-    ax.set_title("Job Postings by Source", fontsize=13, fontweight="bold")
-
-    # Count labels
-    legend_labels = [f"{lb} ({s:,})" for lb, s in zip(labels, sizes)]
-    ax.legend(wedges, legend_labels, loc="lower center", bbox_to_anchor=(0.5, -0.08), fontsize=10)
-
+    fig, ax = plt.subplots(figsize=(6.6, 0.55 * len(labels) + 1.3))
+    bars = ax.barh(labels, sizes, color=[colors[i % len(colors)] for i in range(len(labels))])
+    for bar, n in zip(bars, sizes):
+        ax.text(
+            bar.get_width(),
+            bar.get_y() + bar.get_height() / 2,
+            f"  {n:,} ({n / total:.0%})",
+            va="center",
+            fontsize=9,
+        )
+    ax.set_xlim(0, max(sizes) * 1.25)
+    ax.set_xlabel("Valid postings", fontsize=9)
+    ax.set_title("Job postings by source", fontsize=11, fontweight="bold", loc="left")
+    ax.tick_params(labelsize=9)
     plt.tight_layout()
     out = cfg.figures_dir / "ch05_source_breakdown.png"
     plt.savefig(out, dpi=SAVE_DPI, bbox_inches="tight")

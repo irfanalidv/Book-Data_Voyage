@@ -216,7 +216,7 @@ and `book/ch05/reports/collection_summary.md` records field coverage: every fiel
 
 ![Collection funnel: where rows drop between raw, valid, and deduped](reports/figures/ch05_collection_funnel.png)
 
-`ch05_source_breakdown.png` shows how many postings came from each source. In demo mode it is a single slice; on live runs, if one source dominates (>70%), your dataset will be biased toward its posting style.
+`ch05_source_breakdown.png` shows how many postings came from each source. In demo mode it is a single bar; on live runs, if one source dominates (>70%), your dataset will be biased toward its posting style.
 
 ![Source breakdown: share of postings per source](reports/figures/ch05_source_breakdown.png)
 

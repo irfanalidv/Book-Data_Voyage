@@ -222,77 +222,29 @@ def plot_package_architecture(cfg: Config) -> Path:
 
 
 def plot_release_pipeline(cfg: Config) -> Path:
-    """GitHub Actions release pipeline diagram."""
+    """Release flow in .github/workflows/publish.yml: tag -> build -> TestPyPI -> PyPI."""
+    from talentlens.diagrams import Box, Diagram
+
     cfg.figures_dir.mkdir(parents=True, exist_ok=True)
-    fig, ax = plt.subplots(figsize=(13, 5))
-    ax.set_xlim(0, 13)
-    ax.set_ylim(0, 5)
-    ax.axis("off")
-
-    def box(x, y, w, h, label, sub="", color="#2196F3"):
-        r = plt.Rectangle(
-            (x, y), w, h, facecolor=color, alpha=0.18, edgecolor=color, linewidth=2, zorder=2
-        )
-        ax.add_patch(r)
-        ax.text(
-            x + w / 2,
-            y + h / 2 + (0.15 if sub else 0),
-            label,
-            ha="center",
-            va="center",
-            fontsize=10,
-            fontweight="bold",
-            zorder=3,
-        )
-        if sub:
-            ax.text(
-                x + w / 2,
-                y + h / 2 - 0.22,
-                sub,
-                ha="center",
-                va="center",
-                fontsize=8,
-                color="#555",
-                zorder=3,
-            )
-
-    def arr(x1, y1, x2, y2, label=""):
-        ax.annotate(
-            "", xy=(x2, y2), xytext=(x1, y1), arrowprops=dict(arrowstyle="->", color="#555", lw=1.8)
-        )
-        if label:
-            ax.text(
-                (x1 + x2) / 2, (y1 + y2) / 2 + 0.2, label, ha="center", fontsize=8, color="#555"
-            )
-
-    box(0.2, 1.8, 2.0, 1.4, "git tag v1.0.1", "triggers workflow", "#9C27B0")
-    box(2.8, 1.8, 2.0, 1.4, "pytest tests/", "must pass", "#4CAF50")
-    box(5.2, 1.8, 2.0, 1.4, "python -m build", "creates .whl\n+ .tar.gz", "#FF9800")
-    box(7.6, 1.8, 2.0, 1.4, "twine check", "validates dist", "#FF9800")
-    box(10.0, 1.8, 2.6, 1.4, "twine upload PyPI", "PYPI_TOKEN secret", "#2196F3")
-
-    arr(2.2, 2.5, 2.8, 2.5, "push tag")
-    arr(4.8, 2.5, 5.2, 2.5, "pass")
-    arr(7.2, 2.5, 7.6, 2.5, "build ok")
-    arr(9.6, 2.5, 10.0, 2.5, "valid")
-
-    # Annotations
-    ax.text(
-        11.3,
-        1.2,
-        "pip install\ntalentlens-core\nworks",
-        ha="center",
-        fontsize=8.5,
-        color="#2196F3",
-        fontweight="bold",
+    d = Diagram(6.7, 2.35, "Releasing talentlens-core from a git tag")
+    w, h, y = 1.15, 0.72, 0.95
+    d.box("tag", Box(0.1, y, w, h, "git tag", "talentlens-core-\nv0.1.0", "input"))
+    d.box("build", Box(1.45, y, w, h, "build job", "version check,\nbuild, twine check", "step"))
+    d.box("test", Box(2.8, y, w, h, "TestPyPI", "trusted\npublishing", "step"))
+    d.box("pypi", Box(4.15, y, w, h, "PyPI", "trusted\npublishing", "output"))
+    d.box("user", Box(5.5, y, w, h, "pip install", "talentlens-core", "input"))
+    d.arrow("tag", "build")
+    d.arrow("build", "test")
+    d.arrow("test", "pypi")
+    d.arrow("pypi", "user")
+    d.note(
+        0.1,
+        0.4,
+        "No API tokens are stored: PyPI trusts this repository's publish workflow (OIDC).\n"
+        "PyPI is published only after TestPyPI succeeds, and the build fails if the tag\n"
+        "does not match the version in pyproject.toml.",
     )
-    ax.set_title(
-        "talentlens-core Release Pipeline — GitHub Actions", fontsize=13, fontweight="bold"
-    )
-    plt.tight_layout()
-    out = cfg.figures_dir / "ch22_release_pipeline.png"
-    plt.savefig(out, dpi=SAVE_DPI, bbox_inches="tight")
-    plt.close()
+    out = d.save(cfg.figures_dir / "ch22_release_pipeline.png")
     logger.info(f"Saved: {out}")
     return out
 

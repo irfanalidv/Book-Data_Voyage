@@ -24,7 +24,6 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 
 logging.basicConfig(
@@ -270,174 +269,34 @@ def print_results(results: list[ValidationResult], title: str) -> None:
 
 
 def plot_pipeline_architecture(cfg: Config) -> Path:
-    """CI/CD pipeline flow diagram."""
-    fig, ax = plt.subplots(figsize=(15, 8))
-    ax.set_xlim(0, 15)
-    ax.set_ylim(0, 8)
-    ax.axis("off")
+    """CI/CD architecture: what runs on a push to main and on a pull request."""
+    from talentlens.diagrams import Box, Diagram
 
-    # ── Helper functions ──
-    def box(x, y, w, h, label, sub="", color="#2196F3", alpha=0.18):
-        rect = plt.Rectangle(
-            (x, y),
-            w,
-            h,
-            facecolor=color,
-            alpha=alpha,
-            edgecolor=color,
-            linewidth=1.8,
-            zorder=2,
-            clip_on=False,
-        )
-        ax.add_patch(rect)
-        ax.text(
-            x + w / 2,
-            y + h / 2 + (0.16 if sub else 0),
-            label,
-            ha="center",
-            va="center",
-            fontsize=9,
-            fontweight="bold",
-            color=color if alpha < 0.3 else "black",
-            zorder=3,
-        )
-        if sub:
-            ax.text(
-                x + w / 2,
-                y + h / 2 - 0.22,
-                sub,
-                ha="center",
-                va="center",
-                fontsize=7.5,
-                color="#555555",
-                zorder=3,
-            )
-
-    def arrow(x1, y1, x2, y2, color="#555555", label=""):
-        ax.annotate(
-            "", xy=(x2, y2), xytext=(x1, y1), arrowprops=dict(arrowstyle="->", color=color, lw=1.8)
-        )
-        if label:
-            mx, my = (x1 + x2) / 2, (y1 + y2) / 2 + 0.12
-            ax.text(mx, my, label, ha="center", fontsize=7.5, color=color)
-
-    def badge(x, y, label, color):
-        rect = plt.Rectangle(
-            (x, y),
-            1.6,
-            0.38,
-            facecolor=color,
-            alpha=0.2,
-            edgecolor=color,
-            linewidth=1.2,
-            zorder=4,
-            clip_on=False,
-        )
-        ax.add_patch(rect)
-        ax.text(
-            x + 0.8,
-            y + 0.19,
-            label,
-            ha="center",
-            va="center",
-            fontsize=7.5,
-            fontweight="bold",
-            color=color,
-            zorder=5,
-        )
-
-    # ── Trigger ──
-    box(0.2, 3.5, 1.6, 1.0, "git push", "to main", "#9C27B0")
-    arrow(1.8, 4.0, 2.4, 4.0)
-    ax.text(2.1, 4.15, "triggers", ha="center", fontsize=7.5, color="#555555")
-
-    # ── GitHub Actions ──
-    big_rect = plt.Rectangle(
-        (2.4, 0.5),
-        10.4,
-        7.0,
-        facecolor="#F5F5F5",
-        alpha=0.5,
-        edgecolor="#BBBBBB",
-        linewidth=1.5,
-        linestyle="--",
-        zorder=1,
+    d = Diagram(6.6, 3.3, "CI/CD: what runs on every push to main")
+    d.box("push", Box(0.1, 1.85, 1.05, 0.6, "git push", "to main", "input"))
+    d.box("pr", Box(0.1, 0.4, 1.05, 0.6, "pull request", "into main", "input"))
+    d.group(1.4, 1.32, 1.5, 1.62, "in parallel")
+    d.box("t311", Box(1.5, 2.3, 1.3, 0.36, "test, Python 3.11", kind="step"))
+    d.box("t312", Box(1.5, 1.88, 1.3, 0.36, "test, Python 3.12", kind="step"))
+    d.box("lint", Box(1.5, 1.46, 1.3, 0.36, "lint: ruff + black", kind="step"))
+    d.box(
+        "docker",
+        Box(3.15, 1.79, 1.2, 0.72, "docker", "build the image,\nhit /health + 2 routes", "step"),
     )
-    ax.add_patch(big_rect)
-    ax.text(
-        7.6,
-        7.3,
-        "GitHub Actions — ci.yml",
-        ha="center",
-        fontsize=9,
-        color="#555555",
-        style="italic",
+    d.box("deploy", Box(4.6, 1.79, 0.95, 0.72, "deploy", "Render\ndeploy hook", "step"))
+    d.box("live", Box(5.75, 1.79, 0.75, 0.72, "Live", "public URL", "output"))
+    d.box("prcheck", Box(1.4, 0.4, 1.5, 0.6, "tests + lint", "nothing deploys", "good"))
+    d.arrow("push", "t312", start=(1.15, 2.15), end=(1.4, 2.15))
+    d.arrow("t312", "docker", start=(2.9, 2.15), end=(3.15, 2.15))
+    d.arrow("docker", "deploy")
+    d.arrow("deploy", "live")
+    d.arrow("pr", "prcheck")
+    d.note(
+        3.15,
+        0.7,
+        "Docker waits for all three test and lint jobs.\nDocker and deploy run only on a push to main;\na failed job stops everything after it.",
     )
-
-    # ── Parallel: Test + Lint ──
-    ax.text(4.8, 6.8, "Parallel (no dependency)", ha="center", fontsize=8, color="#777777")
-
-    box(2.6, 5.0, 2.2, 1.6, "test", "pytest 3.11 + 3.12\n23 tests, coverage", "#4CAF50")
-    box(5.0, 5.0, 2.2, 1.6, "lint", "ruff + black\ncode quality", "#4CAF50")
-
-    # timing badges
-    badge(2.6, 4.7, "~2 min", "#4CAF50")
-    badge(5.0, 4.7, "~40s", "#4CAF50")
-
-    # ── Docker (needs test + lint) ──
-    arrow(3.7, 5.0, 4.6, 3.8, label="pass")
-    arrow(6.1, 5.0, 4.6, 3.8, label="pass")
-    box(3.6, 2.4, 2.2, 1.6, "docker", "build image\ntest endpoints", "#2196F3")
-    badge(3.6, 2.1, "~5 min", "#2196F3")
-
-    # ── Deploy (needs test + lint + docker) ──
-    arrow(5.8, 3.2, 7.0, 3.2, label="pass")
-    box(7.0, 2.4, 2.4, 1.6, "deploy", "Render webhook\nhealth verify", "#FF9800")
-    badge(7.0, 2.1, "~3 min", "#FF9800")
-
-    # ── Render ──
-    arrow(9.4, 3.2, 10.2, 3.2)
-    box(10.2, 2.4, 2.4, 1.6, "Render", "pull image\nstart container\nhealth check", "#4CAF50")
-
-    # ── Production ──
-    arrow(12.6, 3.2, 13.2, 3.2)
-    box(13.2, 2.8, 1.6, 0.8, "Live", "public URL", "#4CAF50", alpha=0.35)
-
-    # ── PR path ──
-    box(0.2, 1.2, 1.6, 0.9, "git PR", "to main", "#607D8B")
-    arrow(1.8, 1.65, 2.4, 1.65)
-    box(2.6, 1.2, 2.2, 0.9, "pr-check", "test + lint\nno deploy", "#607D8B")
-    badge(2.6, 0.9, "~2 min", "#607D8B")
-    ax.text(4.0, 0.6, "← PR check: fast feedback, no deployment", fontsize=7.5, color="#607D8B")
-
-    # ── Failure path ──
-    ax.annotate(
-        "",
-        xy=(7.6, 6.0),
-        xytext=(4.8, 6.0),
-        arrowprops=dict(arrowstyle="->", color="#F44336", lw=1.5, linestyle="dashed"),
-    )
-    ax.text(6.2, 6.15, "fail → notify, stop pipeline", ha="center", fontsize=7.5, color="#F44336")
-
-    ax.set_title(
-        "TalentLens CI/CD Pipeline — push to production in ~10 minutes",
-        fontsize=13,
-        fontweight="bold",
-        pad=15,
-    )
-
-    legend_elements = [
-        mpatches.Patch(facecolor="#4CAF50", alpha=0.3, label="Test / Lint / Live"),
-        mpatches.Patch(facecolor="#2196F3", alpha=0.3, label="Docker build + test"),
-        mpatches.Patch(facecolor="#FF9800", alpha=0.3, label="Deploy"),
-        mpatches.Patch(facecolor="#607D8B", alpha=0.3, label="PR-only (no deploy)"),
-    ]
-    ax.legend(handles=legend_elements, loc="upper right", fontsize=9)
-
-    plt.tight_layout()
-    out = cfg.figures_dir / "ch21_pipeline_architecture.png"
-    plt.savefig(out, dpi=SAVE_DPI, bbox_inches="tight")
-    plt.close()
+    out = d.save(cfg.figures_dir / "ch21_pipeline_architecture.png")
     logger.info(f"Saved: {out}")
     return out
 
