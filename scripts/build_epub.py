@@ -71,15 +71,15 @@ def combined_markdown() -> str:
     return "\n\n".join(parts) + "\n"
 
 
-def shrink_images(src: Path, dest: Path) -> None:
-    """Copy images, downscaling anything wider than MAX_WIDTH."""
+def shrink_images(src: Path, dest: Path, max_width: int = MAX_WIDTH) -> None:
+    """Copy images, downscaling anything wider than *max_width*."""
     dest.mkdir(parents=True)
     for img_path in src.iterdir():
         if img_path.suffix.lower() not in {".png", ".jpg", ".jpeg"}:
             continue
         with Image.open(img_path) as im:
-            if im.width > MAX_WIDTH:
-                im = im.resize((MAX_WIDTH, round(im.height * MAX_WIDTH / im.width)), Image.LANCZOS)
+            if im.width > max_width:
+                im = im.resize((max_width, round(im.height * max_width / im.width)), Image.LANCZOS)
             if img_path.suffix.lower() == ".png":
                 # Charts use a few flat colours; a 256-colour palette is visually
                 # identical and several times smaller.

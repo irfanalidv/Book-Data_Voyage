@@ -104,7 +104,9 @@ def main() -> None:
 
     with tempfile.TemporaryDirectory() as tmp:
         work = Path(tmp)
-        shrink_images(ROOT / "manuscript" / "images", work / "images")
+        # 1200 px across a 5.5 in text block is ~220 dpi: sharp on screen, and
+        # keeps the PDF under the 10 MB many storefront uploaders accept.
+        shrink_images(ROOT / "manuscript" / "images", work / "images", max_width=1200)
         shutil.copy(args.cover, work / "cover.jpg")
         (work / "style.css").write_text(CSS, encoding="utf-8")
         (work / "cover.html").write_text(
