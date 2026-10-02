@@ -32,8 +32,6 @@ This is the companion repository for the book *Data Voyage*. The book teaches pr
 
 The code is MIT-licensed and the chapter text can be read here on GitHub, because a book about shipping real systems should let you check that every number reproduces. If the book helps you, buying the ebook is how you support the work.
 
-Readers in India: [India price](https://leanpub.com/datavoyage/c/INDIA).
-
 ---
 
 **Contents:** [Get the book](#get-the-book) · [Quick start](#quick-start) · [How to read along](#how-to-read-along) · [What you will build](#what-you-will-build) · [Repository layout](#whats-in-this-repository) · [Quality and verification](#quality-and-verification) · [The dataset](#the-dataset) · [Building the ebook](#building-the-ebook) · [Troubleshooting](#troubleshooting) · [Edition and scope](#edition-and-scope) · [About the author](#about-the-author) · [Cite this book](#cite-this-book) · [License](#license) · [Contributing and support](#contributing-and-support) · [Acknowledgements](#acknowledgements)
