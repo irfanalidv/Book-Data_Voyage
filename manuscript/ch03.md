@@ -58,7 +58,7 @@ Chapter 3 sits **between** tooling and ingestion on purpose:
 |-----------|-------|---------------------|
 | Mean | ₹16.2L | "If we literally average everyone in this sample, we get about sixteen lakhs." |
 | Median | ₹14.3L | "Half the sample is at or below fourteen lakhs." |
-| Mean / median ratio | ~1.14× | "The mean is pulled above the median — expect right skew." |
+| Mean / median ratio | ~1.14× | "The mean is pulled above the median: expect right skew." |
 
 When the recruiter says "average ₹35L," ask: **mean or median?** **which companies?** **which seniority?** Chapter 1 already warned that "AI Engineer" at a service firm and at a product company are different populations; mixing them in one average is how numbers become propaganda.
 

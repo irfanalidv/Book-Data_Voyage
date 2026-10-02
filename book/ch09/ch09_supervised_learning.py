@@ -580,46 +580,49 @@ def plot_model_comparison(comparison: dict[str, dict], cfg: Config) -> Path:
     means = [comparison[n]["mean_f1"] for n in names]
     stds = [comparison[n]["std_f1"] for n in names]
     times = [comparison[n]["train_time"] for n in names]
+    ticks = [n.replace(" ", "\n", 1) for n in names]
 
-    fig, axes = plt.subplots(1, 2, figsize=(13, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(7.0, 3.3))
 
-    # F1 comparison
+    # F1 comparison: value printed inside each bar, error bar above it
     ax = axes[0]
     colors = ["#4CAF50" if m == max(means) else "#2196F3" for m in means]
-    bars = ax.bar(names, means, color=colors, edgecolor="white", alpha=0.85, width=0.55)
-    ax.errorbar(names, means, yerr=stds, fmt="none", color="black", capsize=5, linewidth=1.5)
+    bars = ax.bar(ticks, means, color=colors, edgecolor="white", alpha=0.85, width=0.55)
+    ax.errorbar(ticks, means, yerr=stds, fmt="none", color="black", capsize=4, linewidth=1.2)
     for bar, m in zip(bars, means):
         ax.text(
             bar.get_x() + bar.get_width() / 2,
-            bar.get_height() + 0.003,
+            0.53,
             f"{m:.3f}",
             ha="center",
-            fontsize=10,
+            fontsize=8.5,
             fontweight="bold",
+            color="white",
         )
-    ax.set_ylabel("F1 Score (macro, 5-fold CV)", fontsize=11)
-    ax.set_title("Model Comparison — Cross-Validated F1", fontsize=12, fontweight="bold")
+    ax.set_ylabel("Macro F1 (5-fold CV)", fontsize=9)
+    ax.set_title("Cross-validated F1 (± 1 std)", fontsize=9.5, fontweight="bold")
     ax.set_ylim(0.5, 1.0)
-    ax.tick_params(axis="x", rotation=15)
+    ax.tick_params(axis="x", labelsize=8)
 
     # Training time
     ax2 = axes[1]
     colors2 = ["#FF9800" if t == min(times) else "#607D8B" for t in times]
-    bars2 = ax2.bar(names, times, color=colors2, edgecolor="white", alpha=0.85, width=0.55)
+    bars2 = ax2.bar(ticks, times, color=colors2, edgecolor="white", alpha=0.85, width=0.55)
     for bar, t in zip(bars2, times):
         ax2.text(
             bar.get_x() + bar.get_width() / 2,
-            bar.get_height() + 0.2,
+            bar.get_height() + max(times) * 0.03,
             f"{t:.1f}s",
             ha="center",
-            fontsize=10,
+            fontsize=8.5,
             fontweight="bold",
         )
-    ax2.set_ylabel("Training Time (seconds)", fontsize=11)
-    ax2.set_title("Training Time per Model", fontsize=12, fontweight="bold")
-    ax2.tick_params(axis="x", rotation=15)
+    ax2.set_ylabel("Training time (seconds)", fontsize=9)
+    ax2.set_title("Training time per model", fontsize=9.5, fontweight="bold")
+    ax2.set_ylim(0, max(times) * 1.25)
+    ax2.tick_params(axis="x", labelsize=8)
 
-    plt.suptitle("TalentLens Role Classifier — Model Selection", fontsize=14, fontweight="bold")
+    plt.suptitle("Role classifier: model selection", fontsize=10.5, fontweight="bold")
     plt.tight_layout()
     out = cfg.figures_dir / "ch09_model_comparison.png"
     plt.savefig(out, dpi=SAVE_DPI, bbox_inches="tight")
@@ -636,20 +639,24 @@ def plot_confusion_matrix(eval_results: dict, cfg: Config) -> Path:
     # Normalise by row (recall per class)
     cm_norm = cm.astype(float) / cm.sum(axis=1, keepdims=True)
 
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(7.0, 3.6))
 
-    for ax, data, title, fmt in [
-        (axes[0], cm, "Confusion Matrix — Raw Counts", "d"),
-        (axes[1], cm_norm, "Confusion Matrix — Row-Normalised (Recall)", ".2f"),
-    ]:
-        im = ax.imshow(data, cmap="Blues", vmin=0, vmax=data.max())
+    for n, (ax, data, title, fmt) in enumerate(
+        [
+            (axes[0], cm, "Counts", "d"),
+            (axes[1], cm_norm, "Row-normalised (recall)", ".2f"),
+        ]
+    ):
+        ax.imshow(data, cmap="Blues", vmin=0, vmax=data.max())
         ax.set_xticks(range(len(labels)))
         ax.set_yticks(range(len(labels)))
-        ax.set_xticklabels([lbl.replace(" ", "\n") for lbl in labels], fontsize=9)
-        ax.set_yticklabels(labels, fontsize=9)
-        ax.set_ylabel("True Label", fontsize=11)
-        ax.set_xlabel("Predicted Label", fontsize=11)
-        ax.set_title(title, fontsize=11, fontweight="bold")
+        ax.set_xticklabels(labels, fontsize=7.5, rotation=40, ha="right")
+        ax.set_yticklabels(labels if n == 0 else [], fontsize=7.5)
+        ax.set_xlabel("Predicted", fontsize=8.5)
+        if n == 0:
+            ax.set_ylabel("True", fontsize=8.5)
+        ax.set_title(title, fontsize=9.5, fontweight="bold")
+        ax.grid(False)
         for i in range(len(labels)):
             for j in range(len(labels)):
                 val = data[i, j]
@@ -660,15 +667,14 @@ def plot_confusion_matrix(eval_results: dict, cfg: Config) -> Path:
                     f"{val:{fmt}}",
                     ha="center",
                     va="center",
-                    fontsize=9,
+                    fontsize=7.5,
                     color=text_color,
                     fontweight="bold",
                 )
-        plt.colorbar(im, ax=ax, shrink=0.8)
 
     plt.suptitle(
-        f"TalentLens Role Classifier — Overall F1: {eval_results['macro_f1']:.3f}",
-        fontsize=13,
+        f"Role classifier on the test set: macro F1 {eval_results['macro_f1']:.3f}",
+        fontsize=10.5,
         fontweight="bold",
     )
     plt.tight_layout()
@@ -691,9 +697,12 @@ def plot_feature_importance(pipeline: Pipeline, cfg: Config, top_n: int = 15) ->
     classes = pipeline.classes_
 
     n_classes = len(classes)
-    fig, axes = plt.subplots(1, n_classes, figsize=(4 * n_classes, 6))
-    if n_classes == 1:
-        axes = [axes]
+    ncols = min(3, n_classes)
+    nrows = -(-n_classes // ncols)  # ceiling division
+    fig, axes_grid = plt.subplots(nrows, ncols, figsize=(7.0, 3.2 * nrows), squeeze=False)
+    axes = list(axes_grid.flat)
+    for spare in axes[n_classes:]:
+        spare.axis("off")
 
     colors = ["#4CAF50", "#2196F3", "#FF9800", "#9C27B0", "#F44336"]
 
@@ -710,7 +719,7 @@ def plot_feature_importance(pipeline: Pipeline, cfg: Config, top_n: int = 15) ->
         ax.set_xlabel("Coefficient", fontsize=9)
 
     plt.suptitle(
-        "Top Features by Role — Logistic Regression Coefficients", fontsize=12, fontweight="bold"
+        "Top features by role: logistic regression coefficients", fontsize=11, fontweight="bold"
     )
     plt.tight_layout()
     out = cfg.figures_dir / "ch09_feature_importance.png"

@@ -159,7 +159,7 @@ def plot_role_distribution(df: pd.DataFrame, output_path: Path) -> None:
     """
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(7.0, 4.2))
     bars = ax.bar(df["role"], df["count"], color="#4a7cb8", edgecolor="#2d4f7d")
 
     ax.set_title(
@@ -185,7 +185,7 @@ def plot_role_distribution(df: pd.DataFrame, output_path: Path) -> None:
         )
 
     plt.tight_layout()
-    plt.savefig(output_path, dpi=150, bbox_inches="tight")
+    plt.savefig(output_path, dpi=300, bbox_inches="tight")
     plt.close(fig)
 
 

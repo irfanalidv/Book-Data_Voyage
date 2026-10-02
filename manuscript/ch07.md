@@ -178,7 +178,7 @@ SALARY DISTRIBUTION
 
 The first line matters most: 113 of 576 postings hid their salary, so every number below describes the 463 that disclosed. If hiding pay is not random (Chapter 8 will check), these numbers describe the employers who publish salaries, not the whole market.
 
-The mean (₹20.8L) sits only 8% above the median (₹19.3L), yet skew is 1.17. Both are true at once: most offers cluster between ₹13L and ₹27L, and a thin tail of lead-level roles reaches past ₹70L. A thin tail raises the skew statistic without moving the mean much. **If you're answering "what does a typical posting in this corpus pay," the answer is ₹19.3L, and the honest sentence adds "with a long tail of senior roles above ₹40L."**
+The mean (₹20.8L) sits only 8% above the median (₹19.3L), yet skew is 1.17. Both are true at once: most offers cluster between ₹13L and ₹27L, and a thin tail of lead-level roles reaches past ₹70L. A thin tail raises the skew statistic without moving the mean much. **If you're answering "what does a typical posting in this corpus pay," the answer is ₹19.3L, and the complete sentence adds "with a long tail of senior roles above ₹40L."**
 
 The standard deviation (₹10.6L) is more than half the median, a wide distribution. Salary here is not one market but several: junior to lead, analyst to AI engineer.
 

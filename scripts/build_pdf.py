@@ -15,12 +15,15 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import shutil
 import subprocess
 import tempfile
 from pathlib import Path
 
 from build_epub import METADATA, ROOT, combined_markdown, shrink_images
+
+METADATA_TITLE = "Data Voyage"  # the title-page entry Chrome adds before the first heading
 
 DIST = ROOT / "dist"
 CHROME_DEFAULT = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
@@ -70,7 +73,8 @@ a { color: #1a5fb4; text-decoration: none; }
 blockquote { margin: 1em 0; padding: 0.5em 0.9em; border-left: 3px solid #e2262c; background: #f7f7f7; }
 blockquote p { text-align: left; }
 
-code { font-family: Menlo, Georgia, monospace; font-size: 8.6pt; background: #f2f2f2; padding: 0.05em 0.25em; border-radius: 2px; }
+code { font-family: Menlo, Georgia, monospace; font-size: 8.6pt; background: #f2f2f2; padding: 0.05em 0.25em; border-radius: 2px;
+       hyphens: none; overflow-wrap: anywhere; }  /* never hyphenate code; break long paths instead */
 pre { font-family: Menlo, Georgia, monospace; font-size: 8pt; line-height: 1.4; background: #f6f6f6;
       border: 1px solid #e3e3e3; border-radius: 3px; padding: 0.6em 0.75em;
       white-space: pre-wrap; overflow-wrap: anywhere; break-inside: auto; }
@@ -114,6 +118,44 @@ document.addEventListener("DOMContentLoaded", () => {
 """
 
 
+def outline_titles(markdown: str) -> list[tuple[int, str]]:
+    """(level, plain title) for each heading in the book, in document order."""
+    titles, in_code = [], False
+    for line in markdown.splitlines():
+        if line.startswith("```"):
+            in_code = not in_code
+            continue
+        m = None if in_code else re.match(r"^(#{1,6}) (.+?)(?: \{[^}]*\})?$", line)
+        if m:
+            titles.append((len(m.group(1)), m.group(2).replace("`", "")))
+    return titles
+
+
+def fix_outline(pdf: Path, markdown: str) -> None:
+    """Replace Chrome's bookmark titles with the headings from the source.
+
+    Chrome builds the outline from the rendered text, so a heading that wraps
+    loses the space at the wrap ("ScienceLandscape") and a heading inside a
+    keep-with-next wrapper can appear twice. Levels and order are Chrome's;
+    only the titles change, and only when the two lists line up exactly.
+    """
+    try:
+        import pymupdf
+    except ImportError:
+        print("pymupdf not installed: PDF bookmarks keep Chrome's titles (make install-dev)")
+        return
+    doc = pymupdf.open(pdf)
+    toc = doc.get_toc(simple=False)
+    source = [(1, METADATA_TITLE)] + outline_titles(markdown)
+    if [lvl for lvl, *_ in toc] != [lvl for lvl, _ in source]:
+        print("PDF outline does not match the headings; bookmarks left unchanged")
+        return
+    for entry, (_, title) in zip(toc, source):
+        entry[1] = title
+    doc.set_toc(toc)
+    doc.saveIncr()
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--cover", type=Path, default=ROOT / "assets" / "cover-1600x2400.jpg")
@@ -128,9 +170,9 @@ def main() -> None:
 
     with tempfile.TemporaryDirectory() as tmp:
         work = Path(tmp)
-        # 1200 px across a 5.5 in text block is ~220 dpi: sharp on screen, and
+        # 1000 px across a 5.5 in text block is ~180 dpi: sharp on screen, and
         # keeps the PDF under the 10 MB many storefront uploaders accept.
-        shrink_images(ROOT / "manuscript" / "images", work / "images", max_width=1200)
+        shrink_images(ROOT / "manuscript" / "images", work / "images", max_width=1000)
         shutil.copy(args.cover, work / "cover.jpg")
         (work / "style.css").write_text(CSS, encoding="utf-8")
         (work / "keep.html").write_text(KEEP_WITH_NEXT_JS, encoding="utf-8")
@@ -176,6 +218,7 @@ def main() -> None:
             check=True,
             capture_output=True,
         )
+    fix_outline(args.out, combined_markdown())
     size_mb = args.out.stat().st_size / 1e6
     print(f"Wrote {args.out.relative_to(ROOT)} ({size_mb:.1f} MB)")
 

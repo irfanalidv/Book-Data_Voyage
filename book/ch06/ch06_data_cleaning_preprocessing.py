@@ -372,7 +372,7 @@ def plot_field_coverage(df_before: pd.DataFrame, df_after: pd.DataFrame, cfg: Co
             for c in key_cols
             if c in df.columns
         }
-        fig, ax = plt.subplots(figsize=(9, 5))
+        fig, ax = plt.subplots(figsize=(7.0, 3.9))
         bars = ax.barh(
             list(cov.keys()), list(cov.values()), color=color, alpha=0.8, edgecolor="white"
         )
@@ -397,7 +397,7 @@ def plot_field_coverage(df_before: pd.DataFrame, df_after: pd.DataFrame, cfg: Co
 
 def plot_salary_distribution(df: pd.DataFrame, cfg: Config) -> None:
     salary = df["salary_min"].dropna() / 100_000
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(7.0, 3.5))
     ax.hist(salary, bins=35, color="#2196F3", edgecolor="white", alpha=0.85)
     for lakh, lbl in [(8, "8L"), (15, "15L"), (30, "30L")]:
         ax.axvline(lakh, color="#F44336", linestyle="--", linewidth=1.5, alpha=0.7)

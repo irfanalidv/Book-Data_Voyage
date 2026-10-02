@@ -59,7 +59,7 @@ Example null for Test 1: *remote median salary ≤ on-site median salary* (one-s
 | Field | Meaning |
 |-------|---------|
 | `effect_median_diff_lpa` | Remote median minus on-site median, in ₹ lakhs |
-| `n_remote`, `n_onsite` | Sample sizes — small n → unstable p-values |
+| `n_remote`, `n_onsite` | Sample sizes: small n → unstable p-values |
 | `p_value` | Probability of seeing this gap if null were true |
 
 **Test 1b (confounding centrepiece):** `remote_vs_onsite_by_seniority` repeats the comparison inside each seniority level (`junior`, `mid`, `senior`, `lead`), read from the job title by `title_seniority()`. If the overall gap vanishes inside the levels, seniority was a confounder: remote was a proxy for senior roles, not a pay premium by itself.
@@ -83,7 +83,7 @@ Example null for Test 1: *remote median salary ≤ on-site median salary* (one-s
 | Misreading | Reality |
 |------------|---------|
 | "p = 0.04 means 4% chance the null is true" | p is P(data this extreme \| null true), not P(null true) |
-| "p > 0.05 proves no effect" | Absence of evidence is not evidence of absence — check power and n |
+| "p > 0.05 proves no effect" | Absence of evidence is not evidence of absence; check power and n |
 | "significant = important" | A ₹0.5L gap can be significant with huge n and meaningless in hiring terms |
 | "one failed test kills the story" | Pre-register primary test; treat others as sensitivity analysis |
 

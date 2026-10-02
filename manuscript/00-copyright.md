@@ -14,7 +14,7 @@ No part of the text of this book may be reproduced, stored, or transmitted in an
 
 The companion source code at https://github.com/irfanalidv/Book-Data_Voyage is released under the MIT License. The code listings printed in this book are covered by the same license, so you may copy them into your own projects.
 
-Version 2.2, October 2026.
+Version 2.2.1, October 2026.
 
 Cover photograph by Irfan Ali: a hill town in the Darjeeling hills at night, seen through the fog.
 

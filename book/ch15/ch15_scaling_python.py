@@ -183,27 +183,26 @@ def plot_benchmark_comparison(benchmark_data: dict[int, dict], cfg: Config) -> P
     operations = list(next(iter(benchmark_data.values())).keys())
     colors = ["#2196F3", "#4CAF50", "#FF9800", "#9C27B0", "#F44336", "#009688"]
 
-    fig, ax = plt.subplots(figsize=(11, 6))
+    fig, ax = plt.subplots(figsize=(7.0, 3.8))
     for op, color in zip(operations, colors):
         times_ms = [benchmark_data[s][op] * 1000 for s in sizes]
         ax.plot(sizes, times_ms, "o-", label=op, color=color, linewidth=2, markersize=7)
 
     ax.set_xscale("log")
     ax.set_yscale("log")
-    ax.set_xlabel("Dataset size (rows, log scale)", fontsize=12)
-    ax.set_ylabel("Time (ms, log scale)", fontsize=12)
-    ax.set_title("Pandas Operation Scaling — Time vs Dataset Size", fontsize=13, fontweight="bold")
-    ax.legend(fontsize=11)
-    ax.annotate(
-        "Linear scaling: 10x rows = 10x time\n"
-        "When this becomes painful, consider polars or dask",
-        xy=(0.02, 0.97),
-        xycoords="axes fraction",
-        va="top",
-        fontsize=9,
+    ax.set_xlabel("Dataset size (rows, log scale)", fontsize=9)
+    ax.set_ylabel("Time (ms, log scale)", fontsize=9)
+    ax.set_title("pandas operations: time against dataset size", fontsize=10.5, fontweight="bold")
+    ax.legend(fontsize=7.5, loc="upper left", bbox_to_anchor=(1.01, 1.0), frameon=False)
+    fig.text(
+        0.01,
+        0.01,
+        "Linear scaling: 10x the rows takes 10x the time. "
+        "When that becomes painful, consider polars or DuckDB.",
+        fontsize=7,
         color="gray",
     )
-    plt.tight_layout()
+    plt.tight_layout(rect=(0, 0.04, 1, 1))
     out = cfg.figures_dir / "ch15_benchmark_comparison.png"
     plt.savefig(out, dpi=SAVE_DPI, bbox_inches="tight")
     plt.close()
@@ -218,7 +217,7 @@ def plot_memory_usage(
     cfg.figures_dir.mkdir(parents=True, exist_ok=True)
     x = np.arange(len(sizes))
     w = 0.35
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(7.0, 3.5))
     ax.bar(
         x - w / 2,
         orig_mbs,

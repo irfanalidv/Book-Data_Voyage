@@ -910,7 +910,7 @@ def plot_collection_funnel(results: dict, cfg: Config) -> Path:
     colors = ["#2196F3", "#4CAF50", "#FF9800"]
     subtitle = f"({dupes:,} duplicates removed)"
 
-    fig, ax = plt.subplots(figsize=(9, 5))
+    fig, ax = plt.subplots(figsize=(7.0, 3.9))
     bars = ax.bar(stages, values, color=colors, edgecolor="white", width=0.5, alpha=0.85)
     ax.set_title(f"TalentLens Data Collection Funnel\n{subtitle}", fontsize=13, fontweight="bold")
     for bar, val in zip(bars, values):
@@ -1003,31 +1003,36 @@ def plot_field_coverage(cfg: Config, raw_path: Path | None = None) -> Path:
         "#4CAF50" if v >= 90 else "#FF9800" if v >= 60 else "#F44336" for v in coverage.values
     ]
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(6.4, 4.6))
     bars = ax.barh(
         range(len(coverage)), coverage.values, color=colors, edgecolor="white", alpha=0.85
     )
     ax.set_yticks(range(len(coverage)))
-    ax.set_yticklabels(coverage.index, fontsize=10)
-    ax.set_xlabel("% of rows with non-null value", fontsize=12)
-    ax.set_title("Field Coverage — TalentLens Raw Dataset", fontsize=13, fontweight="bold")
+    ax.set_yticklabels(coverage.index, fontsize=8.5)
+    ax.set_xlabel("% of rows with non-null value", fontsize=9.5)
+    ax.set_title("Field coverage in the raw TalentLens dataset", fontsize=10.5, fontweight="bold")
 
     for bar, val in zip(bars, coverage.values):
         ax.text(
-            val + 0.5, bar.get_y() + bar.get_height() / 2, f"{val:.0f}%", va="center", fontsize=9
+            val + 0.5, bar.get_y() + bar.get_height() / 2, f"{val:.0f}%", va="center", fontsize=7.5
         )
 
     ax.axvline(90, color="#4CAF50", linestyle="--", linewidth=1.5, alpha=0.6)
     ax.axvline(60, color="#FF9800", linestyle="--", linewidth=1.5, alpha=0.6)
-    ax.text(91, -0.5, "90%\ntarget", fontsize=8, color="#4CAF50")
-
     legend_elements = [
-        mpatches.Patch(facecolor="#4CAF50", alpha=0.7, label="≥90% — good coverage"),
-        mpatches.Patch(facecolor="#FF9800", alpha=0.7, label="60–89% — imputation needed"),
-        mpatches.Patch(facecolor="#F44336", alpha=0.7, label="<60% — sparse field"),
+        mpatches.Patch(facecolor="#4CAF50", alpha=0.7, label="≥90%: good coverage"),
+        mpatches.Patch(facecolor="#FF9800", alpha=0.7, label="60–89%: imputation needed"),
+        mpatches.Patch(facecolor="#F44336", alpha=0.7, label="<60%: sparse field"),
     ]
-    ax.legend(handles=legend_elements, loc="lower right", fontsize=9)
-    ax.set_xlim(0, 108)
+    ax.legend(
+        handles=legend_elements,
+        loc="upper center",
+        bbox_to_anchor=(0.45, -0.13),
+        ncol=3,
+        fontsize=7.5,
+        frameon=False,
+    )
+    ax.set_xlim(0, 110)
     plt.tight_layout()
     out = cfg.figures_dir / "ch05_field_coverage.png"
     plt.savefig(out, dpi=SAVE_DPI, bbox_inches="tight")

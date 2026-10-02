@@ -9,7 +9,9 @@ This script covers essential time series analysis concepts and techniques using 
 import warnings
 from pathlib import Path
 
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import numpy as np
 import pandas as pd
 import requests
@@ -256,7 +258,7 @@ def demonstrate_ts_components():
     # 3. Visualization
     print("3. VISUALIZATION:")
     print("-" * 20)
-    fig, axes = plt.subplots(4, 1, figsize=(14, 11), sharex=True)
+    fig, axes = plt.subplots(4, 1, figsize=(7.0, 5.5), sharex=True)
     panels = [
         (series, "Observed (daily new cases)", "#2196F3"),
         (decomposition.trend, "Trend (7-day centred moving average)", "#F44336"),
@@ -276,16 +278,20 @@ def demonstrate_ts_components():
     # Zoom on eight weeks so the weekly pattern is visible to the eye.
     window = series.iloc[-56:]
     seasonal_window = decomposition.seasonal.iloc[-56:]
-    fig, axes = plt.subplots(2, 1, figsize=(12, 7), sharex=True)
+    fig, axes = plt.subplots(2, 1, figsize=(7.0, 4.1), sharex=True)
     axes[0].plot(window.index, window.values, marker="o", ms=3, lw=1, color="#2196F3")
-    axes[0].set_title("Last eight weeks — observed", fontsize=11, fontweight="bold")
+    axes[0].set_title("Last eight weeks: observed", fontsize=9.5, fontweight="bold")
     axes[1].bar(seasonal_window.index, seasonal_window.values, color="#4CAF50", width=0.8)
     axes[1].axhline(0, color="black", lw=0.8)
     axes[1].set_title(
-        "Weekly seasonal effect (same seven values repeating)", fontsize=11, fontweight="bold"
+        "Weekly seasonal effect (same seven values repeating)", fontsize=9.5, fontweight="bold"
     )
     for ax in axes:
         ax.grid(True, alpha=0.3)
+        ax.tick_params(labelsize=8)
+        ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"{v / 1000:,.0f}k"))
+    axes[1].xaxis.set_major_locator(mdates.WeekdayLocator(byweekday=mdates.MO, interval=2))
+    axes[1].xaxis.set_major_formatter(mdates.DateFormatter("%d %b"))
     plt.tight_layout()
     plt.savefig(_FIGURES_DIR / "seasonal_decomposition.png", dpi=300, bbox_inches="tight")
     plt.close()
@@ -453,7 +459,7 @@ def demonstrate_stationarity():
     print("5. VISUALIZATION:")
     print("-" * 20)
 
-    plt.figure(figsize=(15, 10))
+    plt.figure(figsize=(7.0, 4.7))
 
     # Original series
     plt.subplot(3, 2, 1)
@@ -639,7 +645,7 @@ def demonstrate_forecasting():
         print("6. VISUALIZATION:")
         print("-" * 20)
 
-        plt.figure(figsize=(15, 8))
+        plt.figure(figsize=(7.0, 3.7))
 
         # Plot training data
         plt.plot(train_data.index, train_data["sales"], label="Training Data", linewidth=2)
@@ -669,12 +675,14 @@ def demonstrate_forecasting():
         )
         plt.axhline(y=naive_forecast, color="orange", linestyle=":", label="Naive Forecast")
 
-        plt.title("Time Series Forecasting Comparison")
-        plt.xlabel("Date")
-        plt.ylabel("Sales")
-        plt.legend()
+        plt.title("Forecasts against the held-out 20%", fontsize=10.5, fontweight="bold")
+        plt.xlabel("Date", fontsize=9)
+        plt.ylabel("Sales", fontsize=9)
+        plt.legend(fontsize=7.5, loc="upper left", ncol=2, frameon=False)
+        plt.ylim(top=plt.ylim()[1] + 25)
         plt.grid(True, alpha=0.3)
-        plt.xticks(rotation=45)
+        plt.xticks(fontsize=8)
+        plt.yticks(fontsize=8)
 
         plt.tight_layout()
         plt.savefig(_FIGURES_DIR / "time_series_forecasting.png", dpi=300, bbox_inches="tight")
@@ -682,28 +690,29 @@ def demonstrate_forecasting():
         plt.close()
 
         # Residual analysis
-        plt.figure(figsize=(15, 5))
+        plt.figure(figsize=(7.0, 2.6))
 
         residuals = test_data["sales"] - arima_forecast
 
         plt.subplot(1, 3, 1)
-        plt.plot(test_data.index, residuals)
-        plt.title("ARIMA Residuals")
-        plt.ylabel("Residuals")
+        plt.plot(range(1, len(residuals) + 1), residuals.values, marker="o", ms=3)
+        plt.title("ARIMA residuals", fontsize=9.5)
+        plt.xlabel("Month of test period", fontsize=8.5)
+        plt.ylabel("Residual", fontsize=8.5)
         plt.grid(True, alpha=0.3)
 
         plt.subplot(1, 3, 2)
-        plt.hist(residuals, bins=20, alpha=0.7, edgecolor="black")
-        plt.title("Residuals Distribution")
-        plt.xlabel("Residuals")
-        plt.ylabel("Frequency")
+        plt.hist(residuals, bins=8, alpha=0.7, edgecolor="black")
+        plt.title("Distribution", fontsize=9.5)
+        plt.xlabel("Residual", fontsize=8.5)
+        plt.ylabel("Count", fontsize=8.5)
 
         plt.subplot(1, 3, 3)
         plt.scatter(arima_forecast, residuals, alpha=0.6)
         plt.axhline(y=0, color="red", linestyle="--")
-        plt.title("Residuals vs Forecasts")
-        plt.xlabel("Forecasts")
-        plt.ylabel("Residuals")
+        plt.title("Residual vs forecast", fontsize=9.5)
+        plt.xlabel("Forecast", fontsize=8.5)
+        plt.ylabel("Residual", fontsize=8.5)
         plt.grid(True, alpha=0.3)
 
         plt.tight_layout()

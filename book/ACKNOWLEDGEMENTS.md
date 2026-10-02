@@ -14,7 +14,7 @@ The Adzuna API (Jobs by Adzuna) and RemoteOK's public API, and the datasets that
 
 ## The people who shaped this directly
 
-The clients of DataCortex IQ, particularly Sumit Pokhrel, whose real production requirements made the deployment chapters honest rather than hypothetical. CA Sadiq Shariff, for handling the compliance and corporate work that lets DataCortex exist as a real business and not a side project. The IISER Tirupati faculty who taught the foundations that made the harder material approachable.
+The clients of DataCortex IQ, particularly Sumit Pokhrel, whose real production requirements made the deployment chapters real rather than hypothetical. CA Sadiq Shariff, for handling the compliance and corporate work that lets DataCortex exist as a real business and not a side project. The IISER Tirupati faculty who taught the foundations that made the harder material approachable.
 
 Krishna Prasad Chitrapura, whose introduction opened doors I couldn't have opened on my own, and whose long view of the AI field shaped how I think about which problems are worth working on. Vijay Mulani, for the kind of warm-network conversations that turned this book from "something I might write someday" into something I actually finished.
 

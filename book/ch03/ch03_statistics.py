@@ -60,7 +60,7 @@ def interpret_log_transform(series: pd.Series) -> None:
 
 def save_histogram(series: pd.Series, path: Path) -> None:
     """Raw vs log-transformed histogram side by side."""
-    fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+    fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.8))
     mean_v, median_v = series.mean(), series.median()
     axes[0].hist(series, bins=40, color="#2E86AB", edgecolor="white")
     axes[0].axvline(mean_v, color="#E94F37", linestyle="--", label=f"mean ₹{mean_v:.1f}L")
@@ -73,7 +73,7 @@ def save_histogram(series: pd.Series, path: Path) -> None:
     axes[1].set_title("log1p(salary)")
     axes[1].set_xlabel("log1p(INR LPA)")
     fig.tight_layout()
-    fig.savefig(path, dpi=120, bbox_inches="tight")
+    fig.savefig(path, dpi=300, bbox_inches="tight")
     plt.close(fig)
     logger.info("Wrote %s", path)
 
@@ -82,21 +82,22 @@ def save_boxplot(series: pd.Series, path: Path) -> None:
     """Box plot showing quartiles and outliers."""
     fig, ax = plt.subplots(figsize=(6, 4))
     ax.boxplot(series, vert=True, patch_artist=True)
+    ax.set_xticks([])
     ax.set_ylabel("Annual salary (INR LPA)")
-    ax.set_title("Salary distribution — quartiles & outliers")
+    ax.set_title("Salary distribution: quartiles and outliers")
     q1, med, q3 = series.quantile([0.25, 0.5, 0.75])
     ax.text(1.15, med, f"median ₹{med:.1f}L", va="center", fontsize=9)
     ax.text(1.15, q1, f"Q1 ₹{q1:.1f}L", va="center", fontsize=8)
     ax.text(1.15, q3, f"Q3 ₹{q3:.1f}L", va="center", fontsize=8)
     fig.tight_layout()
-    fig.savefig(path, dpi=120, bbox_inches="tight")
+    fig.savefig(path, dpi=300, bbox_inches="tight")
     plt.close(fig)
     logger.info("Wrote %s", path)
 
 
 def save_skew_demonstration(path: Path) -> None:
     """Symmetric vs right-skew with mean/median marked."""
-    fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+    fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.8))
     x = np.linspace(-3, 3, 200)
     sym = stats.norm.pdf(x, 0, 1)
     axes[0].plot(x, sym, color="#2E86AB")
@@ -114,7 +115,7 @@ def save_skew_demonstration(path: Path) -> None:
     axes[1].set_title("Right-skewed (typical salary)")
     axes[1].legend(fontsize=8)
     fig.tight_layout()
-    fig.savefig(path, dpi=120, bbox_inches="tight")
+    fig.savefig(path, dpi=300, bbox_inches="tight")
     plt.close(fig)
     logger.info("Wrote %s", path)
 

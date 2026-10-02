@@ -315,7 +315,7 @@ At the end of this chapter, your project should have:
 
 - Collect raw, clean later: irreplaceable originals before validation transforms
 - Per-source collectors with rate limits and schema normalisation at ingest
-- Field coverage as the honest preview of Chapter 6's missing-data work
+- Field coverage as a preview of Chapter 6's missing-data work
 
 Run:
 ```bash

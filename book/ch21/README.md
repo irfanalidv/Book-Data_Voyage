@@ -224,7 +224,7 @@ Three files (the Makefile and two GitHub Actions workflows) handle the full pipe
 
 # 3. Add your production URL (for health verification after deploy)
 # Name: TALENTLENS_PRODUCTION_URL
-# Value: https://talentlens-api.onrender.com
+# Value: https://<your-service>.onrender.com
 ```
 
 ---
@@ -235,17 +235,17 @@ Three files (the Makefile and two GitHub Actions workflows) handle the full pipe
 
 **`ch21_pipeline_architecture.png`**: Test, lint, docker, and deploy jobs and their `needs` edges. Broken `needs` wiring is how broken code still reaches production.
 
-![Pipeline timing: where minutes go per job](reports/figures/ch21_pipeline_timing.png)
+![Pipeline timing: one measured run, job by job](reports/figures/ch21_pipeline_timing.png)
 
-**`ch21_pipeline_timing.png`**: Wall-clock per stage on a typical run. Docker build dominates until layer caching kicks in, the same lesson as Chapter 20's COPY order, applied in CI.
+**`ch21_pipeline_timing.png`**: Wall-clock per job in one measured run of this repository's pipeline on a push to `main`. The two test jobs run in parallel and take about five minutes each, most of it installing the ML stack; lint finishes in seconds. With the layer cache warm, the Docker build and its probes take about half a minute. The first build after a dependency change takes longer, the same lesson as Chapter 20's COPY order, applied in CI.
 
 **A green pipeline run has this shape** (test counts are this repository's suite; timings are typical, and yours will vary with runner load and cache hits):
 
 ```
-✅ Test (3.11)    ~5 min    420 passed, 5 skipped
-✅ Test (3.12)    ~5 min    420 passed, 5 skipped
+✅ Test (3.11)    ~5 min    427 passed, 5 skipped
+✅ Test (3.12)    ~5 min    427 passed, 5 skipped
 ✅ Code Quality   <1 min    ruff: no issues, black: advisory
-✅ Docker Build   ~2 min    image: 462MB, health + search + classify probes passed
+✅ Docker Build   <1 min    image: 462MB, health + search + classify probes passed
 ✅ Deploy         <1 min    production health: ok
 ```
 

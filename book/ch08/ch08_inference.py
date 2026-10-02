@@ -199,7 +199,7 @@ def simulate_null_p_values(n_sims: int = 1000, n_per_group: int = 120) -> np.nda
 
 def plot_seniority_controlled_boxplots(df: pd.DataFrame, path: Path) -> None:
     """One panel per seniority level: remote vs on-site within each."""
-    fig, axes = plt.subplots(1, len(SENIORITY_BINS), figsize=(14, 4), sharey=True)
+    fig, axes = plt.subplots(1, len(SENIORITY_BINS), figsize=(7.0, 2.9), sharey=True)
     for ax, band in zip(axes, SENIORITY_BINS, strict=True):
         sub = df[(df["seniority"] == band) & df["salary_min"].notna()].copy()
         sub["salary_lpa"] = sub["salary_min"] / 100_000
@@ -215,7 +215,7 @@ def plot_seniority_controlled_boxplots(df: pd.DataFrame, path: Path) -> None:
     )
     fig.tight_layout()
     path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(path, dpi=120, bbox_inches="tight")
+    fig.savefig(path, dpi=300, bbox_inches="tight")
     plt.close(fig)
     logger.info("Wrote %s", path)
 
@@ -230,7 +230,7 @@ def plot_p_value_null_distribution(pvals: np.ndarray, path: Path) -> None:
     ax.legend(fontsize=8)
     fig.tight_layout()
     path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(path, dpi=120, bbox_inches="tight")
+    fig.savefig(path, dpi=300, bbox_inches="tight")
     plt.close(fig)
     logger.info("Wrote %s", path)
 

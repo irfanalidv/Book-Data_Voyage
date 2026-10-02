@@ -4,6 +4,48 @@ All notable changes to *Data Voyage* and its companion code are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com), and versions
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2026-10-02
+
+A quality pass over the complete edition: figures, typesetting, and accuracy.
+
+### Added
+
+- `make sample` builds the free Leanpub sample (front matter, contents, Chapters 1
+  and 2, and a closing page that links to the full book).
+
+### Fixed
+
+- Chapter 24's remote-premium chart labelled each box with the other's median
+  (seaborn ordered the boxes differently from the labels). The order is now
+  fixed, so "Remote ₹21.8L" and "On-site ₹18.9L" sit on the right boxes.
+- Chapter 22's package diagram showed names that do not exist
+  (`RoleClassifier`, `semantic_search()`, `parse_cv()`, `REPO_ROOT`). It is
+  redrawn from the real public API, including `app.py`, and the text's
+  `RoleClassifier` example now uses `predict_job_role`.
+- Chapter 21's timing chart used invented durations. It now plots a measured
+  run of this repository's pipeline (GitHub Actions run 36943859188), and the
+  caption no longer contradicts the paragraph below it.
+- Chapter 7's salary chart included imputed salaries while the text quoted
+  disclosed ones; both now use the 463 disclosed salaries, and the role box
+  plot includes the Data Analyst box the caption describes.
+- Chapter 23's comparison table scored stack complexity differently from the
+  code; the subjective row is gone. The second figure was a radar of
+  unverifiable metrics described as a lessons matrix; it is now a real matrix
+  of the six patterns against all four case studies, including StackSift.
+  The chapter now hands off to Chapter 24.
+- About 25 charts were drawn on 10-15 inch canvases and printed at 4-5 pt.
+  They are redrawn near print width so labels print at 7-9 pt, with overlaps
+  removed; low-resolution (120-150 dpi) saves are now 300 dpi.
+- PDF: code is never hyphenated at a line break (`analy-se_remote_premium()`
+  read as code), and long paths break instead of stretching word spacing.
+- Prose: em dashes in running text and tables, and self-describing "honest"
+  phrasing, are reduced to plain punctuation and wording.
+- PDF bookmarks: titles of headings that wrap lost a space ("Data ScienceLandscape"),
+  and many section titles appeared twice. `make pdf` now rewrites the outline from
+  the source headings (PyMuPDF, added to the dev requirements).
+- Chapter 21's setup instructions used a real-looking Render URL that is not
+  deployed; it is now a placeholder.
+
 ## [2.2.0] - 2026-10-02
 
 The complete edition.

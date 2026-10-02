@@ -85,7 +85,7 @@ def run_threshold_sweep(eval_rows: list[dict]) -> list[tuple[float, float, float
 
 def plot_threshold_sweep(sweep: list[tuple[float, float, float, float]]) -> Path:
     _FIGURES_DIR.mkdir(parents=True, exist_ok=True)
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(7.0, 4.4))
     taus = [s[0] for s in sweep]
     ax.plot(taus, [s[1] for s in sweep], "o-", label="Precision")
     ax.plot(taus, [s[2] for s in sweep], "s-", label="Recall")

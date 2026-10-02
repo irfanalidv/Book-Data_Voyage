@@ -24,10 +24,10 @@ If we jumped straight to Chapter 5 without Chapter 4, you would copy the first S
 
 | Choice | TalentLens stance |
 |--------|-------------------|
-| Adzuna API | Allowed — registered key, JSON, India endpoint |
-| RemoteOK API | Allowed — public JSON, remote tech roles |
-| GitHub Jobs archive (Kaggle) | Allowed — static CSV, historical breadth |
-| LinkedIn / Naukri / Indeed scraping | **Not in scope** — see below |
+| Adzuna API | Allowed: registered key, JSON, India endpoint |
+| RemoteOK API | Allowed: public JSON, remote tech roles |
+| GitHub Jobs archive (Kaggle) | Allowed: static CSV, historical breadth |
+| LinkedIn / Naukri / Indeed scraping | **Not in scope** (see below) |
 
 **What Chapters 5 and 6 will show on real pulls:**
 
@@ -51,7 +51,7 @@ Chapter 4 prints this table from `source_comparison_table()`. Chapter 5 implemen
 |--------|------|--------|------------|------------|
 | **Adzuna API** | `ADZUNA_APP_ID` + `ADZUNA_API_KEY` (free tier) | JSON | ~250 calls/day (free tier) | Current Indian + global postings; salary fields when employer supplied them |
 | **RemoteOK API** | None | JSON | Be polite; no published hard cap | Live remote tech roles; fast confidence check without keys |
-| **GitHub Jobs archive (Kaggle)** | Kaggle account for download | CSV | N/A (static file) | Historical postings (GitHub Jobs closed in 2021); title variety for classifiers — check the dataset's licence before use |
+| **GitHub Jobs archive (Kaggle)** | Kaggle account for download | CSV | N/A (static file) | Historical postings (GitHub Jobs closed in 2021); title variety for classifiers; check the dataset's licence before use |
 
 **Adzuna in one sentence:** best free programmatic option for **current** India-market postings with structured fields. If you set keys in `.env`, `ch04_data_sources.py` can demo a three-title fetch; without keys, the script tells you to skip until Chapter 5.
 
@@ -94,7 +94,7 @@ The executable authority is Chapter 5's `SCHEMA` dict in `ch05_data_collection.p
 | `posted_date` | string | ISO date string when known |
 | `url` | string | Link back to original posting |
 
-**Required for validation:** `title`, `company`, `description` non-empty. Optional fields may be `None`, especially salary. Do not drop rows with missing pay; record nulls honestly for Chapter 6.
+**Required for validation:** `title`, `company`, `description` non-empty. Optional fields may be `None`, especially salary. Do not drop rows with missing pay; keep the nulls for Chapter 6.
 
 Example normalised RemoteOK-shaped record (from the chapter script):
 

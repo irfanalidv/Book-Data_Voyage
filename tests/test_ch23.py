@@ -14,68 +14,62 @@ sys.path.insert(0, str(_REPO_ROOT / "book" / "ch23"))
 
 from ch23_case_studies import (  # noqa: E402
     CASE_STUDIES,
-    RADAR_DIMENSIONS,
+    LAYER_OF,
+    LESSON_MATRIX,
+    PATTERNS,
     Config,
-    build_radar_scores,
     plot_lessons_matrix,
+    plot_system_architectures,
     write_case_studies_summary,
 )
 
+SYSTEMS = ["Reflecta", "Godam", "RAGNav", "StackSift"]
+
 
 class TestCaseStudyData:
-    def test_three_named_case_studies(self):
-        names = [s["name"] for s in CASE_STUDIES]
-        assert names == ["Reflecta", "Godam", "RAGNav"]
+    def test_four_named_case_studies(self):
+        assert [s["name"] for s in CASE_STUDIES] == SYSTEMS
 
-    def test_metrics_dict_has_expected_keys(self):
+    def test_every_study_has_lessons_and_incidents(self):
         for study in CASE_STUDIES:
-            metrics = study["metrics"]
-            assert set(metrics.keys()) == {
-                "stack_complexity",
-                "months_to_ship",
-                "lines_of_code",
-                "prod_incidents",
-            }
-            assert metrics["months_to_ship"] >= 1
+            assert study["stack"] and study["key_lessons"] and study["what_broke"]
+
+    def test_every_stack_item_has_a_layer(self):
+        for study in CASE_STUDIES:
+            for tech in study["stack"]:
+                assert tech in LAYER_OF, tech
 
 
-class TestCaseStudiesReport:
+class TestLessonsMatrix:
+    def test_matrix_covers_every_system_and_pattern(self):
+        assert list(LESSON_MATRIX) == SYSTEMS
+        assert len(PATTERNS) == 6
+        for levels in LESSON_MATRIX.values():
+            assert len(levels) == len(PATTERNS)
+            assert set(levels) <= {0, 1, 2}
+
+    def test_patterns_match_the_chapter_text(self):
+        text = (_REPO_ROOT / "book" / "ch23" / "README.md").read_text(encoding="utf-8")
+        assert "**The hard part is rarely the AI.**" in text
+        assert "**Observability before features.**" in text
+        assert "**Measure before you trust an improvement.**" in text
+
+    def test_first_three_patterns_appear_in_every_system(self):
+        for levels in LESSON_MATRIX.values():
+            assert all(level > 0 for level in levels[:3])
+
+
+class TestOutputs:
     def test_summary_markdown_lists_all_systems(self, tmp_path):
-        cfg = Config(
-            figures_dir=tmp_path / "figures",
-            reports_dir=tmp_path / "reports",
-        )
-        out = write_case_studies_summary(cfg)
-        text = out.read_text(encoding="utf-8")
-        assert "## Reflecta —" in text
-        assert "## Godam —" in text
-        assert "## RAGNav —" in text
+        cfg = Config(figures_dir=tmp_path / "figures", reports_dir=tmp_path / "reports")
+        text = write_case_studies_summary(cfg).read_text(encoding="utf-8")
+        for name in SYSTEMS:
+            assert f"## {name}:" in text
         assert "Key lessons:" in text
         assert "What broke (and why):" in text
 
-    def test_radar_scores_shape_and_plot_output(self, tmp_path):
-        """Radar data comes from CASE_STUDIES metrics; plot writes the PNG."""
-        scores = build_radar_scores()
-        system_names = ["Reflecta", "Godam", "RAGNav"]
-        assert list(scores.keys()) == system_names
-        assert len(RADAR_DIMENSIONS) == 5
-
-        dimension_sets = {name: set(RADAR_DIMENSIONS) for name in system_names}
-        assert dimension_sets["Reflecta"] == dimension_sets["Godam"] == dimension_sets["RAGNav"]
-
-        for name in system_names:
-            vals = scores[name]
-            assert len(vals) == 5
-            assert all(0.0 <= v <= 10.0 for v in vals)
-
-        assert scores["RAGNav"][-1] == 10.0
-        assert scores["Reflecta"][-1] == scores["Godam"][-1] == 0.0
-
-        cfg = Config(
-            figures_dir=tmp_path / "figures",
-            reports_dir=tmp_path / "reports",
-        )
-        out = plot_lessons_matrix(cfg)
-        assert out == cfg.figures_dir / "ch23_lessons_matrix.png"
-        assert out.exists()
-        assert out.stat().st_size > 1000
+    def test_figures_are_written(self, tmp_path):
+        cfg = Config(figures_dir=tmp_path / "figures", reports_dir=tmp_path / "reports")
+        for out in (plot_lessons_matrix(cfg), plot_system_architectures(cfg)):
+            assert out.parent == cfg.figures_dir
+            assert out.stat().st_size > 1000

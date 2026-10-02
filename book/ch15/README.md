@@ -70,7 +70,7 @@ The chapter's most useful output is a decision table for when to leave pandas be
 | 10M – 100M | Dask for parallelism on one machine. Same pandas API; runs across cores. |
 | 100M+ | Spark or DuckDB depending on query patterns. Spark for distributed; DuckDB if your data fits on one beefy machine. |
 
-A reader who follows this table will spend roughly 80% of their career inside the first row and 15% in the second. The chapter is honest about that: the time you'd spend learning Spark is almost always better spent learning to write fast pandas.
+A reader who follows this table will spend roughly 80% of their career inside the first row and 15% in the second. That is deliberate: the time you'd spend learning Spark is almost always better spent learning to write fast pandas.
 
 ## Quick wins before changing tools
 
@@ -116,7 +116,7 @@ If a job description says Spark, ask what they're processing. If the answer is "
 
 ## Interpreting the output
 
-- **`ch15_benchmark_comparison.png`:** time per operation as rows grow from 1,000 to 100,000. Every line grows roughly linearly; the most expensive is `str.contains` (about 42 ms at 100k; string work usually is), while `apply` climbs steeply and its vectorised equivalent stays near the floor. If `apply` dominates your own profile, the bottleneck is Python-loop semantics, not pandas itself.
+- **`ch15_benchmark_comparison.png`:** time per operation as rows grow from 1,000 to 100,000. Every line grows roughly linearly; the most expensive is `str.contains` (about 40 ms at 100k; string work usually is), while `apply` climbs steeply and its vectorised equivalent stays near the floor. If `apply` dominates your own profile, the bottleneck is Python-loop semantics, not pandas itself.
 
 ![Benchmark comparison across operations and row counts](reports/figures/ch15_benchmark_comparison.png)
 

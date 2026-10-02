@@ -62,7 +62,7 @@ Chapter 5's collectors target one row shape: `job_id`, `source`, `title`, `compa
 | Mechanism | Meaning | TalentLens signal |
 |-----------|---------|-------------------|
 | **MCAR** | Missingness unrelated to other columns | Rare for salary; would look like random nulls across companies |
-| **MAR** | Missing depends on observed fields (e.g. `source == adzuna`) | Common — impute within `source` (+ `role_label` when present) |
+| **MAR** | Missing depends on observed fields (e.g. `source == adzuna`) | Common; impute within `source` (+ `role_label` when present) |
 | **MNAR** | Missingness carries information (firms that hide pay) | `salary_disclosed=False` rows; keep the flag |
 
 `impute_salary` clips values below `salary_min_floor` (₹2L) and above `salary_max_ceiling` (₹5Cr), then fills nulls with the group median by `source` (and `role_label` if available), then the global median. Rows that had no disclosed salary get **`salary_imputed=True`**; disclosed rows keep **`salary_imputed=False`**. Chapter 8's disclosure chi-squared test reads the same signal.

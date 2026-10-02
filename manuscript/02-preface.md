@@ -4,7 +4,7 @@
 
 I didn't learn data science in a classroom.
 
-I learned it at 2 AM in Siliguri — a small city pressed between the Himalayas and the Bengal plains, about as far from Silicon Valley as you can get — debugging a RAG pipeline with a client deadline in six hours and no one to ask. I learned it by shipping broken code, watching it fail in production, and figuring out why. I learned it by building things nobody asked me to build, publishing Python libraries nobody initially used, and taking contracts that stretched me into territory I had no business being in yet.
+I learned it at 2 AM in Siliguri, a small city pressed between the Himalayas and the Bengal plains, about as far from Silicon Valley as you can get, debugging a RAG pipeline with a client deadline in six hours and no one to ask. I learned it by shipping broken code, watching it fail in production, and figuring out why. I learned it by building things nobody asked me to build, publishing Python libraries nobody initially used, and taking contracts that stretched me into territory I had no business being in yet.
 
 By the time I sat down to write this book, I had seven years of production AI engineering under my belt, two peer-reviewed papers, eleven libraries on PyPI, and a company I'd built from scratch. I'd fine-tuned LLMs at a Schneider Electric subsidiary, built the full AI intelligence layer for a Hong Kong startup, shipped a voice-first wellness app, and built inventory management software for a Nepal-based FMCG client. I had a Master's in Data Science and AI from IISER Tirupati. I'd negotiated equity-stake offers from US companies over a phone call from Siliguri, and I'd walked away from one of them when the contract terms didn't match what I'd signed up for.
 

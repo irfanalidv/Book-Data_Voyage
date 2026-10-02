@@ -12,7 +12,7 @@ Irfan Ali · Published by DataCortex IQ</p>
   <a href="https://github.com/irfanalidv/Book-Data_Voyage/actions/workflows/ci.yml"><img src="https://github.com/irfanalidv/Book-Data_Voyage/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/irfanalidv/Book-Data_Voyage/releases/latest"><img src="https://img.shields.io/github/v/release/irfanalidv/Book-Data_Voyage?label=edition" alt="Latest edition"></a>
   <img src="https://img.shields.io/badge/python-3.11%20%7C%203.12-3776AB?logo=python&logoColor=white" alt="Python 3.11 and 3.12">
-  <img src="https://img.shields.io/badge/tests-428-2EA44F" alt="428 tests">
+  <img src="https://img.shields.io/badge/tests-432-2EA44F" alt="432 tests">
   <a href="LICENSE"><img src="https://img.shields.io/badge/code-MIT-green" alt="Code license: MIT"></a>
   <a href="LICENSE-BOOK.md"><img src="https://img.shields.io/badge/book%20text-%C2%A9%20all%20rights%20reserved-lightgrey" alt="Book text: all rights reserved"></a>
   <img src="https://img.shields.io/badge/code%20style-black-000000" alt="Code style: black">
@@ -28,7 +28,7 @@ This is the companion repository for the book *Data Voyage*. The book teaches pr
 
 ## Get the book
 
-**[Get the ebook on Leanpub](https://leanpub.com/datavoyage):** a 365-page typeset PDF and an EPUB for e-readers and phones, to read offline. Every code reference in it opens the exact file in this repository.
+**[Get the ebook on Leanpub](https://leanpub.com/datavoyage):** a 377-page typeset PDF and an EPUB for e-readers and phones, to read offline. Every code reference in it opens the exact file in this repository.
 
 The code is MIT-licensed and the chapter text can be read here on GitHub, because a book about shipping real systems should let you check that every number reproduces. If the book helps you, buying the ebook is how you support the work.
 
@@ -145,7 +145,7 @@ The book promises that every number in it reproduces from a fresh clone. These c
 
 | Check | What it guarantees | Where it runs | Run it yourself |
 |---|---|---|---|
-| Test suite (428 tests) | Every chapter's code behaves as the text describes | CI, Python 3.11 and 3.12 | `make test` |
+| Test suite (432 tests) | Every chapter's code behaves as the text describes | CI, Python 3.11 and 3.12 | `make test` |
 | Bundled dataset | The Chapter 5 and 6 pipeline regenerates `data/clean/jobs_clean.csv` byte for byte | CI (part of the suite) | `pytest tests/test_bundled_dataset.py` |
 | Schema contract | The `jobs_clean.csv` columns every later chapter reads stay unchanged | CI (part of the suite) | `pytest tests/test_schema_contract.py` |
 | Lint | ruff rules E, F, W, I across `book/`, `tests/`, `talentlens/` | CI (blocking) | `make lint` |
@@ -187,7 +187,8 @@ The Leanpub edition is built from this repository. Anyone can rebuild it:
 ```bash
 make manuscript     # book/ -> manuscript/ (Leanpub format, code paths linked to GitHub)
 make epub           # dist/data-voyage.epub (needs pandoc 3)
-make pdf            # dist/data-voyage.pdf, 7 x 9.25 in (needs pandoc 3 and Google Chrome)
+make pdf            # dist/data-voyage.pdf, 7 x 9.25 in (needs pandoc 3, Google Chrome, make install-dev)
+make sample         # dist/data-voyage-sample.pdf, the free sample (front matter and Chapters 1-2)
 ```
 
 Set `CHROME` to use another Chromium-based browser for the PDF. To validate the EPUB, run [EPUBCheck](https://github.com/w3c/epubcheck): `java -jar epubcheck.jar dist/data-voyage.epub`. The cover comes from `scripts/make_cover.py`.

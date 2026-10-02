@@ -342,7 +342,7 @@ def plot_lint_results(results: list[LintResult], out_dir: Path | None = None) ->
     out_dir.mkdir(parents=True, exist_ok=True)
     labels = [r.rule_id.replace("R0", "").replace("_", " ") for r in results]
     colours = ["#4CAF50" if r.passed else "#F44336" for r in results]
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(7.0, 4.2))
     y = range(len(results))
     ax.barh(y, [1] * len(results), color=colours, edgecolor="white", height=0.65)
     ax.set_yticks(list(y))
@@ -376,29 +376,29 @@ def plot_layer_cache_diagram(out_dir: Path | None = None) -> Path:
 
     out_dir = out_dir or (_THIS / "reports" / "figures")
     out_dir.mkdir(parents=True, exist_ok=True)
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(6.0, 3.0))
     ax.set_xlim(0, 10)
     ax.set_ylim(0, 5)
     ax.axis("off")
 
     def layer(y, h, label, color):
         r = mpatches.FancyBboxPatch(
-            (1, y), 8, h, boxstyle="round,pad=0.02", facecolor=color, edgecolor="#333"
+            (0.3, y), 9.4, h, boxstyle="round,pad=0.02", facecolor=color, edgecolor="#333"
         )
         ax.add_patch(r)
-        ax.text(5, y + h / 2, label, ha="center", va="center", fontsize=11, fontweight="bold")
+        ax.text(5, y + h / 2, label, ha="center", va="center", fontsize=7.5, fontweight="bold")
 
     layer(3.6, 0.9, "Layer 3: COPY book/ … (invalidates often)", "#FFCC80")
-    layer(2.4, 0.9, "Layer 2: RUN pip install … (cached if requirements unchanged)", "#A5D6A7")
+    layer(2.4, 0.9, "Layer 2: RUN pip install … (cached until requirements change)", "#A5D6A7")
     layer(1.2, 0.9, "Layer 1: COPY requirements.txt (tiny manifest)", "#90CAF9")
 
-    ax.set_title("Docker layer cache — order matters", fontsize=13, fontweight="bold", pad=12)
+    ax.set_title("Docker layer cache: order matters", fontsize=10.5, fontweight="bold", pad=8)
     ax.text(
         5,
         0.35,
-        "Change app code → only Layer 3 rebuilds. Change deps → Layer 2+3 rebuild.",
+        "Change app code: only Layer 3 rebuilds. Change dependencies: Layers 2 and 3 rebuild.",
         ha="center",
-        fontsize=10,
+        fontsize=7.5,
         color="#555",
     )
     p = out_dir / "ch20_layer_cache_diagram.png"
@@ -420,7 +420,7 @@ def plot_image_size_comparison(out_dir: Path | None = None) -> Path:
     # Dockerfile. Re-measure after changing either requirements file.
     sizes = [6300, 462]
     colours = ["#EF5350", "#42A5F5"]
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(7.0, 4.4))
     ax.bar(labels, sizes, color=colours, edgecolor="white")
     ax.set_ylabel("Image size (MB)")
     ax.set_title("Serving image: ship only what the API imports", fontsize=13, fontweight="bold")

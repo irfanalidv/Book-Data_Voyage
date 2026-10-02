@@ -2,10 +2,10 @@
 Chapter 23: Real-World Case Studies
 Data Voyage - Building TalentLens
 
-TalentLens milestone: step back from TalentLens and look at three other
-production systems I've built - Reflecta (voice AI wellness), Godam
-(Nepal FMCG inventory), and RAGNav (open-source RAG library). What worked,
-what broke, what you can borrow.
+TalentLens milestone: step back from TalentLens and look at four other
+systems I've built: Reflecta (voice AI wellness), Godam (Nepal FMCG
+inventory), RAGNav (open-source RAG library), and StackSift (B2B product
+intelligence API). What worked, what broke, what you can borrow.
 
 Run: python book/ch23/ch23_case_studies.py
 
@@ -18,12 +18,12 @@ Outputs:
 from __future__ import annotations
 
 import logging
+import textwrap
 from dataclasses import dataclass
 from pathlib import Path
 
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
-import numpy as np
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s", datefmt="%H:%M:%S"
@@ -31,10 +31,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 _THIS_DIR = Path(__file__).resolve().parent
 SAVE_DPI = 300
-plt.style.use("seaborn-v0_8-whitegrid")
-plt.rcParams["font.family"] = (
-    "DejaVu Sans"  # the seaborn style prefers Arial, which lacks the ₹ glyph
-)
+plt.rcParams["font.family"] = "DejaVu Sans"
 
 
 @dataclass
@@ -67,11 +64,11 @@ CASE_STUDIES = [
             "pgvector similarity search on past conversation embeddings."
         ),
         "key_lessons": [
-            "Voice latency is unforgiving — anything over 800ms feels broken. "
+            "Voice latency is unforgiving: anything over 800ms feels broken. "
             "Groq's inference speed (200-400ms) is what made this viable.",
             "Telephony adds a layer of failure modes that don't exist in web apps. "
             "Bolna handles retries and audio quality; don't build this yourself.",
-            "The hardest part wasn't the AI — it was the security hardening: "
+            "The hardest part wasn't the AI. It was the security hardening: "
             "webhook signature verification, rate limiting per phone number, "
             "admin auth. Ship these before the first real user.",
             "pgvector for conversation history retrieval works well under 100k records. "
@@ -80,16 +77,10 @@ CASE_STUDIES = [
         "what_broke": [
             "The 'Call me now' backend endpoint silently failed for 3 days because "
             "Vercel logs weren't being monitored. Add Sentry or equivalent on day 1.",
-            "LLM hallucinations in a wellness context are a real risk — the model "
+            "LLM hallucinations in a wellness context are a real risk: the model "
             "occasionally 'remembered' things the user never said. "
             "Groundedness checks on every response are mandatory.",
         ],
-        "metrics": {
-            "stack_complexity": 7,
-            "months_to_ship": 3,
-            "lines_of_code": 4200,
-            "prod_incidents": 3,
-        },
     },
     {
         "name": "Godam",
@@ -101,13 +92,13 @@ CASE_STUDIES = [
             "Three user roles: admin, manager, field agent. Features include "
             "godown management, cheque tracking with photo uploads, daily sales "
             "reports as PDFs, and costing sheet generation. "
-            "Runs as a PWA — works offline, installable on Android."
+            "Runs as a PWA: works offline, installable on Android."
         ),
         "key_lessons": [
             "Nepali business requirements differ from Indian or Western defaults. "
             "Fiscal year follows Bikram Sambat calendar. Reports use Nepali "
             "number formatting. Build for the actual user, not an imaginary one.",
-            "PWA offline-first is genuinely hard. IndexedDB sync with Supabase "
+            "PWA offline-first is hard. IndexedDB sync with Supabase "
             "on reconnect took 3x longer to implement than estimated.",
             "Monthly subscription (NPR 16,000/month) sustains the product. "
             "Per-feature pricing would have created friction. One price, everything in.",
@@ -121,12 +112,6 @@ CASE_STUDIES = [
             "Photo uploads to Supabase storage had file size limits we hadn't "
             "tested on real mobile networks. Added client-side compression.",
         ],
-        "metrics": {
-            "stack_complexity": 4,
-            "months_to_ship": 2,
-            "lines_of_code": 8500,
-            "prod_incidents": 2,
-        },
     },
     {
         "name": "RAGNav",
@@ -166,167 +151,222 @@ CASE_STUDIES = [
             "The library shipped before it had CI; lint, tests, and coverage "
             "arrived only in 0.4.0.",
         ],
-        "metrics": {
-            "stack_complexity": 5,
-            "months_to_ship": 1,
-            "lines_of_code": 5742,
-            "prod_incidents": 1,
-        },
+    },
+    {
+        "name": "StackSift",
+        "tagline": "B2B product intelligence API",
+        "url": "stacksift.in",
+        "stack": [
+            "FastAPI",
+            "SQLite on Render disk",
+            "OpenAI gpt-4.1 / mini",
+            "Serper web search",
+            "LangSmith tracing",
+            "Docker on Render",
+        ],
+        "what_it_does": (
+            "Given a company's domain, returns the software products that company "
+            "actually sells, each with evidence URLs, as JSON. Five stages per "
+            "domain: search, crawl, candidate extraction, de-duplication, and a "
+            "final verdict pass. Ships as a REST API, an MCP server, and a live demo."
+        ),
+        "key_lessons": [
+            "Treat the two kinds of error differently. A feature recorded as a "
+            "product corrupts a customer's database; a missed product only lands "
+            "in a review queue. Low-confidence results go to review.csv.",
+            "Build the labelled evaluation set before tuning anything: 21 verified "
+            "domains, macro F1 0.91 to 0.93, run-to-run noise about +/-0.03.",
+            "Report cost per domain in every result (a few cents each), so cost "
+            "stays an engineering number instead of a surprise.",
+        ],
+        "what_broke": [
+            "An automatic prompt optimiser (DSPy MIPROv2) lowered macro F1 from "
+            "0.919 to 0.859. The compiled prompt was reverted.",
+            "Login failed in production behind Render's proxy: the app could not "
+            "tell requests arrived over HTTPS, so secure cookies broke. Fixed by "
+            "reading X-Forwarded-Proto and logging around sessions.",
+            "A billing change wrote placeholder payment data onto existing accounts "
+            "and had to be fixed.",
+        ],
     },
 ]
+
+
+# ---------------------------------------------------------------------------
+# Lessons matrix
+# ---------------------------------------------------------------------------
+
+# The six patterns from the chapter's "Patterns that transfer" section.
+PATTERNS: tuple[str, ...] = (
+    "The hard part is rarely the AI",
+    "Observability before features",
+    "Hardening is a phase",
+    "Costs are easier to ignore than fix",
+    "Build for the actual user",
+    "Measure before you trust a change",
+)
+
+CENTRAL, SHOWN, ABSENT = 2, 1, 0
+
+# How strongly each case study in the chapter demonstrates each pattern:
+# CENTRAL = one of that system's main lessons, SHOWN = the case study shows
+# it, ABSENT = the case study does not bear on it. Order follows PATTERNS.
+LESSON_MATRIX: dict[str, tuple[int, ...]] = {
+    "Reflecta": (CENTRAL, CENTRAL, SHOWN, CENTRAL, SHOWN, SHOWN),
+    "Godam": (SHOWN, CENTRAL, SHOWN, ABSENT, CENTRAL, ABSENT),
+    "RAGNav": (SHOWN, SHOWN, SHOWN, CENTRAL, ABSENT, CENTRAL),
+    "StackSift": (SHOWN, SHOWN, SHOWN, SHOWN, SHOWN, CENTRAL),
+}
 
 
 # ---------------------------------------------------------------------------
 # Visualisations
 # ---------------------------------------------------------------------------
 
-RADAR_DIMENSIONS: tuple[str, ...] = (
-    "Stack\ncomplexity",
-    "Months\nto ship",
-    "Code\nvolume (kLoC)",
-    "Prod\nincidents",
-    "Open\nsource",
-)
+LAYER_COLORS = {
+    "Frontend": "#0969da",
+    "Backend": "#1a7f37",
+    "Data": "#bc4c00",
+    "AI/ML": "#8250df",
+    "Infrastructure": "#57606a",
+}
 
-
-def _normalise_radar_score(val: float, lo: float, hi: float) -> float:
-    """Map a raw metric to the 0–10 radar axis used in plot_lessons_matrix."""
-    return (val - lo) / (hi - lo) * 10
-
-
-def build_radar_scores() -> dict[str, list[float]]:
-    """Normalised radar scores for Reflecta, Godam, and RAGNav.
-
-    Values are derived from each entry's ``metrics`` in CASE_STUDIES plus a
-    fixed open-source flag (RAGNav only). Exported for tests and for
-    plot_lessons_matrix so the chart and assertions cannot drift apart.
-    """
-    by_name = {study["name"]: study["metrics"] for study in CASE_STUDIES}
-    return {
-        "Reflecta": [
-            _normalise_radar_score(by_name["Reflecta"]["stack_complexity"], 1, 10),
-            _normalise_radar_score(by_name["Reflecta"]["months_to_ship"], 1, 6),
-            _normalise_radar_score(by_name["Reflecta"]["lines_of_code"] / 1000, 1, 10),
-            _normalise_radar_score(by_name["Reflecta"]["prod_incidents"], 0, 5),
-            0.0,
-        ],
-        "Godam": [
-            _normalise_radar_score(by_name["Godam"]["stack_complexity"], 1, 10),
-            _normalise_radar_score(by_name["Godam"]["months_to_ship"], 1, 6),
-            _normalise_radar_score(by_name["Godam"]["lines_of_code"] / 1000, 1, 10),
-            _normalise_radar_score(by_name["Godam"]["prod_incidents"], 0, 5),
-            0.0,
-        ],
-        "RAGNav": [
-            _normalise_radar_score(by_name["RAGNav"]["stack_complexity"], 1, 10),
-            _normalise_radar_score(by_name["RAGNav"]["months_to_ship"], 1, 6),
-            _normalise_radar_score(by_name["RAGNav"]["lines_of_code"] / 1000, 1, 10),
-            _normalise_radar_score(by_name["RAGNav"]["prod_incidents"], 0, 5),
-            10.0,
-        ],
-    }
+LAYER_OF = {
+    "Next.js 15": "Frontend",
+    "Vercel": "Infrastructure",
+    "Neon Postgres + pgvector": "Data",
+    "Supabase (PostgreSQL + JWT)": "Data",
+    "Groq/Llama 3.3 70B": "AI/ML",
+    "Bolna AI (telephony)": "AI/ML",
+    "Twilio Verify": "Backend",
+    "jsPDF": "Backend",
+    "Namecheap DNS": "Infrastructure",
+    "Python": "Backend",
+    "BM25 (rank-bm25)": "AI/ML",
+    "NumPy": "Backend",
+    "SentenceTransformers": "AI/ML",
+    "PyMuPDF": "Backend",
+    "GitHub Actions": "Infrastructure",
+    "FastAPI": "Backend",
+    "SQLite on Render disk": "Data",
+    "OpenAI gpt-4.1 / mini": "AI/ML",
+    "Serper web search": "Data",
+    "LangSmith tracing": "Infrastructure",
+    "Docker on Render": "Infrastructure",
+}
 
 
 def plot_system_architectures(cfg: Config) -> Path:
-    """Visual comparison of the three system stacks."""
+    """The four stacks side by side, coloured by layer, drawn at print size."""
     cfg.figures_dir.mkdir(parents=True, exist_ok=True)
-    fig, axes = plt.subplots(1, 3, figsize=(15, 6))
-
-    colors = {
-        "Frontend": "#2196F3",
-        "Backend": "#4CAF50",
-        "Database": "#FF9800",
-        "AI/ML": "#9C27B0",
-        "Infrastructure": "#607D8B",
-        "Monitoring": "#F44336",
-    }
-    layer_map = {
-        "Next.js 15": "Frontend",
-        "Vercel": "Infrastructure",
-        "Neon Postgres + pgvector": "Database",
-        "Supabase (PostgreSQL + JWT)": "Database",
-        "Groq/Llama 3.3 70B": "AI/ML",
-        "Bolna AI (telephony)": "AI/ML",
-        "Twilio Verify": "Backend",
-        "jsPDF": "Backend",
-        "Namecheap DNS": "Infrastructure",
-        "Python": "Backend",
-        "BM25 (rank-bm25)": "AI/ML",
-        "NumPy": "Backend",
-        "SentenceTransformers": "AI/ML",
-        "PyMuPDF": "Backend",
-        "GitHub Actions": "Infrastructure",
-    }
+    fig, axes = plt.subplots(1, len(CASE_STUDIES), figsize=(6.6, 3.9))
+    slots = max(len(study["stack"]) for study in CASE_STUDIES)
+    step = 0.78 / slots
 
     for ax, study in zip(axes, CASE_STUDIES):
-        stack_items = study["stack"]
-        y_positions = np.linspace(0.85, 0.1, len(stack_items))
-        for tech, y in zip(stack_items, y_positions):
-            layer = layer_map.get(tech, "Backend")
-            color = colors[layer]
-            ax.barh(y, 0.9, left=0.05, height=0.09, color=color, alpha=0.75, edgecolor="white")
+        for k, tech in enumerate(study["stack"]):
+            y = 0.86 - k * step
+            color = LAYER_COLORS[LAYER_OF.get(tech, "Backend")]
+            ax.barh(y, 0.96, left=0.02, height=step * 0.86, color=color, edgecolor="white")
             ax.text(
                 0.5,
                 y,
-                tech,
+                textwrap.fill(tech, 18, break_long_words=False),
                 ha="center",
                 va="center",
-                fontsize=8.5,
-                fontweight="bold",
+                fontsize=6.2,
                 color="white",
+                fontweight="bold",
+                linespacing=1.1,
             )
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
         ax.axis("off")
-        ax.set_title(f"{study['name']}\n{study['tagline']}", fontsize=10, fontweight="bold")
-        ax.text(0.5, 0.01, study["url"], ha="center", fontsize=8, color="gray")
+        ax.text(
+            0.5,
+            1.07,
+            study["name"],
+            ha="center",
+            va="bottom",
+            fontsize=8,
+            fontweight="bold",
+            transform=ax.transAxes,
+        )
+        ax.text(
+            0.5,
+            1.06,
+            textwrap.fill(study["tagline"], 20),
+            ha="center",
+            va="top",
+            fontsize=6.4,
+            color="#57606a",
+            transform=ax.transAxes,
+            linespacing=1.15,
+        )
+        ax.text(
+            0.5,
+            0.11 - step / 2,
+            textwrap.fill(study["url"], 22),
+            ha="center",
+            va="top",
+            fontsize=6,
+            color="#57606a",
+        )
 
-    # Legend
-    legend_elements = [mpatches.Patch(color=v, alpha=0.75, label=k) for k, v in colors.items()]
+    handles = [mpatches.Patch(color=c, label=k) for k, c in LAYER_COLORS.items()]
     fig.legend(
-        handles=legend_elements,
+        handles=handles,
         loc="lower center",
-        ncol=6,
-        fontsize=8.5,
-        bbox_to_anchor=(0.5, -0.02),
+        ncol=len(handles),
+        fontsize=6.8,
+        frameon=False,
+        bbox_to_anchor=(0.5, 0.0),
     )
-    plt.suptitle("Three Production Systems — Stack Comparison", fontsize=13, fontweight="bold")
-    plt.tight_layout()
+    fig.suptitle("Four case studies: stacks by layer", fontsize=9.5, fontweight="bold", y=0.985)
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.83, bottom=0.07, wspace=0.08)
     out = cfg.figures_dir / "ch23_system_architectures.png"
-    plt.savefig(out, dpi=SAVE_DPI, bbox_inches="tight")
-    plt.close()
+    fig.savefig(out, dpi=SAVE_DPI, facecolor="white")
+    plt.close(fig)
     logger.info(f"Saved: {out}")
     return out
 
 
 def plot_lessons_matrix(cfg: Config) -> Path:
-    """Radar / spider chart comparing the three systems on key dimensions."""
+    """Which of the six patterns each case study demonstrates."""
     cfg.figures_dir.mkdir(parents=True, exist_ok=True)
-    dimensions = list(RADAR_DIMENSIONS)
-    n = len(dimensions)
-    scores = build_radar_scores()
+    systems = list(LESSON_MATRIX)
+    fill = {CENTRAL: "#1a7f37", SHOWN: "#aceebb", ABSENT: "#f6f8fa"}
+    label = {CENTRAL: "central", SHOWN: "shown", ABSENT: ""}
 
-    angles = np.linspace(0, 2 * np.pi, n, endpoint=False).tolist()
-    angles += angles[:1]
-
-    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
-    colors_radar = ["#2196F3", "#4CAF50", "#9C27B0"]
-    for (name, vals), color in zip(scores.items(), colors_radar):
-        vals_closed = vals + vals[:1]
-        ax.plot(angles, vals_closed, "o-", linewidth=2, color=color, label=name, markersize=6)
-        ax.fill(angles, vals_closed, alpha=0.1, color=color)
-
-    ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(dimensions, fontsize=10)
-    ax.set_ylim(0, 10)
-    ax.set_yticks([2, 4, 6, 8, 10])
-    ax.set_yticklabels(["2", "4", "6", "8", "10"], fontsize=7)
-    ax.set_title("Case Study Comparison — Key Dimensions", fontsize=13, fontweight="bold", pad=20)
-    ax.legend(loc="upper right", bbox_to_anchor=(1.35, 1.1), fontsize=10)
-    plt.tight_layout()
+    fig, ax = plt.subplots(figsize=(6.0, 3.3))
+    for col, system in enumerate(systems):
+        for row, level in enumerate(LESSON_MATRIX[system]):
+            ax.add_patch(mpatches.Rectangle((col, row), 0.96, 0.92, color=fill[level]))
+            ax.text(
+                col + 0.48,
+                row + 0.46,
+                label[level],
+                ha="center",
+                va="center",
+                fontsize=7,
+                color="white" if level == CENTRAL else "#1f2328",
+            )
+    ax.set_xlim(0, len(systems))
+    ax.set_ylim(len(PATTERNS), 0)
+    ax.set_xticks([c + 0.48 for c in range(len(systems))])
+    ax.set_xticklabels(systems, fontsize=8, fontweight="bold")
+    ax.xaxis.tick_top()
+    ax.set_yticks([r + 0.46 for r in range(len(PATTERNS))])
+    ax.set_yticklabels([f"{i}. {p}" for i, p in enumerate(PATTERNS, 1)], fontsize=7.6)
+    ax.tick_params(length=0)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    ax.grid(False)
+    fig.suptitle("Which patterns each case study shows", fontsize=9.5, fontweight="bold")
+    fig.tight_layout()
     out = cfg.figures_dir / "ch23_lessons_matrix.png"
-    plt.savefig(out, dpi=SAVE_DPI, bbox_inches="tight")
-    plt.close()
+    fig.savefig(out, dpi=SAVE_DPI, facecolor="white")
+    plt.close(fig)
     logger.info(f"Saved: {out}")
     return out
 
@@ -340,13 +380,13 @@ def write_case_studies_summary(cfg: Config) -> Path:
     """Write the Markdown case studies document."""
     cfg.reports_dir.mkdir(parents=True, exist_ok=True)
     lines = [
-        "# Real-World Case Studies — Three Production AI Systems",
+        "# Real-World Case Studies: Four Systems",
         "",
-        "Three systems I built and shipped. What worked, what broke, " "and what you can borrow.\n",
+        "Four systems I built and shipped. What worked, what broke, and what you can borrow.\n",
     ]
     for study in CASE_STUDIES:
         lines += [
-            f"## {study['name']} — {study['tagline']}",
+            f"## {study['name']}: {study['tagline']}",
             f"*{study['url']}*\n",
             "**What it does:**",
             study["what_it_does"],
@@ -364,8 +404,8 @@ def write_case_studies_summary(cfg: Config) -> Path:
     lines += [
         "## Cross-cutting lessons",
         "",
-        "These patterns showed up across all three projects:\n",
-        "**1. Ship monitoring before users.** Every incident above was caught "
+        "These patterns showed up across the projects:\n",
+        "**1. Ship monitoring before users.** Most incidents above were caught "
         "late because I didn't have logging and alerting in place before the "
         "first real user. Add Sentry, structured logs, and a health endpoint "
         "before you tell anyone about the product.",
@@ -401,7 +441,7 @@ def main() -> None:
 
     logger.info("=" * 60)
     logger.info("  CHAPTER 23: REAL-WORLD CASE STUDIES")
-    logger.info("  Reflecta | Godam | RAGNav")
+    logger.info("  Reflecta | Godam | RAGNav | StackSift")
     logger.info("=" * 60)
 
     for study in CASE_STUDIES:
@@ -409,7 +449,7 @@ def main() -> None:
         logger.info(f"  Stack: {', '.join(study['stack'][:3])}...")
         logger.info(
             f"  Lessons: {len(study['key_lessons'])} | "
-            f"Incidents: {study['metrics']['prod_incidents']}"
+            f"Incidents described: {len(study['what_broke'])}"
         )
 
     logger.info("\n[1/3] Plotting system architectures...")
@@ -427,7 +467,7 @@ def main() -> None:
     logger.info(f"  Figures: {cfg.figures_dir}/")
     logger.info(f"  Report:  {cfg.reports_dir}/case_studies_summary.md")
     logger.info("\nCross-cutting lesson: ship monitoring before users.")
-    logger.info("Next: Chapter 24 — The India Playbook")
+    logger.info("Next: Chapter 24, The India Playbook")
 
 
 if __name__ == "__main__":

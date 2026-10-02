@@ -22,6 +22,7 @@ from __future__ import annotations  # noqa: E402
 import hashlib  # noqa: E402
 import logging  # noqa: E402
 import sqlite3  # noqa: E402
+import textwrap  # noqa: E402
 import time  # noqa: E402
 from dataclasses import dataclass, field  # noqa: E402
 from pathlib import Path  # noqa: E402
@@ -620,7 +621,7 @@ def plot_similarity_distribution(results_all: list[dict], cfg: Config) -> Path:
         Path to saved figure.
     """
     scores = [r["similarity"] for r in results_all]
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(7.0, 4.2))
 
     ax.hist(scores, bins=30, edgecolor="white", color="#2196F3", alpha=0.8)
     ax.axvline(
@@ -670,16 +671,17 @@ def plot_search_quality(
         Path to saved figure.
     """
     top_scores = [results[0]["similarity"] if results else 0.0 for results in results_per_query]
-    short_queries = [q[:45] + "..." if len(q) > 45 else q for q in queries]
+    short_queries = [textwrap.shorten(q, 38, placeholder="…") for q in queries]
 
-    fig, ax = plt.subplots(figsize=(11, 6))
+    fig, ax = plt.subplots(figsize=(7.0, 3.8))
     colors = ["#4CAF50" if s >= 0.75 else "#FF9800" if s >= 0.60 else "#F44336" for s in top_scores]
     bars = ax.barh(range(len(queries)), top_scores, color=colors, edgecolor="white")
     ax.set_yticks(range(len(queries)))
-    ax.set_yticklabels(short_queries, fontsize=10)
+    ax.set_yticklabels(short_queries, fontsize=8)
     ax.invert_yaxis()
-    ax.set_xlabel("Top Result Similarity Score", fontsize=12)
-    ax.set_title("Search Quality by Query — Top Similarity Score", fontsize=13, fontweight="bold")
+    ax.set_xlabel("Similarity of the top result", fontsize=9)
+    ax.set_title("Search quality: top similarity per query", fontsize=10.5, fontweight="bold")
+    ax.set_xlim(0, 0.85)
     ax.axvline(cfg.similarity_threshold, color="gray", linestyle=":", linewidth=1.5)
 
     for bar, score in zip(bars, top_scores):
@@ -688,7 +690,7 @@ def plot_search_quality(
             bar.get_y() + bar.get_height() / 2,
             f"{score:.3f}",
             va="center",
-            fontsize=10,
+            fontsize=8,
         )
 
     legend_elements = [
@@ -696,7 +698,14 @@ def plot_search_quality(
         plt.Rectangle((0, 0), 1, 1, fc="#FF9800", label="Good match (0.60–0.75)"),
         plt.Rectangle((0, 0), 1, 1, fc="#F44336", label="Weak match (<0.60)"),
     ]
-    ax.legend(handles=legend_elements, loc="lower right", fontsize=10)
+    ax.legend(
+        handles=legend_elements,
+        loc="upper center",
+        bbox_to_anchor=(0.4, -0.16),
+        ncol=3,
+        fontsize=7.5,
+        frameon=False,
+    )
 
     plt.tight_layout()
     out = cfg.figures_dir / "ch16_search_quality.png"
@@ -758,7 +767,7 @@ def plot_vector_space_2d(
     palette = ["#2196F3", "#4CAF50", "#FF9800", "#9C27B0", "#F44336", "#00BCD4"]
     color_map = {cat: palette[i % len(palette)] for i, cat in enumerate(unique_cats)}
 
-    fig, ax = plt.subplots(figsize=(11, 8))
+    fig, ax = plt.subplots(figsize=(7.0, 5.1))
     for cat in unique_cats:
         mask = cat_series == cat
         ax.scatter(
@@ -779,21 +788,27 @@ def plot_vector_space_2d(
         f"PCA Component 2 ({pca.explained_variance_ratio_[1]*100:.1f}% variance)", fontsize=12
     )
     ax.set_title(
-        "Job Embeddings in 2D (PCA) — Similar roles cluster together",
-        fontsize=13,
+        "Job embeddings in 2D (PCA): similar roles sit together",
+        fontsize=10.5,
         fontweight="bold",
     )
-    ax.legend(fontsize=11, title="Role category")
-    ax.annotate(
-        "Each point is a job posting. Nearby points = similar meaning.\n"
-        "Clusters show that the embedding model has learned role semantics.",
-        xy=(0.02, 0.02),
-        xycoords="axes fraction",
-        fontsize=9,
+    ax.legend(
+        fontsize=7.5,
+        title="Role category",
+        title_fontsize=8,
+        loc="upper left",
+        bbox_to_anchor=(1.01, 1.0),
+        frameon=False,
+    )
+    fig.text(
+        0.01,
+        0.01,
+        "Each point is a job posting; nearby points have similar meaning.",
+        fontsize=7.5,
         color="gray",
     )
 
-    plt.tight_layout()
+    plt.tight_layout(rect=(0, 0.04, 1, 1))
     out = cfg.figures_dir / "ch16_vector_space_2d.png"
     plt.savefig(out, dpi=SAVE_DPI, bbox_inches="tight")
     plt.close()

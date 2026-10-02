@@ -233,7 +233,7 @@ model.fit(X, df["role_category"])                          # F1 ≈ 0.85 here, e
 
 How to catch it: any time you see F1 above 0.95 on a real-world text classification task, look for this. Real role classification on noisy posting data lands in the 0.75–0.90 band; numbers above that are almost always a leakage tell. The single most useful diagnostic is: **list every field your label function reads, and assert none of them appear in your feature set.**
 
-There is still a *residual* path worth naming honestly: `skills_normalised` was extracted in Chapter 6 by keyword-scanning the description, and some of those skill keywords overlap with role-typical vocabulary. So a description that mentions "PyTorch" populates a token the classifier sees. We accept this because (a) the labels themselves are not derived from skills, so the path is not circular, and (b) excluding skills would cripple the classifier on the task it's actually for. Put plainly: "the label depends on title, the features depend on text adjacent to title; these are correlated, but not identical."
+There is still a *residual* path worth naming: `skills_normalised` was extracted in Chapter 6 by keyword-scanning the description, and some of those skill keywords overlap with role-typical vocabulary. So a description that mentions "PyTorch" populates a token the classifier sees. We accept this because (a) the labels themselves are not derived from skills, so the path is not circular, and (b) excluding skills would cripple the classifier on the task it's actually for. Put plainly: "the label depends on title, the features depend on text adjacent to title; these are correlated, but not identical."
 
 ---
 

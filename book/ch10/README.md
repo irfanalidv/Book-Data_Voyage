@@ -320,7 +320,7 @@ its individual lift exceeds 0.01. None does, so **v2 is the
 text-only model, at 0.873**: exactly the baseline, never worse.
 
 This is a good outcome. The features were reasonable hypotheses,
-the measurement was honest, and the answer was no. Shipping them
+the measurement was fair, and the answer was no. Shipping them
 anyway because "more features can't hurt" would have cost accuracy
 and added code to maintain.
 

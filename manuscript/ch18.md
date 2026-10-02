@@ -136,9 +136,9 @@ The headline numbers from the recorded run:
   same agent behaviour, very different wall-clock due to
   rate-limit retries. Cost was identical across runs.
 
-The chapter's voice asks you to read these numbers as
-*honest measurements of one agent on one dataset on one
-provider*, not as general claims about agents. Different
+Read these numbers as *measurements of one agent on one
+dataset with one provider*, not as general claims about
+agents. Different
 LLM, different data, different prompt: different numbers.
 
 ## Common mistakes I've seen (and made: most of them while writing this chapter)

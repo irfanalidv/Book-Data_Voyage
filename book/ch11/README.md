@@ -63,7 +63,7 @@ Inertia always falls as k rises; with one cluster per posting it reaches zero. T
 | 0.7 – 1.0 | Strong, well-separated structure (rare on text) |
 | 0.5 – 0.7 | Reasonable structure |
 | 0.25 – 0.5 | Weak structure; clusters overlap |
-| below 0.25 | Little separation — typical of high-dimensional text, where distances concentrate |
+| below 0.25 | Little separation, typical of high-dimensional text, where distances concentrate |
 | exactly 1.0 | A warning sign: duplicate points, or far fewer distinct points than clusters |
 
 > **📑 Reference: Choosing an approach**

@@ -730,7 +730,7 @@ def plot_skill_salary_premium(df: pd.DataFrame, cfg: Config) -> Path:
     rows.sort(key=lambda r: r[1] - r[2], reverse=True)
 
     x = np.arange(len(rows))
-    fig, ax = plt.subplots(figsize=(10, 4.8))
+    fig, ax = plt.subplots(figsize=(7.0, 3.4))
     ax.bar(x - 0.2, [r[1] for r in rows], 0.4, color="#4CAF50", label="Has skill")
     ax.bar(x + 0.2, [r[2] for r in rows], 0.4, color="#F44336", alpha=0.85, label="No skill")
     ax.set_xticks(x, [f"{r[0]}\n(n={r[3]})" for r in rows])

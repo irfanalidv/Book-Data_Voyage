@@ -284,7 +284,7 @@ def plot_api_architecture(out_dir: Optional[Path] = None) -> Path:
 
     out_dir = out_dir or (_THIS_DIR / "reports" / "figures")
     out_dir.mkdir(parents=True, exist_ok=True)
-    fig, ax = plt.subplots(figsize=(11, 6))
+    fig, ax = plt.subplots(figsize=(7.0, 3.8))
     ax.set_xlim(0, 10)
     ax.set_ylim(0, 6)
     ax.axis("off")

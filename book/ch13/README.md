@@ -273,8 +273,8 @@ first 24 rows, OpenAI gpt-4o-mini for the remaining
 176, a story in itself; see What's next). An automated
 audit flagged 7% of a 30-row sample as
 suspicious, mostly hallucinations like "Cloud (AWS)"
-inferred from generic context. The chapter is honest
-that this 7% is a label-quality floor; method-level
+inferred from generic context. Treat that 7% as a
+label-quality floor: method-level
 differences smaller than this floor are not statistically
 meaningful.
 

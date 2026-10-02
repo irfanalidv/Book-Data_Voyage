@@ -156,67 +156,37 @@ def print_validation_results(results: list[dict]) -> None:
 
 
 def plot_package_architecture(cfg: Config) -> Path:
-    """Diagram showing talentlens_core module structure and public API."""
+    """talentlens_core's public API and the chapter modules each wrapper imports."""
+    from talentlens.diagrams import Box, Diagram
+
     cfg.figures_dir.mkdir(parents=True, exist_ok=True)
-    fig, ax = plt.subplots(figsize=(12, 7))
-    ax.set_xlim(0, 12)
-    ax.set_ylim(0, 7)
-    ax.axis("off")
-
-    def box(x, y, w, h, label, sub="", color="#2196F3"):
-        r = plt.Rectangle(
-            (x, y), w, h, facecolor=color, alpha=0.18, edgecolor=color, linewidth=2, zorder=2
-        )
-        ax.add_patch(r)
-        ax.text(
-            x + w / 2,
-            y + h / 2 + (0.15 if sub else 0),
-            label,
-            ha="center",
-            va="center",
-            fontsize=10,
-            fontweight="bold",
-            zorder=3,
-        )
-        if sub:
-            ax.text(
-                x + w / 2,
-                y + h / 2 - 0.22,
-                sub,
-                ha="center",
-                va="center",
-                fontsize=8,
-                color="#555",
-                zorder=3,
-            )
-
-    def arr(x1, y1, x2, y2):
-        ax.annotate(
-            "", xy=(x2, y2), xytext=(x1, y1), arrowprops=dict(arrowstyle="->", color="#555", lw=1.5)
-        )
-
-    # User
-    box(0.2, 3.0, 1.8, 1.0, "User code", "pip install", "#9C27B0")
-    # Package
-    box(2.5, 0.5, 7.0, 6.0, "talentlens_core", "", "#2196F3")
-    ax.text(6.0, 6.2, "talentlens_core/", ha="center", fontsize=9, color="#2196F3", style="italic")
-    # Modules
-    box(2.8, 3.8, 2.8, 1.5, "classification.py", "RoleClassifier\npredict_role()", "#4CAF50")
-    box(6.0, 3.8, 2.8, 1.5, "search.py", "VectorStore\nsemantic_search()", "#4CAF50")
-    box(2.8, 1.5, 2.8, 1.5, "cv.py", "CVParser\nparse_cv()", "#4CAF50")
-    box(6.0, 1.5, 2.8, 1.5, "paths.py", "REPO_ROOT\nDATA_DIR", "#FF9800")
-    # PyPI
-    box(10.0, 3.0, 1.8, 1.0, "PyPI", "pip install\ntalentlens-core", "#607D8B")
-
-    arr(2.0, 3.5, 2.5, 4.5)
-    arr(2.0, 3.5, 2.5, 2.2)
-    arr(9.5, 3.5, 10.0, 3.5)
-
-    ax.set_title("talentlens-core Package Architecture", fontsize=13, fontweight="bold", pad=15)
-    plt.tight_layout()
-    out = cfg.figures_dir / "ch22_package_architecture.png"
-    plt.savefig(out, dpi=SAVE_DPI, bbox_inches="tight")
-    plt.close()
+    d = Diagram(6.6, 3.75, "talentlens_core: a thin public API over chapter code")
+    d.box(
+        "user", Box(0.1, 1.55, 1.25, 0.8, "Your code", "from talentlens_core\nimport ...", "input")
+    )
+    d.group(1.65, 0.2, 2.55, 3.1, "talentlens_core/  (exported in __init__.py)")
+    modules = [
+        (
+            "cls",
+            "classification.py",
+            "load_role_classifier()\npredict_job_role()",
+            "ch09",
+            "Ch 9 classifier",
+        ),
+        ("srch", "search.py", "connect_vector_store()", "ch16", "Ch 16 VectorStore"),
+        ("cv", "cv.py", "create_cv_parser()", "ch17", "Ch 17 CVParser"),
+        ("app", "app.py", "create_app()", "ch19", "Ch 19 build_app()"),
+    ]
+    for k, (key, title, sub, ch, target) in enumerate(modules):
+        y = 2.45 - k * 0.66
+        d.box(key, Box(1.8, y, 2.25, 0.56, title, sub, "step"))
+        d.box(ch, Box(4.75, y, 1.75, 0.56, target, f"book/{ch}/", "store"))
+        d.arrow(key, ch, dashed=True)
+    d.note(1.8, 0.33, "paths.py: find_repo_root(), ensure_repo_on_sys_path()", size=6.8)
+    d.arrow("user", "cls", start=(1.35, 2.05), end=(1.8, 2.6))
+    d.arrow("user", "app", start=(1.35, 1.85), end=(1.8, 0.7))
+    d.note(4.75, 3.15, "wraps (imports at call time)", size=7)
+    out = d.save(cfg.figures_dir / "ch22_package_architecture.png")
     logger.info(f"Saved: {out}")
     return out
 

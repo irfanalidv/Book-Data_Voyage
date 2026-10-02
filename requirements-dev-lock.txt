@@ -473,6 +473,8 @@ pygments==2.20.0
     #   pytest
     #   readme-renderer
     #   rich
+pymupdf==1.26.7
+    # via -r requirements-dev.txt
 pyparsing==3.3.2
     # via matplotlib
 pyproject-hooks==1.2.0

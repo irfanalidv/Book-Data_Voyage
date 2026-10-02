@@ -491,7 +491,7 @@ def run_talentlens(cfg: Config) -> dict | None:
 
 
 def plot_digits_curves(digits: dict, cfg: Config) -> Path:
-    fig, ax = plt.subplots(figsize=(8, 4.5))
+    fig, ax = plt.subplots(figsize=(7.0, 3.9))
     epochs = np.arange(1, len(digits["train_losses"]) + 1)
     ax.plot(epochs, digits["train_losses"], label="Training loss", color="#2196F3")
     ax.plot(epochs, digits["val_losses"], label="Validation loss", color="#FF9800")
@@ -519,7 +519,7 @@ def plot_digits_curves(digits: dict, cfg: Config) -> Path:
 
 
 def plot_housing(housing: dict, cfg: Config) -> Path:
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
+    fig, axes = plt.subplots(1, 2, figsize=(7.0, 3.2))
     names = ["Linear\nregression", "MLP\n(raw inputs)", "MLP\n(standardised)"]
     rmses = [
         housing["linear"]["rmse"],
@@ -533,11 +533,13 @@ def plot_housing(housing: dict, cfg: Config) -> Path:
             bar.get_height() + 0.01,
             f"{val:.3f}",
             ha="center",
-            fontsize=11,
+            fontsize=8.5,
             fontweight="bold",
         )
-    axes[0].set_ylabel("Test RMSE ($100k units, lower is better)")
-    axes[0].set_title("Same network, different input scaling", fontweight="bold")
+    axes[0].set_ylabel("Test RMSE ($100k), lower is better", fontsize=8.5)
+    axes[0].set_title("Same network, different scaling", fontsize=9.5, fontweight="bold")
+    axes[0].set_ylim(0, max(rmses) * 1.18)
+    axes[0].tick_params(axis="x", labelsize=8)
 
     y_test, pred = housing["y_test"], housing["pred_mlp"]
     axes[1].scatter(y_test, pred, s=4, alpha=0.3, color="#2196F3")
@@ -545,8 +547,10 @@ def plot_housing(housing: dict, cfg: Config) -> Path:
     axes[1].plot(lims, lims, color="#F44336", lw=1, ls="--", label="Perfect prediction")
     axes[1].set_xlabel("Actual median house value ($100k)")
     axes[1].set_ylabel("Predicted")
-    axes[1].set_title(f"Standardised MLP — R² {housing['mlp_scaled']['r2']:.2f}", fontweight="bold")
-    axes[1].legend()
+    axes[1].set_title(
+        f"Standardised MLP: R² {housing['mlp_scaled']['r2']:.2f}", fontsize=9.5, fontweight="bold"
+    )
+    axes[1].legend(fontsize=8)
     plt.tight_layout()
     out = cfg.figures_dir / "ch12_housing_scaling.png"
     plt.savefig(out, dpi=SAVE_DPI, bbox_inches="tight")
@@ -556,7 +560,7 @@ def plot_housing(housing: dict, cfg: Config) -> Path:
 
 def plot_diabetes(diabetes: dict, cfg: Config) -> Path:
     over = diabetes["mlp_overfit"]
-    fig, ax = plt.subplots(figsize=(8, 4.5))
+    fig, ax = plt.subplots(figsize=(7.0, 3.9))
     epochs = np.arange(1, len(over["train_losses"]) + 1)
     ax.plot(epochs, over["train_losses"], label="Training loss", color="#2196F3")
     ax.plot(epochs, over["val_losses"], label="Validation loss", color="#FF9800")

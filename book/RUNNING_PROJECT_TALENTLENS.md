@@ -35,10 +35,10 @@ Where a chapter steps outside TalentLens (Chapter 12's teaching datasets, Chapte
 | 6 | Data cleaning | Imputation with flags, dedup, role labels from titles → `jobs_clean.csv` |
 | 7 | EDA | Salary shape, skill frequency, role and remote comparisons |
 | 8 | Statistical inference | The remote "premium" that disappears within seniority bands |
-| 9 | Supervised learning | Role classifier from description and skills — the first saved model |
+| 9 | Supervised learning | Role classifier from description and skills: the first saved model |
 | 10 | Feature engineering | `talentlens/features.py`; ablations; a negative result and a leakage story |
 | 11 | Unsupervised learning | Clusters that audit the five role labels |
-| 12 | Neural networks | When an MLP beats a linear baseline — and why not yet on TalentLens |
+| 12 | Neural networks | When an MLP beats a linear baseline, and why not yet on TalentLens |
 | 13 | NLP | `talentlens/skills.py`: regex vs spaCy vs embeddings on a labelled eval set |
 | 14 | Time series | Methods on COVID data, ready for dated TalentLens postings |
 | 15 | Scaling Python | Measured pandas optimisations; when to change tools |

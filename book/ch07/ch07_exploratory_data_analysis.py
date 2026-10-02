@@ -435,8 +435,12 @@ def plot_salary_distribution(df: pd.DataFrame, cfg: Config) -> Path:
     Returns:
         Path to saved figure.
     """
+    # Same rule as the summary statistics: disclosed salaries only, because
+    # Chapter 6's imputed values would shrink the spread.
+    if "salary_disclosed" in df.columns:
+        df = df[df["salary_disclosed"].astype(bool)]
     salary = df[cfg.salary_col].dropna()
-    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+    fig, axes = plt.subplots(2, 1, figsize=(6.0, 5.4))
 
     # --- Histogram ---
     ax = axes[0]
@@ -454,16 +458,18 @@ def plot_salary_distribution(df: pd.DataFrame, cfg: Config) -> Path:
         median_l, color="#DD8452", linewidth=2, linestyle="--", label=f"Median: ₹{median_l:.1f}L"
     )
     ax.axvline(mean_l, color="#55A868", linewidth=2, linestyle=":", label=f"Mean: ₹{mean_l:.1f}L")
-    ax.set_xlabel("Annual Salary (₹ lakhs)", fontsize=12)
-    ax.set_ylabel("Number of Job Postings", fontsize=12)
-    ax.set_title("Salary Distribution — TalentLens Dataset", fontsize=13, fontweight="bold")
-    ax.legend(fontsize=11)
-    ax.annotate(
-        f"Median (₹{median_l:.1f}L) < Mean (₹{mean_l:.1f}L)\n→ right-skewed: use median\nfor 'typical' salary analysis",
-        xy=(mean_l, ax.get_ylim()[1] * 0.7),
-        xytext=(mean_l + 8, ax.get_ylim()[1] * 0.75),
-        arrowprops=dict(arrowstyle="->", color="gray"),
-        fontsize=10,
+    ax.set_xlabel("Annual salary (₹ lakhs)", fontsize=9)
+    ax.set_ylabel("Job postings", fontsize=9)
+    ax.set_title("Salary distribution", fontsize=10, fontweight="bold")
+    ax.legend(fontsize=8, loc="upper right")
+    ax.text(
+        0.98,
+        0.62,
+        "Median below mean: right-skewed,\nso use the median for typical pay",
+        transform=ax.transAxes,
+        ha="right",
+        va="top",
+        fontsize=8,
         color="#333333",
     )
 
@@ -474,7 +480,6 @@ def plot_salary_distribution(df: pd.DataFrame, cfg: Config) -> Path:
         .groupby(cfg.role_col)[cfg.salary_col]
         .median()
         .sort_values(ascending=False)
-        .head(5)
         .index.tolist()
     )
     plot_df = df[df[cfg.role_col].isin(top_roles)].dropna(subset=[cfg.salary_col]).copy()
@@ -496,17 +501,12 @@ def plot_salary_distribution(df: pd.DataFrame, cfg: Config) -> Path:
         width=0.5,
         flierprops={"marker": "o", "markersize": 3, "alpha": 0.4},
     )
-    ax2.set_xlabel("Annual Salary (₹ lakhs)", fontsize=12)
+    ax2.set_xlabel("Annual salary (₹ lakhs)", fontsize=9)
     ax2.set_ylabel("")
-    ax2.set_title("Salary by Role (median line = typical pay)", fontsize=13, fontweight="bold")
+    ax2.set_title("Salary by role (line in each box = median)", fontsize=10, fontweight="bold")
+    ax2.tick_params(labelsize=8.5)
 
-    plt.suptitle(
-        "TalentLens EDA — Salary Analysis",
-        fontsize=15,
-        fontweight="bold",
-        y=1.02,
-    )
-    plt.tight_layout()
+    plt.tight_layout(h_pad=1.5)
 
     out_path = cfg.figures_dir / "ch07_salary_distribution.png"
     plt.savefig(out_path, dpi=SAVE_DPI, bbox_inches="tight")
@@ -525,7 +525,7 @@ def plot_skill_frequency(skill_freq: pd.Series, cfg: Config) -> Path:
     Returns:
         Path to saved figure.
     """
-    fig, ax = plt.subplots(figsize=(11, 8))
+    fig, ax = plt.subplots(figsize=(7.0, 5.1))
 
     colors = [
         "#2196F3" if p >= 0.40 else "#64B5F6" if p >= 0.20 else "#BBDEFB" for p in skill_freq.values
@@ -572,7 +572,7 @@ def plot_role_comparison(role_stats: pd.DataFrame, cfg: Config) -> Path:
     Returns:
         Path to saved figure.
     """
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(6.4, 3.8))
 
     roles = role_stats.index.tolist()
     medians_l = role_stats["median"].values / 100_000
@@ -589,25 +589,24 @@ def plot_role_comparison(role_stats: pd.DataFrame, cfg: Config) -> Path:
             f"₹{median:.1f}L\n(n={count:,})",
             ha="center",
             va="bottom",
-            fontsize=10,
+            fontsize=8,
             fontweight="bold",
         )
 
-    ax.set_ylabel("Median Annual Salary (₹ lakhs)", fontsize=12)
-    ax.set_title("Median Salary by Role — TalentLens Dataset", fontsize=13, fontweight="bold")
-    ax.tick_params(axis="x", labelsize=11)
-    ax.set_ylim(0, medians_l.max() * 1.25)
-
-    ax.annotate(
-        "Median used (not mean) — salary distributions\nare right-skewed; mean overstates typical pay",
-        xy=(0.02, 0.96),
-        xycoords="axes fraction",
-        fontsize=9,
+    ax.set_ylabel("Median annual salary (₹ lakhs)", fontsize=9.5)
+    ax.set_title("Median salary by role", fontsize=10.5, fontweight="bold")
+    ax.set_xticks(range(len(roles)))
+    ax.set_xticklabels([r.replace(" ", "\n", 1) for r in roles], fontsize=8.5)
+    ax.set_ylim(0, medians_l.max() * 1.3)
+    fig.text(
+        0.01,
+        0.01,
+        "Medians, not means: salaries are right-skewed, so the mean overstates typical pay.",
+        fontsize=7.5,
         color="gray",
-        va="top",
     )
 
-    plt.tight_layout()
+    plt.tight_layout(rect=(0, 0.04, 1, 1))
     out_path = cfg.figures_dir / "ch07_role_comparison.png"
     plt.savefig(out_path, dpi=SAVE_DPI, bbox_inches="tight")
     plt.close()

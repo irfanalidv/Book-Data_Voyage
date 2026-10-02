@@ -26,7 +26,7 @@ Every chapter is one step. By the end of Chapter 5 you have a data collector. By
 
 ---
 
-This is not a survey course. We are not going to cover every algorithm. We are going to cover the ones you need to build TalentLens, and we are going to cover them properly, with the parameters explained in plain English, the alternatives discussed honestly, and the failure modes named explicitly.
+This is not a survey course. We are not going to cover every algorithm. We are going to cover the ones you need to build TalentLens, and we are going to cover them properly, with the parameters explained in plain English, the alternatives compared, and the failure modes named explicitly.
 
 The chapters that follow are written the way I wish someone had written this material when I was starting: assuming you're smart, telling you the truth, showing you what works in production, and pointing out the places where the textbook answer and the real answer diverge.
 

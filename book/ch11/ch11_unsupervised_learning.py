@@ -136,7 +136,7 @@ def describe_clusters(df: pd.DataFrame, labels: np.ndarray) -> list[dict]:
 
 def plot_elbow_silhouette(k_vals, inertias, sils, cfg: Config) -> Path:
     cfg.figures_dir.mkdir(parents=True, exist_ok=True)
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.9))
     axes[0].plot(k_vals, inertias, "o-", color="#2196F3", linewidth=2, markersize=7)
     axes[0].axvline(cfg.final_k, color="#F44336", linestyle="--", linewidth=1.5, alpha=0.8)
     axes[0].text(
@@ -172,7 +172,7 @@ def plot_cluster_pca(X, labels, descriptions, cfg: Config) -> Path:
     rng = np.random.default_rng(42)
     idx = rng.choice(len(labels), sample_size, replace=False)
     colors = plt.cm.tab10(np.linspace(0, 1, len(set(labels))))
-    fig, ax = plt.subplots(figsize=(11, 8))
+    fig, ax = plt.subplots(figsize=(7.0, 5.1))
     for cid in sorted(set(labels)):
         mask = labels[idx] == cid
         desc = next((d for d in descriptions if d["cluster_id"] == cid), {})
@@ -189,7 +189,7 @@ def plot_cluster_pca(X, labels, descriptions, cfg: Config) -> Path:
     ax.set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0]*100:.1f}% var)", fontsize=11)
     ax.set_ylabel(f"PC2 ({pca.explained_variance_ratio_[1]*100:.1f}% var)", fontsize=11)
     ax.set_title("Job Clusters -- PCA 2D Projection", fontsize=12, fontweight="bold")
-    ax.legend(fontsize=9, loc="upper right")
+    ax.legend(fontsize=7.5, loc="upper left", bbox_to_anchor=(1.01, 1.0), frameon=False)
     plt.tight_layout()
     out = cfg.figures_dir / "ch11_cluster_pca.png"
     plt.savefig(out, dpi=SAVE_DPI, bbox_inches="tight")
@@ -203,16 +203,16 @@ def plot_cluster_profiles(descriptions: list[dict], cfg: Config) -> Path:
     ids = [d["cluster_id"] for d in descriptions]
     sizes = [d["size"] for d in descriptions]
     salaries = [d["median_salary_l"] for d in descriptions]
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.9))
     axes[0].bar([f"C{i}" for i in ids], sizes, color="#2196F3", alpha=0.85, edgecolor="white")
-    axes[0].set_ylabel("Job postings", fontsize=11)
-    axes[0].set_title("Cluster Size", fontsize=12, fontweight="bold")
+    axes[0].set_ylabel("Job postings", fontsize=9)
+    axes[0].set_title("Cluster size", fontsize=9.5, fontweight="bold")
     axes[1].bar([f"C{i}" for i in ids], salaries, color="#4CAF50", alpha=0.85, edgecolor="white")
-    axes[1].set_ylabel("Median Salary (₹ lakhs)", fontsize=11)
-    axes[1].set_title("Median Salary per Cluster", fontsize=12, fontweight="bold")
+    axes[1].set_ylabel("Median salary (₹ lakhs)", fontsize=9)
+    axes[1].set_title("Median salary per cluster (₹L)", fontsize=9.5, fontweight="bold")
     for i, (cid, sal) in enumerate(zip(ids, salaries)):
-        axes[1].text(i, sal + 0.2, f"₹{sal:.1f}L", ha="center", fontsize=9, fontweight="bold")
-    plt.suptitle("TalentLens Cluster Profiles", fontsize=13, fontweight="bold")
+        axes[1].text(i, sal + 0.4, f"{sal:.1f}", ha="center", fontsize=7.5, fontweight="bold")
+    plt.suptitle("TalentLens cluster profiles", fontsize=10.5, fontweight="bold")
     plt.tight_layout()
     out = cfg.figures_dir / "ch11_cluster_profiles.png"
     plt.savefig(out, dpi=SAVE_DPI, bbox_inches="tight")

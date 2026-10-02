@@ -301,60 +301,60 @@ def plot_pipeline_architecture(cfg: Config) -> Path:
     return out
 
 
-def plot_pipeline_timing(cfg: Config) -> Path:
-    """Gantt-style chart showing job timing and parallelism."""
-    fig, ax = plt.subplots(figsize=(12, 5))
+# Job start and end, in seconds after the run started, from a push to main on
+# the public repository: GitHub Actions run 36943859188, 2 October 2026
+# (gh api repos/irfanalidv/Book-Data_Voyage/actions/runs/36943859188/jobs).
+# The deploy job finished in 3 s because no Render deploy hook is configured.
+MEASURED_RUN: list[tuple[str, int, int, str]] = [
+    ("test (3.11)", 0, 306, "#4CAF50"),
+    ("test (3.12)", 0, 313, "#66BB6A"),
+    ("lint", 1, 13, "#FF9800"),
+    ("docker build\n+ probes", 315, 348, "#2196F3"),
+    ("deploy", 350, 353, "#F44336"),
+]
 
-    jobs = [
-        ("test (3.11)", 0, 107, "#4CAF50"),
-        ("test (3.12)", 0, 112, "#66BB6A"),
-        ("lint", 0, 38, "#FF9800"),
-        ("docker build", 115, 415, "#2196F3"),
-        ("deploy", 418, 441, "#F44336"),
-    ]
+
+def plot_pipeline_timing(cfg: Config) -> Path:
+    """Gantt-style chart of one measured CI run: which jobs overlap and what dominates."""
+    fig, ax = plt.subplots(figsize=(6.6, 2.9))
+    jobs = MEASURED_RUN
 
     for i, (label, start, end, color) in enumerate(jobs):
-        ax.barh(i, end - start, left=start, color=color, alpha=0.75, edgecolor="white", height=0.55)
+        width = max(end - start, 2)
+        ax.barh(i, width, left=start, color=color, alpha=0.8, edgecolor="white", height=0.55)
+        inside = end - start >= 40
         ax.text(
-            start + (end - start) / 2,
+            start + width / 2 if inside else end + 4,
             i,
-            f"{end-start}s",
-            ha="center",
+            f"{end - start}s",
+            ha="center" if inside else "left",
             va="center",
-            fontsize=9,
+            fontsize=8,
             fontweight="bold",
-            color="white",
+            color="white" if inside else "#333333",
         )
-        ax.text(-5, i, label, ha="right", va="center", fontsize=10)
 
-    # Dependency markers
-    ax.axvline(115, color="gray", linestyle="--", linewidth=1, alpha=0.6)
-    ax.text(115, len(jobs) - 0.3, "test+lint\npassed", ha="center", fontsize=8, color="gray")
-    ax.axvline(418, color="gray", linestyle="--", linewidth=1, alpha=0.6)
-    ax.text(418, len(jobs) - 0.3, "docker\npassed", ha="center", fontsize=8, color="gray")
+    ax.set_yticks(range(len(jobs)))
+    ax.set_yticklabels([job[0] for job in jobs], fontsize=8.5)
+    ax.invert_yaxis()
 
-    # Total time marker
-    ax.axvline(441, color="#4CAF50", linestyle="-", linewidth=2, alpha=0.8)
+    ax.axvline(315, color="gray", linestyle="--", linewidth=1, alpha=0.6)
+    ax.text(311, -0.75, "tests and lint passed", ha="right", fontsize=7.5, color="gray")
+    total = jobs[-1][2]
+    ax.axvline(total, color="#2E7D32", linewidth=1.5, alpha=0.8)
     ax.text(
-        443, -0.8, "Live\n~7 min total", ha="left", fontsize=9, fontweight="bold", color="#4CAF50"
+        total + 4,
+        -0.75,
+        f"done: {total // 60} min {total % 60} s",
+        fontsize=7.5,
+        fontweight="bold",
+        color="#2E7D32",
     )
 
-    ax.set_xlabel("Time (seconds from push)", fontsize=11)
-    ax.set_yticks([])
-    ax.set_title(
-        "CI/CD Pipeline Timing — Parallelism cuts wall-clock time", fontsize=13, fontweight="bold"
-    )
-    ax.set_xlim(-80, 520)
-    ax.set_ylim(-1.2, len(jobs) + 0.5)
-
-    # Parallelism annotation
-    ax.annotate(
-        "",
-        xy=(112, 3.8),
-        xytext=(0, 3.8),
-        arrowprops=dict(arrowstyle="<->", color="#555555", lw=1.5),
-    )
-    ax.text(56, 4.1, "test + lint run in parallel", ha="center", fontsize=8.5, color="#555555")
+    ax.set_xlabel("Seconds after the push", fontsize=9)
+    ax.set_xlim(0, 440)
+    ax.set_ylim(len(jobs) - 0.4, -1.1)
+    ax.set_title("One measured CI run: the test jobs dominate", fontsize=10.5, fontweight="bold")
 
     plt.tight_layout()
     out = cfg.figures_dir / "ch21_pipeline_timing.png"

@@ -745,7 +745,7 @@ def plot_latency_breakdown(timings_list: list[dict], cfg: Config) -> Path:
     values = [cv_t, search_t, exp_t, total]
     colors = ["#FF9800", "#4CAF50", "#2196F3", "#9C27B0"]
 
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(7.0, 3.5))
     bars = ax.bar(labels, values, color=colors, edgecolor="white", alpha=0.85, width=0.55)
     for bar, val in zip(bars, values):
         ax.text(
@@ -792,7 +792,7 @@ def plot_token_budget(cfg: Config) -> Path:
     colors = ["#607D8B", "#9C27B0", "#2196F3", "#FF9800", "#4CAF50"]
     total = sum(components.values())
 
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(6.6, 2.9))
     left = 0
     for (label, tokens), color in zip(components.items(), colors):
         pct = tokens / total * 100
@@ -805,31 +805,33 @@ def plot_token_budget(cfg: Config) -> Path:
             height=0.5,
             label=f"{label} ({tokens:,} tok, {pct:.0f}%)",
         )
-        ax.text(
-            left + tokens / 2,
-            0,
-            f"{tokens:,}",
-            ha="center",
-            va="center",
-            fontsize=9,
-            color="white" if tokens > 400 else "black",
-            fontweight="bold",
-        )
+        if tokens >= 400:  # small segments are labelled in the legend instead
+            ax.text(
+                left + tokens / 2,
+                0,
+                f"{tokens:,}",
+                ha="center",
+                va="center",
+                fontsize=8,
+                color="white",
+                fontweight="bold",
+            )
         left += tokens
 
     # Context limit line
     ax.axvline(8192, color="#F44336", linewidth=2, linestyle="--")
-    ax.text(8250, 0.3, "8K context\nlimit (Llama 3.1)", fontsize=8.5, color="#F44336")
+    ax.text(8100, -0.3, "8K context limit", fontsize=7.5, color="#F44336", ha="right")
 
     ax.set_xlim(0, 9000)
+    ax.set_ylim(-0.4, 0.4)
     ax.set_yticks([])
-    ax.set_xlabel("Token count", fontsize=12)
+    ax.set_xlabel("Token count", fontsize=9)
     ax.set_title(
-        f"Prompt Token Budget — Total: {total:,} / 8,192 token context window",
-        fontsize=13,
+        f"Prompt token budget: {total:,} of an 8,192-token context",
+        fontsize=10.5,
         fontweight="bold",
     )
-    ax.legend(loc="lower right", fontsize=9)
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.28), ncol=2, fontsize=7.5, frameon=False)
     plt.tight_layout()
     out = cfg.figures_dir / "ch17_prompt_token_budget.png"
     plt.savefig(out, dpi=SAVE_DPI, bbox_inches="tight")

@@ -20,6 +20,7 @@ Outputs:
 from __future__ import annotations
 
 import logging
+import textwrap
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -387,7 +388,7 @@ def plot_market_segments(segment_df: pd.DataFrame, cfg: Config) -> Path:
     Returns:
         Path to saved figure.
     """
-    fig, ax = plt.subplots(figsize=(12, 7))
+    fig, ax = plt.subplots(figsize=(6.6, 3.8))
 
     colors = ["#2196F3", "#4CAF50", "#FF9800", "#9C27B0", "#F44336"]
     y_pos = range(len(segment_df))
@@ -409,30 +410,35 @@ def plot_market_segments(segment_df: pd.DataFrame, cfg: Config) -> Path:
         ax.text(
             row["p75_l"] + 0.5,
             i,
-            f"₹{row['median_l']:.0f}L median | {row['remote_pct']:.0f}% remote",
+            f"₹{row['median_l']:.0f}L median, {row['remote_pct']:.0f}% remote",
             va="center",
-            fontsize=10,
+            fontsize=8,
         )
 
     ax.set_yticks(list(y_pos))
-    ax.set_yticklabels(segment_df["segment"].tolist(), fontsize=11)
-    ax.set_xlabel("Annual Salary (₹ Lakhs)", fontsize=12)
+    ax.set_yticklabels(
+        [
+            textwrap.fill(s, 24, break_long_words=False, break_on_hyphens=False)
+            for s in segment_df["segment"]
+        ],
+        fontsize=8.5,
+    )
+    ax.set_xlabel("Annual salary (₹ lakhs)", fontsize=9.5)
     ax.set_title(
-        "Salary by Market Segment — Shaded band = P25–P75, vertical bar = median",
-        fontsize=13,
+        "Salary by market segment\nshaded band = P25 to P75, solid bar = median",
+        fontsize=10.5,
         fontweight="bold",
     )
-    ax.set_xlim(0, segment_df["p75_l"].max() * 1.45)
-
-    ax.annotate(
-        "Wider shaded band = higher salary variance within that segment",
-        xy=(0.02, 0.02),
-        xycoords="axes fraction",
-        fontsize=9,
+    ax.set_xlim(0, segment_df["p75_l"].max() * 1.6)
+    fig.text(
+        0.01,
+        0.01,
+        "A wider band means more spread in pay within that segment.",
+        fontsize=7.5,
         color="gray",
     )
 
-    plt.tight_layout()
+    plt.tight_layout(rect=(0, 0.04, 1, 1))
     out = cfg.figures_dir / "ch24_salary_by_market_segment.png"
     plt.savefig(out, dpi=SAVE_DPI, bbox_inches="tight")
     plt.close()
@@ -455,42 +461,41 @@ def plot_remote_premium(df: pd.DataFrame, stats: dict[str, float], cfg: Config) 
     salary_df["work_mode"] = salary_df["is_remote"].map({True: "Remote", False: "On-site"})
     salary_df["salary_l"] = salary_df["salary_annual_inr"] / 100_000
 
-    fig, ax = plt.subplots(figsize=(9, 6))
+    order = ["On-site", "Remote"]  # fixed order, so each label sits on its own box
+    fig, ax = plt.subplots(figsize=(6.0, 4.0))
     sns.boxplot(
         data=salary_df,
         x="work_mode",
         y="salary_l",
+        order=order,
+        hue="work_mode",
+        hue_order=order,
         palette={"Remote": "#2196F3", "On-site": "#90CAF9"},
+        legend=False,
         width=0.5,
         flierprops={"marker": "o", "markersize": 3, "alpha": 0.3},
         ax=ax,
     )
 
-    remote_med = stats["remote_median"] / 100_000
-    onsite_med = stats["onsite_median"] / 100_000
-
-    ax.annotate(
-        f"Remote median\n₹{remote_med:.1f}L",
-        xy=(0, remote_med),
-        xytext=(-0.35, remote_med + 5),
-        arrowprops=dict(arrowstyle="->", color="#333333"),
-        fontsize=10,
-        fontweight="bold",
-    )
-    ax.annotate(
-        f"On-site median\n₹{onsite_med:.1f}L",
-        xy=(1, onsite_med),
-        xytext=(1.05, onsite_med + 5),
-        arrowprops=dict(arrowstyle="->", color="#333333"),
-        fontsize=10,
-        fontweight="bold",
-    )
+    medians = {
+        "On-site": stats["onsite_median"] / 100_000,
+        "Remote": stats["remote_median"] / 100_000,
+    }
+    for pos, mode in enumerate(order):
+        ax.annotate(
+            f"{mode} median\n₹{medians[mode]:.1f}L",
+            xy=(pos + 0.25, medians[mode]),
+            xytext=(pos + 0.32, medians[mode] + 14),
+            arrowprops=dict(arrowstyle="->", color="#333333"),
+            fontsize=9,
+            fontweight="bold",
+        )
 
     ax.set_ylabel("Annual Salary (₹ Lakhs)", fontsize=12)
     ax.set_xlabel("")
     ax.set_title(
-        f"Remote Premium: +{stats['premium_pct']:.0f}% vs on-site (median)",
-        fontsize=13,
+        f"Remote premium: +{stats['premium_pct']:.0f}% over on-site (median)",
+        fontsize=11,
         fontweight="bold",
     )
 
@@ -512,7 +517,7 @@ def plot_skill_salary_premium(skill_premium: pd.Series, cfg: Config) -> Path:
     Returns:
         Path to saved figure.
     """
-    fig, ax = plt.subplots(figsize=(10, 7))
+    fig, ax = plt.subplots(figsize=(7.0, 4.9))
 
     colors = [
         "#1565C0" if v >= 0.20 else "#1976D2" if v >= 0.12 else "#64B5F6"
@@ -524,7 +529,6 @@ def plot_skill_salary_premium(skill_premium: pd.Series, cfg: Config) -> Path:
     )
     ax.set_yticks(range(len(skill_premium)))
     ax.set_yticklabels(skill_premium.index, fontsize=11)
-    ax.invert_yaxis()
     ax.set_xlabel("Salary Premium vs Python/SQL-only baseline (%)", fontsize=12)
     ax.set_title(
         "Which Skills Actually Pay More — 2026 India Market", fontsize=13, fontweight="bold"
@@ -564,7 +568,7 @@ def plot_career_trajectory(cfg: Config) -> Path:
     Returns:
         Path to saved figure.
     """
-    fig, ax = plt.subplots(figsize=(11, 7))
+    fig, ax = plt.subplots(figsize=(6.0, 3.9))
 
     colors = {
         "Service company → exit at 2yr": "#F44336",
@@ -594,40 +598,36 @@ def plot_career_trajectory(cfg: Config) -> Path:
         ax.annotate(
             f"₹{salaries_l[-1]:.0f}L",
             xy=(years[-1], salaries_l[-1]),
-            xytext=(years[-1] + 0.1, salaries_l[-1] + 2),
-            fontsize=10,
+            xytext=(years[-1] + 0.12, salaries_l[-1] - 1),
+            fontsize=9,
             fontweight="bold",
             color=colors[path],
         )
 
     ax.axvline(2, color="gray", linestyle=":", linewidth=1, alpha=0.7)
-    ax.text(
-        2.05, ax.get_ylim()[1] * 0.95, "Exit point\nfor service\npath", fontsize=9, color="gray"
-    )
+    ax.text(1.95, 30, "service path\nexits here", fontsize=7.5, color="gray", ha="right")
 
     ax.axvline(3, color="#2196F3", linestyle=":", linewidth=1, alpha=0.5)
-    ax.text(
-        3.05, ax.get_ylim()[1] * 0.55, "Switch to\nremote\ncontract", fontsize=9, color="#2196F3"
-    )
+    ax.text(3.08, 64, "switch to a\nremote contract", fontsize=7.5, color="#2196F3")
 
-    ax.set_xlabel("Years of Experience", fontsize=12)
-    ax.set_ylabel("Annual Salary (₹ Lakhs)", fontsize=12)
-    ax.set_title(
-        "5-Year Career Trajectory Comparison — India AI Market", fontsize=13, fontweight="bold"
-    )
-    ax.legend(fontsize=11)
+    ax.set_xlabel("Years of experience", fontsize=9.5)
+    ax.set_ylabel("Annual salary (₹ lakhs)", fontsize=9.5)
+    ax.set_title("Five-year salary paths, India AI market", fontsize=10.5, fontweight="bold")
+    ax.legend(fontsize=8, loc="upper left")
     ax.set_xticks([0, 1, 2, 3, 4, 5])
+    ax.set_xlim(-0.2, 5.6)
+    ax.set_ylim(0, 80)
 
-    ax.annotate(
-        "These are median projections. Actual outcomes vary significantly\n"
-        "based on company, role, performance, and negotiation skill.",
-        xy=(0.02, 0.02),
-        xycoords="axes fraction",
-        fontsize=9,
+    fig.text(
+        0.01,
+        0.01,
+        "Median projections from the author's judgement; real outcomes vary with company, "
+        "role, performance, and negotiation.",
+        fontsize=7,
         color="gray",
     )
 
-    plt.tight_layout()
+    plt.tight_layout(rect=(0, 0.04, 1, 1))
     out = cfg.figures_dir / "ch24_career_trajectory.png"
     plt.savefig(out, dpi=SAVE_DPI, bbox_inches="tight")
     plt.close()
