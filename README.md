@@ -32,7 +32,7 @@ This is the companion repository for the book *Data Voyage*. The book teaches pr
 
 The code is MIT-licensed and the chapter text can be read here on GitHub, because a book about shipping real systems should let you check that every number reproduces. If the book helps you, buying the ebook is how you support the work.
 
-Readers in India: [India price](https://leanpub.com/datavoyage/c/INDIA). Students in India: [student price](https://leanpub.com/datavoyage/c/INDIASTUDENTS).
+Readers in India: [India price](https://leanpub.com/datavoyage/c/INDIA).
 
 ---
 
