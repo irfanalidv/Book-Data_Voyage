@@ -12,7 +12,7 @@ Irfan Ali · Published by DataCortex IQ</p>
   <a href="https://github.com/irfanalidv/Book-Data_Voyage/actions/workflows/ci.yml"><img src="https://github.com/irfanalidv/Book-Data_Voyage/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/irfanalidv/Book-Data_Voyage/releases/latest"><img src="https://img.shields.io/github/v/release/irfanalidv/Book-Data_Voyage?label=edition" alt="Latest edition"></a>
   <img src="https://img.shields.io/badge/python-3.11%20%7C%203.12-3776AB?logo=python&logoColor=white" alt="Python 3.11 and 3.12">
-  <img src="https://img.shields.io/badge/tests-425-2EA44F" alt="425 tests">
+  <img src="https://img.shields.io/badge/tests-428-2EA44F" alt="428 tests">
   <a href="LICENSE"><img src="https://img.shields.io/badge/code-MIT-green" alt="Code license: MIT"></a>
   <a href="LICENSE-BOOK.md"><img src="https://img.shields.io/badge/book%20text-%C2%A9%20all%20rights%20reserved-lightgrey" alt="Book text: all rights reserved"></a>
   <img src="https://img.shields.io/badge/code%20style-black-000000" alt="Code style: black">
@@ -28,13 +28,15 @@ This is the companion repository for the book *Data Voyage*. The book teaches pr
 
 ## Get the book
 
-**Read it free right here on GitHub**, or get the typeset ebook (PDF and EPUB, readable offline, with free updates) on **[Leanpub](https://leanpub.com/datavoyage)**. Buying a copy is the best way to support the book.
+**[Get the ebook on Leanpub](https://leanpub.com/datavoyage):** a 365-page typeset PDF and an EPUB for e-readers and phones, to read offline. Every code reference in it opens the exact file in this repository.
+
+The code is MIT-licensed and the chapter text can be read here on GitHub, because a book about shipping real systems should let you check that every number reproduces. If the book helps you, buying the ebook is how you support the work.
 
 Students in India: use [this link for the student price](https://leanpub.com/datavoyage/c/INDIASTUDENTS).
 
 ---
 
-**Contents:** [Get the book](#get-the-book) · [Quick start](#quick-start) · [How to read along](#how-to-read-along) · [What you will build](#what-you-will-build) · [Repository layout](#whats-in-this-repository) · [Quality and verification](#quality-and-verification) · [The dataset](#the-dataset) · [Building the ebook](#building-the-ebook) · [Troubleshooting](#troubleshooting) · [Editions and roadmap](#editions-and-roadmap) · [About the author](#about-the-author) · [Cite this book](#cite-this-book) · [License](#license) · [Contributing and support](#contributing-and-support) · [Acknowledgements](#acknowledgements)
+**Contents:** [Get the book](#get-the-book) · [Quick start](#quick-start) · [How to read along](#how-to-read-along) · [What you will build](#what-you-will-build) · [Repository layout](#whats-in-this-repository) · [Quality and verification](#quality-and-verification) · [The dataset](#the-dataset) · [Building the ebook](#building-the-ebook) · [Troubleshooting](#troubleshooting) · [Edition and scope](#edition-and-scope) · [About the author](#about-the-author) · [Cite this book](#cite-this-book) · [License](#license) · [Contributing and support](#contributing-and-support) · [Acknowledgements](#acknowledgements)
 
 ---
 
@@ -143,18 +145,18 @@ The book promises that every number in it reproduces from a fresh clone. These c
 
 | Check | What it guarantees | Where it runs | Run it yourself |
 |---|---|---|---|
-| Test suite (425 tests) | Every chapter's code behaves as the text describes | CI, Python 3.11 and 3.12 | `make test` |
+| Test suite (428 tests) | Every chapter's code behaves as the text describes | CI, Python 3.11 and 3.12 | `make test` |
 | Bundled dataset | The Chapter 5 and 6 pipeline regenerates `data/clean/jobs_clean.csv` byte for byte | CI (part of the suite) | `pytest tests/test_bundled_dataset.py` |
 | Schema contract | The `jobs_clean.csv` columns every later chapter reads stay unchanged | CI (part of the suite) | `pytest tests/test_schema_contract.py` |
 | Lint | ruff rules E, F, W, I across `book/`, `tests/`, `talentlens/` | CI (blocking) | `make lint` |
 | Formatting | black, line length 100 | CI (advisory) | `make format-check` |
-| Types | mypy on the shared `talentlens` package (chapter scripts are excluded) | Local and pre-commit | `make type-check` |
+| Types | mypy in strict mode on the shared `talentlens` package (chapter scripts are excluded) | Local and pre-commit | `make type-check` |
 | Docker image | The Chapter 20 image builds, starts, and answers `GET /health`, `POST /api/v1/search` and `POST /api/v1/classify` | CI, every push to `main` | `make docker` |
 | Slim runtime deps | `requirements-api.txt` alone is enough to import the API | Local | `make verify-api-deps` |
-| Chapter scripts | All 25 chapter scripts run end to end on the bundled data | Before each release | `python book/chNN/<script>.py` |
-| Ebook | The EPUB passes EPUBCheck with no errors or warnings; the PDF is checked for text past the margins and headings stranded at the foot of a page; every code link in the text resolves to a file in this repository | Before each release | `make epub`, `make pdf` |
+| Chapter scripts | All 25 chapter scripts run end to end on the bundled data | Before publication | `python book/chNN/<script>.py` |
+| Ebook | The EPUB passes EPUBCheck with no errors or warnings; the PDF is checked for text past the margins and headings stranded at the foot of a page; every code link in the text resolves to a file in this repository | Before publication | `make epub`, `make pdf` |
 
-Dependencies are pinned in `requirements-lock.txt`, so a fresh install today gets the versions the book was tested with. Pull requests also run a faster test-and-lint check ([`pr-check.yml`](.github/workflows/pr-check.yml)). GitHub Dependabot alerts are on. The remaining advisories, for PyTorch and Transformers, need major upgrades that would shift numbers quoted in Chapters 12, 13 and 16, so [ROADMAP.md](./ROADMAP.md) schedules them for the next edition together with a re-run of those chapters.
+Dependencies are pinned in `requirements-lock.txt`, so a fresh install today gets the versions the book was tested with. Pull requests also run a faster test-and-lint check ([`pr-check.yml`](.github/workflows/pr-check.yml)). GitHub Dependabot alerts are on. The open advisories are for the pinned PyTorch and Transformers; upgrading them would shift numbers quoted in Chapters 12, 13 and 16, so the book stays on the tested versions. [SCOPE.md](./SCOPE.md#pinned-dependencies) explains what the advisories cover and how to upgrade for production.
 
 ---
 
@@ -203,12 +205,12 @@ To change dependencies, edit `requirements.txt`, run `pip install uv && make loc
 
 ---
 
-## Editions and roadmap
+## Edition and scope
 
-The current edition is **2.1**, released on 1 October 2026. Each edition is a tagged [GitHub release](https://github.com/irfanalidv/Book-Data_Voyage/releases), and Leanpub readers get every new edition free.
+This is the complete edition, **2.2**, published in October 2026 and tagged as a [GitHub release](https://github.com/irfanalidv/Book-Data_Voyage/releases).
 
-- [CHANGELOG.md](./CHANGELOG.md) records what changed in each edition.
-- [ROADMAP.md](./ROADMAP.md) lists what the book deliberately leaves out and what is planned next.
+- [SCOPE.md](./SCOPE.md) lists what the book deliberately leaves out and why, as extensions you can build yourself.
+- [CHANGELOG.md](./CHANGELOG.md) records how the book reached this edition.
 
 ---
 
@@ -228,7 +230,7 @@ Irfan Ali is a senior AI engineer with seven years of production experience and 
   publisher = {DataCortex IQ},
   title     = {Data Voyage: Building Real AI Systems from Data to Deployment},
   year      = {2026},
-  edition   = {2.1},
+  edition   = {2.2},
   url       = {https://github.com/irfanalidv/Book-Data_Voyage}
 }
 ```

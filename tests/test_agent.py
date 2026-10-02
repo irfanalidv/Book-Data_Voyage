@@ -8,6 +8,9 @@ fills in its function.
 
 from __future__ import annotations
 
+import json
+from types import SimpleNamespace
+
 import pytest
 
 from talentlens.agent import (
@@ -265,3 +268,85 @@ class TestReportWriter:
         assert "## Next section" in second
         assert "Kept as-is" in second
         assert second.count("| **Total** |") == 1
+
+
+class _ScriptedClient:
+    """Stands in for the Groq client: returns pre-written turns in order."""
+
+    def __init__(self, turns):
+        self._turns = list(turns)
+        self.requests = []
+        self.chat = SimpleNamespace(completions=SimpleNamespace(create=self._create))
+
+    def _create(self, **kwargs):
+        self.requests.append(json.loads(json.dumps(kwargs["messages"], default=str)))
+        message = self._turns.pop(0)
+        usage = SimpleNamespace(prompt_tokens=10, completion_tokens=5)
+        return SimpleNamespace(choices=[SimpleNamespace(message=message)], usage=usage)
+
+
+def _tool_call(call_id, name, arguments):
+    function = SimpleNamespace(name=name, arguments=json.dumps(arguments))
+    return SimpleNamespace(id=call_id, function=function)
+
+
+class TestAgentLoop:
+    """The loop itself, with the model replaced by a scripted client."""
+
+    def test_two_tools_run_in_order_then_answer(self):
+        client = _ScriptedClient(
+            [
+                SimpleNamespace(
+                    content=None,
+                    tool_calls=[
+                        _tool_call("c1", "search_jobs", {"query": "ML Engineer", "k": 1}),
+                        _tool_call("c2", "get_job_detail", {"job_id": "no-such-id"}),
+                    ],
+                ),
+                SimpleNamespace(content="Here is what I found.", tool_calls=None),
+            ]
+        )
+        agent = Agent(use_cache=False)
+        agent._client = client
+
+        result = agent.run("Find one ML Engineer job")
+
+        assert [c.name for c in result.tool_calls] == ["search_jobs", "get_job_detail"]
+        assert result.stop_reason == "natural"
+        assert result.completed is True
+        assert result.final_response == "Here is what I found."
+        assert result.n_llm_calls == 2
+        assert (result.input_tokens, result.output_tokens) == (20, 10)
+        # The second request carries both tool results, in call order.
+        tool_msgs = [m for m in client.requests[1] if m["role"] == "tool"]
+        assert [m["tool_call_id"] for m in tool_msgs] == ["c1", "c2"]
+
+    def test_malformed_arguments_become_a_tool_error(self):
+        bad = SimpleNamespace(id="c1", function=SimpleNamespace(name="search_jobs", arguments="{"))
+        client = _ScriptedClient(
+            [
+                SimpleNamespace(content=None, tool_calls=[bad]),
+                SimpleNamespace(content="Sorry.", tool_calls=None),
+            ]
+        )
+        agent = Agent(use_cache=False)
+        agent._client = client
+
+        result = agent.run("anything")
+
+        assert result.tool_calls[0].result is None
+        assert result.tool_calls[0].error.startswith("Malformed tool arguments")
+        assert result.completed is True
+
+    def test_stops_at_max_steps(self):
+        loop_turn = SimpleNamespace(
+            content=None, tool_calls=[_tool_call("c", "search_jobs", {"query": "x", "k": 1})]
+        )
+        agent = Agent(use_cache=False, max_steps=3)
+        agent._client = _ScriptedClient([loop_turn] * 3)
+
+        result = agent.run("never finishes")
+
+        assert result.stop_reason == "max_steps"
+        assert result.completed is False
+        assert result.n_llm_calls == 3

@@ -30,7 +30,7 @@ make type-check    # if you touched talentlens/
 
 ## Chapter text
 
-The chapter text is © Irfan Ali, all rights reserved (see [LICENSE-BOOK.md](LICENSE-BOOK.md)). Corrections to it are welcome as issues or small pull requests. By submitting a text change you agree that it may be included in the book, in every edition and format, without payment.
+The chapter text is © Irfan Ali, all rights reserved (see [LICENSE-BOOK.md](LICENSE-BOOK.md)). Corrections to it are welcome as issues or small pull requests. By submitting a text change you agree that it may be included in the book, in any format, without payment.
 
 ## Conduct
 

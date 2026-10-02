@@ -204,7 +204,7 @@ format-check: ## Check formatting without making changes (used in CI)
 
 type-check: ## Run mypy on talentlens/ (strict; chapter scripts are excluded in pyproject.toml)
 	@echo "$(GREEN)Type checking...$(RESET)"
-	$(PYTHON) -m mypy talentlens/ --ignore-missing-imports --no-strict-optional
+	$(PYTHON) -m mypy talentlens/ --ignore-missing-imports
 	@echo "$(GREEN)Type check passed.$(RESET)"
 
 # ── Running the API ───────────────────────────────────────────────────────────

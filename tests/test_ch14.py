@@ -90,7 +90,7 @@ class TestDecomposition:
 
     @pytest.mark.skip(
         reason=(
-            "ROADMAP.md: decomposition on the bundled COVID fetch is short/noisy; "
+            "SCOPE.md: decomposition on the bundled COVID fetch is short/noisy; "
             "chapter uses network fallback. This test uses a long synthetic series instead."
         )
     )

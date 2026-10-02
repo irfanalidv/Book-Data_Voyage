@@ -67,7 +67,7 @@ title: "Data Voyage"
 subtitle: "Building Real AI Systems from Data to Deployment"
 author: "Irfan Ali"
 lang: en-IN
-date: "2026-10-01"
+date: "2026-10-02"
 rights: "Copyright © 2026 Irfan Ali. All rights reserved."
 publisher: "DataCortex IQ"
 subject: ["Artificial intelligence", "Machine learning", "Software engineering"]

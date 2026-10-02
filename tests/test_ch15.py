@@ -70,6 +70,6 @@ class TestChunkedRead:
         assert elapsed >= 0
 
 
-@pytest.mark.skip(reason="polars/dask comparison deferred — see ROADMAP.md and ch15 prose.")
+@pytest.mark.skip(reason="polars/dask comparison is out of scope; see SCOPE.md and ch15 prose.")
 def test_polars_dask_benchmarks_deferred():
     pass

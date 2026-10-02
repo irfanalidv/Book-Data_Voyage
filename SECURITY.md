@@ -8,7 +8,7 @@ Please do not report security problems in public issues. Email **irfan@datacorte
 - the steps to reproduce it,
 - the impact you expect.
 
-You will get an acknowledgement within five working days. Once a fix is ready, it ships in the next release and is noted in [CHANGELOG.md](CHANGELOG.md). Reporters are credited unless they prefer otherwise.
+You will get an acknowledgement within five working days. Confirmed problems are fixed in this repository and noted in [CHANGELOG.md](CHANGELOG.md). Reporters are credited unless they prefer otherwise.
 
 ## Scope
 
@@ -16,7 +16,7 @@ This repository is teaching code. The TalentLens API (Chapters 19 and 20) is a w
 
 In scope: the code in `book/`, `talentlens/`, `scripts/`, the `Dockerfile`, and the GitHub Actions workflows.
 
-Known advisories in pinned third-party packages (PyTorch, Transformers) are tracked in [ROADMAP.md](ROADMAP.md), since upgrading them changes numbers quoted in the book. Reports about other dependencies are welcome.
+Known advisories in the pinned PyTorch and Transformers are explained in [SCOPE.md](SCOPE.md#pinned-dependencies), with what they cover and how to upgrade for production. Reports about other dependencies are welcome.
 
 ## Secrets
 

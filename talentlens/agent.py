@@ -655,21 +655,22 @@ class Agent:
 
             for tc in msg.tool_calls:
                 tool_start = time.monotonic()
+                error: str | None
                 try:
                     arguments = json.loads(tc.function.arguments)
                 except json.JSONDecodeError as e:
                     arguments = {}
-                    result = None
+                    tool_result = None
                     error = f"Malformed tool arguments: {e}"
                 else:
-                    result, error = self._dispatch_tool(tc.function.name, arguments)
+                    tool_result, error = self._dispatch_tool(tc.function.name, arguments)
 
                 tool_elapsed = time.monotonic() - tool_start
                 tool_calls_made.append(
                     ToolCall(
                         name=tc.function.name,
                         arguments=arguments,
-                        result=result,
+                        result=tool_result,
                         elapsed_seconds=tool_elapsed,
                         error=error,
                     )
@@ -679,7 +680,7 @@ class Agent:
                     {
                         "role": "tool",
                         "tool_call_id": tc.id,
-                        "content": json.dumps(error if error else result, default=str),
+                        "content": json.dumps(error if error else tool_result, default=str),
                     }
                 )
 

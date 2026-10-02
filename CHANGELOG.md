@@ -4,15 +4,25 @@ All notable changes to *Data Voyage* and its companion code are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com), and versions
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.2.0] - 2026-10-02
+
+The complete edition.
 
 ### Changed
 
+- ROADMAP.md is now SCOPE.md: what the book leaves out and why, written as
+  extensions to build yourself, with no promised future work. It explains the
+  pinned PyTorch and Transformers advisories and how to upgrade for production.
+- The README and Leanpub description lead with what the ebook offers, and no
+  longer promise future editions.
 - DataCortex IQ is named as the book's publisher (copyright page, EPUB
   metadata, README, citation). Copyright stays with the author.
 
 ### Added
 
+- Tests for the Chapter 18 agent loop with a scripted model: two tools run in
+  order and both results reach the next request, malformed arguments become a
+  tool error, and the loop stops at `max_steps`.
 - README: a Quality and verification section (what is checked, where, and
   the command to run it), a requirements table, how to build the ebook, and
   edition, support, and acknowledgement sections.
@@ -54,6 +64,8 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `make type-check` always errored (it passed `book/` to mypy, which
   `pyproject.toml` excludes). It now checks `talentlens/` in strict mode,
   which passes after adding the missing type hints.
+- `talentlens/agent.py` now passes mypy strict without `--no-strict-optional`:
+  the tool result no longer reuses the name of the run's `AgentResult`.
 - `make verify-api-deps` installed the package with all its dependencies, so
   it could never catch a gap in `requirements-api.txt`. It now uses
   `--no-deps`, like the Dockerfile.

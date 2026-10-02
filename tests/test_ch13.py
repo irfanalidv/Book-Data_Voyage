@@ -39,7 +39,7 @@ _SEMANTIC_SKIP = pytest.mark.skipif(
     not _semantic_stack_usable(),
     reason=(
         "sentence-transformers/torch unavailable or broken in this environment "
-        "(e.g. macOS arm64 torchvision::nms mismatch; see ROADMAP.md)."
+        "(e.g. macOS arm64 torchvision::nms mismatch; see SCOPE.md)."
     ),
 )
 

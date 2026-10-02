@@ -172,8 +172,8 @@ def _rewrite_md_links(text: str, src: Path, report: Report) -> str:
                 f"{src.relative_to(ROOT)}: [{link_text}]({href}) → {plain!r}"
             )
             return plain
-        if lower in ("roadmap.md", "open_threads.md"):
-            plain = "the companion repository's ROADMAP.md"
+        if lower in ("scope.md", "roadmap.md", "open_threads.md"):
+            plain = "the companion repository's SCOPE.md"
             report.link_rewrites.append(
                 f"{src.relative_to(ROOT)}: [{link_text}]({href}) → {plain!r}"
             )
@@ -336,7 +336,7 @@ def build() -> Report:
     report.notes.append(
         "Wiped manuscript/ and rebuilt from book/ (idempotent). "
         "Images → images/<dest>__<basename>; "
-        "GLOSSARY/REFERENCES/ROADMAP links → plain text; "
+        "GLOSSARY/REFERENCES/SCOPE links → plain text; "
         "Part pages generated; emoji replaced for print."
     )
 

@@ -114,13 +114,13 @@ returned with no tool calls executed. The chapter's measurement
 contract is preserved — every query produces a trace, including
 the failed ones.
 
-**Mitigations (deferred, see ROADMAP.md):**
+**Mitigations (not implemented; see SCOPE.md):**
 - Retry once with a clarified system prompt instructing the
   model to use structured tool calls.
 - Fall back to text-only response with a "no good answer"
   message when tool calls fail.
 - Switch to a model with more reliable tool-calling (GPT-4 or
-  Claude — also deferred).
+  Claude, also not implemented).
 
 ### 2. Agent chains tools but produces wasted calls before recovering
 
@@ -241,11 +241,11 @@ additional LLM round).
 - **Already in place:** Structured error envelopes from tools
   (returning a dict with an "error" key, not raising). This
   gives the LLM something concrete to read and recover from.
-- **Deferred (see ROADMAP.md):** Inserting explicit "use the
+- **Not implemented (see SCOPE.md):** Inserting explicit "use the
   `job_id` field from the previous response" instructions in the
   system prompt. This would likely reduce the wasted-call rate
   but couples the prompt to specific tool schemas.
-- **Deferred:** Switching to a tool-calling provider with more
+- **Not implemented:** Switching to a tool-calling provider with more
   reliable argument extraction (OpenAI's function calling has
   historically been more reliable here; Anthropic's tool use
   similarly).
